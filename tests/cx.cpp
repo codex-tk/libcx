@@ -4,4 +4,5 @@
 TEST( cx , hello ) {
     std::string hello = cx::say_hello();
 	ASSERT_EQ(hello, "hello cx");
+    ASSERT_NE(hello, "bye cx");
 }
