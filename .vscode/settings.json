@@ -7,7 +7,16 @@
         "utility": "cpp",
         "xmemory0": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "system_error": "cpp",
+        "xlocmon": "cpp",
+        "xlocale": "cpp",
+        "initializer_list": "cpp",
+        "xtree": "cpp",
+        "map": "cpp",
+        "xiosbase": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

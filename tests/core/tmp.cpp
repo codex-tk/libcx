@@ -41,6 +41,6 @@ TEST( cx_tmp , mem_fun_ptr ) {
     cx::core::mem_fun_ptr< basic_object , int () >::type foo = &basic_object::foo;
     cx::core::mem_fun_ptr< basic_object , int () >::type bar = &basic_object::bar;
     basic_object target_object;
-    ASSERT_EQ( (target_object.*foo)() , 31 );
+    ASSERT_EQ( (target_object.*foo)() , 32 );
     ASSERT_EQ( ((&target_object)->*bar)() , 81 );
 }
