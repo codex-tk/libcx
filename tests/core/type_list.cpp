@@ -31,8 +31,8 @@ TEST( cx_core , type_list ){
     static_assert(  std::is_same< tl::at_t<1> , double >::value );
 
 
-    ASSERT_EQ( tl::pop_back::type::size  , 1 );
-    ASSERT_EQ( tl::size  , 2 );
+    ASSERT_EQ( tl::pop_back::type::size::value  , 1 );
+    ASSERT_EQ( tl::size::value  , 2 );
 
     tl::rebind< std::tuple >::other sample_tuple;
 }
