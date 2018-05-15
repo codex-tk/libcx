@@ -5,10 +5,18 @@
  * @author ghtak
  * @date 2018-05-12
  */
+
+#include <cx/core/sequence.hpp>
 namespace cx::core{
     
     template < typename ... Ts > struct type_list;
-
+#if defined( USE_CX_SEQ_IMPL )
+    template < std::size_t ... S > using seq_impl = cx::core::sequence< S ... >;
+    template < std::size_t S >  using make_seq_impl = typename cx::core::make_sequence< S >::type;
+#else
+    template < std::size_t ... S > using seq_impl = std::index_sequence< S ... >;
+    template < std::size_t S >  using make_seq_impl = std::make_index_sequence< S >;
+#endif
     namespace impl {
         /**
          * @brief find the type in type_list by index
@@ -35,7 +43,7 @@ namespace cx::core{
 
         template < typename I , typename T > struct pop_back;
         template < std::size_t ... I , typename ... Ts > 
-        struct pop_back< std::index_sequence< I ... > , type_list< Ts ... > >
+        struct pop_back< seq_impl< I ... > , type_list< Ts ... > >
         { 
             using type = type_list< typename type_list< Ts ... >::template at<I>::type ... >; 
         };
@@ -61,7 +69,7 @@ namespace cx::core{
 
         using pop_front = impl::pop_front< Ts ... >;
 
-        using pop_back  = impl::pop_back< std::make_index_sequence<sizeof...(Ts) - 1> 
+        using pop_back  = impl::pop_back< make_seq_impl<sizeof...(Ts) - 1> 
                 , type_list< Ts... > >;
 
         enum { size = sizeof...(Ts)  };
