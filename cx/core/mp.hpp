@@ -8,8 +8,6 @@
 #ifndef __cx_core_mp_h__
 #define __cx_core_mp_h__
 
-#include <cx/core/sequence.hpp> 
-
 #define USE_CX_SEQ_IMPL
 
 namespace cx::core::mp {
@@ -62,7 +60,7 @@ namespace cx::core::mp {
         using type = typename at< sizeof...(Ts) - 1 , TypeList< Ts ... >>::type;
     };
 
-    template < typename TypeList , typename U > struct push_back;
+    template < typename TypeList , typename ... U > struct push_back;
 
     template < template < typename ... > class TypeList 
             , typename ... Us 
@@ -71,7 +69,7 @@ namespace cx::core::mp {
         using type = TypeList< Ts ... , Us ... >;
     };
     
-    template < typename TypeList , typename U > struct push_front;
+    template < typename TypeList , typename ... U > struct push_front;
 
     template < template < typename ... > class TypeList 
             , typename ... Us 
