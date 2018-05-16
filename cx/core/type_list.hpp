@@ -33,7 +33,7 @@ namespace cx::core{
 
         using pop_front = cx::core::mp::pop_front< self >;
 
-        using pop_back  = cx::core::mp::pop_back< cx::core::mp::make_seq_impl<sizeof...(Ts) - 1> , self >;
+        using pop_back  = cx::core::mp::pop_back< cx::core::mp::make_sequence<sizeof...(Ts) - 1> , self >;
 
         using size = cx::core::mp::size< self >;
 
