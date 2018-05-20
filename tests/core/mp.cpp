@@ -8,12 +8,16 @@
 #include <gtest/gtest.h>
 #include <cx/core/tuple_sample.hpp>
 
-template < typename ... Ts >
-using tuple = cx::core::mp::detail::values0< 
-            cx::core::mp::make_sequence< sizeof...(Ts) > 
-            , cx::core::type_list< Ts ... > >;
-
 TEST( cx_mp , tuple ) {
-	tuple< int, double, char > t1{ 1 , 0.1 , 'c' };
-	return;
+	cx::core::mp::detail::tuple_sample< int, double, char > t1{ 1 , 0.1 , 'c' };
+    int value = cx::core::mp::detail::get<0>(t1);
+    auto c_0 = std::integral_constant<std::size_t,0>();
+    auto c_1 = std::integral_constant<std::size_t,1>(); 
+    int value1 = t1[ c_0 ];
+    double value2 = t1[ c_1 ];
+    ASSERT_EQ( value , 1 );
+    ASSERT_EQ( value , value1 );
+	ASSERT_EQ( value2 , 0.1 );
+	
+    return;
 }

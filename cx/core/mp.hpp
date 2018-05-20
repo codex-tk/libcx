@@ -95,7 +95,7 @@ namespace cx::core::mp {
     struct pop_back< sequence< I ... > , TypeList< Ts ... > >{
         using type = TypeList< typename TypeList<Ts ...>::template at<I>::type ... >;
     };
-
+/*
     template < typename TypeList > struct size;
 
     template < template < typename ... > class TypeList
@@ -103,6 +103,20 @@ namespace cx::core::mp {
     struct size< TypeList< Ts ... >> {
         static constexpr std::size_t value = 
                 std::integral_constant<std::size_t, sizeof...(Ts)>::value;
+    };
+*/
+    template < typename ... Ts >
+    using size = std::integral_constant< std::size_t , sizeof...(Ts) >;
+
+    template < typename T 
+            , template < typename ... > class F  > 
+    struct transform;
+    
+    template < template < typename ... > class TypeList 
+            , template < typename ... > class F 
+            , typename ... Ts >
+    struct transform< TypeList< Ts ... > , F > {
+        using type = TypeList< typename F<Ts>::type ... >;
     };
 }
 

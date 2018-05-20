@@ -35,7 +35,7 @@ namespace cx::core{
 
         using pop_back  = cx::core::mp::pop_back< cx::core::mp::make_sequence<sizeof...(Ts) - 1> , self >;
 
-        using size = cx::core::mp::size< self >;
+        using size = cx::core::mp::size< Ts ... >;
 
         template < std::size_t I > 
         using at_t = typename cx::core::mp::at< I , type_list< Ts ... >>::type;

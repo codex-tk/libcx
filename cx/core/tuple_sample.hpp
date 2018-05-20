@@ -23,7 +23,16 @@ namespace cx::core::mp::detail{
     struct values< cx::core::mp::sequence< Is ... > , Ts ...  >
         : value< Is , Ts > ... 
     {
-    
+        values( Ts&& ...  args )
+            : value< Is , typename cx::core::mp::at< Is, type_list< Ts ... >>::type >( std::forward<Ts>(args) ) ... 
+        {}
+
+        template < std::size_t I >
+        constexpr typename cx::core::mp::at< I , type_list< Ts ... >>::type
+        operator[]( const std::integral_constant< std::size_t , I >& ) 
+        {
+            return static_cast< value< I , typename cx::core::mp::at< I , type_list< Ts ... >>::type >* >(this)->data;
+        }
     };
 
     template < typename I , typename T > struct values0;
@@ -35,7 +44,16 @@ namespace cx::core::mp::detail{
         values0( Ts&& ...  args )
             : value< Is , typename cx::core::mp::at< Is, type_list< Ts ... >>::type >( std::forward<Ts>(args) ) ... 
         {}
+
     };
+
+    template < std::size_t I , typename T >
+    T& get( value< I , T >& v ) {
+        return v.data;
+    }
+
+    template < typename ... Ts >
+    using tuple_sample = values< cx::core::mp::make_sequence< sizeof...(Ts) > , Ts ... >;
 }
 
 #endif

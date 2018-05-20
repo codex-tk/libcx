@@ -35,4 +35,12 @@ TEST( cx_core , type_list ){
     ASSERT_EQ( tl::size::value  , 2 );
 
     tl::rebind< std::tuple >::other sample_tuple;
+
+    static_assert( std::is_same< cx::core::mp::transform< 
+        cx::core::type_list< int , double , char >
+        , std::add_pointer >::type , cx::core::type_list< int* , double* , char* > >::value );
+    static_assert( std::is_same< cx::core::mp::transform< 
+        std::tuple< int& , double , char >
+        , std::remove_reference >::type , std::tuple< int , double , char > >::value );
+
 }
