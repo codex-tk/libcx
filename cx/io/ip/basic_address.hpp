@@ -1,14 +1,17 @@
 /**
  * @brief 
  * 
- * @file basic_address.hpp
+ * @file address.hpp
  * @author ghtak
- * @date 2018-05-22
+ * @date 2018-05-26
  */
-#ifndef __cx_io_ip_basic_address_h__
-#define __cx_io_ip_basic_address_h__
+#ifndef __cx_io_ip_address_h__
+#define __cx_io_ip_address_h__
 
-#if defined( _WIN32 ) || defined( _WIN64 )
+#include <cx/cxdefine.hpp>
+
+#if CX_PLATFORM == CX_P_WINDOWS
+
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
@@ -23,62 +26,69 @@ namespace cx::io::ip::detail{
         };
         static win32_socket_initializer initializer;
     }
-
 }
-
-#else
 
 #endif
 
-namespace cx::io::ip {
+namespace cx::io::ip{
 
-    template < int Family , int Type , int Proto >
+    template < typename SockAddrT >
     class basic_address {
     public:
-        basic_address( void )
-            : _size(0) {
-             memset( &_address , 0x00 , sizeof( _address ));
+        basic_address( void ) : _length(0) {
+            memset( &_address , 0x00 , sizeof( _address ));
         }
 
-        basic_address( const basic_address& rhs )
-            : _size(rhs.size()) {
-            memcpy( address()  , rhs.address() , rhs.size());
+        basic_address( struct sockaddr* addr_ptr , const int length )
+            : _length(length) {
+            memcpy( sockaddr()  , addr_ptr , _length );
+        }
+
+        basic_address( const basic_address& rhs ) : _size(rhs.length()) {
+            memcpy( sockaddr()  , rhs.sockaddr() , _length );
         }
 
         ~basic_address( void ) {
         }
         
-        struct sockaddr* address( void ) {
-            return const_cast< sockaddr* >(
-                static_cast< const basic_address *>(this)->address());
+        struct sockaddr* sockaddr( void ) {
+            return const_cast< struct sockaddr* >(
+                static_cast< const basic_address *>(this)->sockaddr());
         }
 
-        const struct sockaddr* address( void ) const {
+        const struct sockaddr* sockaddr( void ) const {
             return reinterpret_cast< const struct sockaddr* >( &_address );
         }
 
-        int size( void ) const {
-            return _size;
+        int length( void ) const {
+            return _length;
         }
 
-        int* size_ptr( void ) {
-            return &_size;
+        int* length_ptr( void ) {
+            return &_length;
         }
-    private:
-        struct sockaddr_storage _address;
-        int _size;
-    };
-#if defined( _WIN32 ) || defined( _WIN64 )
-#else
-    template <int Type , int Proto>
-    class basic_address< PF_FILE , Type , Proto >   {
     public:
-    
+        static basic_address any( const uint16_t port , const short family = AF_INET ) {
+            sockaddr_in addr;
+            memset( &addr , 0x00 , sizeof(addr));
+            addr.sin_family = family; 
+            addr.sin_port = htons( port ); 
+            addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+            return address( reinterpret_cast< struct sockaddr*>(&addr)
+                , sizeof(addr));
+        }
+
+        static std::vector< basic_address > resolve( const std::string& u8addr ){
+
+            return std::vector< basic_address >();
+        }
+
     private:
-        struct sockaddr_un _address;
-        socklen_t _length;
+        SockAddrT _address;
+        int _length;
     };
-#endif
+
+    using address = basic_address< struct sockaddr_storage >;
 }
 
 #endif
