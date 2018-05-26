@@ -31,6 +31,26 @@ namespace cx::io::ip::detail{
 #endif
 
 namespace cx::io::ip{
+    namespace detail{
+        static bool inet_ntop( struct sockaddr_storage& addr , char* out , const int len ) {
+            void* ptr = nullptr;
+            switch( reinterpret_cast< sockaddr* >(&addr)->sa_family) {
+                case AF_INET: ptr = &(reinterpret_cast< sockaddr_in* >(&addr)->sin_addr); break;
+                case AF_INET6: ptr = &(reinterpret_cast< sockaddr_in6* >(&addr)->sin6_addr); break;
+            }
+            if ( ptr ) {
+                return ::inet_ntop( reinterpret_cast< sockaddr* >(&addr)->sa_family , ptr , out , len ) != nullptr;
+            }
+            return false;
+        }
+
+    #if CX_PLATFORM != CX_P_WINDOWS
+        static bool inet_ntop( struct sockaddr_un& addr , char* out , const int len ) {
+            strncpy( out , addr.sun_path , len );
+            return true;
+        }
+    #endif
+    }
 
     template < typename SockAddrT >
     class basic_address {
@@ -44,7 +64,7 @@ namespace cx::io::ip{
             memcpy( sockaddr()  , addr_ptr , _length );
         }
 
-        basic_address( const basic_address& rhs ) : _size(rhs.length()) {
+        basic_address( const basic_address& rhs ) : _length(rhs.length()) {
             memcpy( sockaddr()  , rhs.sockaddr() , _length );
         }
 
@@ -67,6 +87,26 @@ namespace cx::io::ip{
         int* length_ptr( void ) {
             return &_length;
         }
+
+        bool inet_ntop( char* out , const int len ) {
+            return detail::inet_ntop( _address , out , len );
+        }
+
+        int port( void ) const{
+            switch( sockaddr()->sa_family ){
+                case AF_INET: return ntohs(reinterpret_cast< struct sockaddr_in* >(sockaddr())->sin_port);
+                case AF_INET6: return ntohs(reinterpret_cast< struct sockaddr_in6* >(sockaddr())->sin6_port);
+            }
+            return 0;
+        }
+
+        std::string to_string( void ) {
+            char buf[MAX_PATH] = { 0 , };
+            if ( this->inet_ntop( buf , MAX_PATH )){
+                return std::string(buf);
+            }
+            return std::string("");
+        }
     public:
         static basic_address any( const uint16_t port , const short family = AF_INET ) {
             sockaddr_in addr;
@@ -78,9 +118,32 @@ namespace cx::io::ip{
                 , sizeof(addr));
         }
 
-        static std::vector< basic_address > resolve( const std::string& u8addr ){
+        static std::vector< basic_address > resolve( const char* name  , int port 
+                , int address_family = AF_UNSPEC ) {
+            struct addrinfo hints;
+            struct addrinfo* result = nullptr;
+            struct addrinfo* rp = nullptr;
 
-            return std::vector< basic_address >();
+            memset( &hints , 0x00 , sizeof( hints ));
+
+            hints.ai_flags = AI_PASSIVE;
+            hints.ai_family = address_family;
+            hints.ai_socktype = SOCK_STREAM;
+
+            char port_str[16] = { 0 , };
+
+            sprintf_s( port_str , "%d" , port );
+
+            std::vector< address > addrs;
+            if ( getaddrinfo( name , port_str , &hints , &result ) != 0 )
+                return addrs;
+
+            for ( rp = result ; rp != nullptr ; rp = rp->ai_next ){
+                basic_address addr( rp->ai_addr , (int)(rp->ai_addrlen));
+                addrs.push_back( addr );
+            }
+            freeaddrinfo( result );
+            return addrs;
         }
 
     private:
@@ -89,6 +152,7 @@ namespace cx::io::ip{
     };
 
     using address = basic_address< struct sockaddr_storage >;
+    
 }
 
 #endif

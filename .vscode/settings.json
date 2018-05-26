@@ -47,7 +47,10 @@
         "xloctime": "cpp",
         "xmemory": "cpp",
         "xstddef": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "xfunctional": "cpp",
+        "deque": "cpp"
     },
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "C_Cpp.dimInactiveRegions": true
 }

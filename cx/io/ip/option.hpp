@@ -44,14 +44,14 @@ namespace cx::io::ip::option{
         blocking( void ): _option(0){}
         ~blocking( void ){}
         bool set( ip::descriptor_type fd ) { 
-            #if CX_PLATFORM == CX_P_WINDOWS
-                return ioctlsocket( fd , FIONBIO , &_option ) != socket_error;
-            #else
-                int x = fcntl( fd , F_GETFL , 0);
-                return fcntl(fd , F_SETFL , x & ~O_NONBLOCK ) != socket_error;
-            #endif
-            } 
-    private:
+#if CX_PLATFORM == CX_P_WINDOWS
+            return ioctlsocket( fd , FIONBIO , &_option ) != socket_error;
+#else
+            int x = fcntl( fd , F_GETFL , 0);
+            return fcntl(fd , F_SETFL , x & ~O_NONBLOCK ) != socket_error;
+#endif
+        } 
+private:
         unsigned long _option;
     };
 
@@ -60,12 +60,12 @@ namespace cx::io::ip::option{
         non_blocking( void ): _option(1){}
         ~non_blocking( void ){}
         bool set( ip::descriptor_type fd ) {  
-            #if CX_PLATFORM == CX_P_WINDOWS
-                return ioctlsocket( fd , FIONBIO , &_option ) != socket_error;
-            #else
-                int x = fcntl( fd , F_GETFL , 0);
-                return fcntl(fd , F_SETFL , x | O_NONBLOCK )!= socket_error;
-            #endif
+#if CX_PLATFORM == CX_P_WINDOWS
+            return ioctlsocket( fd , FIONBIO , &_option ) != socket_error;
+#else
+            int x = fcntl( fd , F_GETFL , 0);
+            return fcntl(fd , F_SETFL , x | O_NONBLOCK )!= socket_error;
+#endif
         }
     private:
         unsigned long _option;

@@ -57,7 +57,11 @@ namespace cx::io::ip{
         }
 
         bool connect( const cx::io::ip::address& address ) {
-            return ::connect( _fd , address.sockaddr() , address.length() );
+            return ::connect( _fd , address.sockaddr() , address.length() ) != socket_error;
+        }
+
+        int write( const std::string_view& msg ) {
+            return send( _fd , msg.data() , msg.size() , 0 );
         }
 
         descriptor_type descriptor( void ) {  
