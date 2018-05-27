@@ -19,20 +19,32 @@ namespace cx::io{
                     FD_SET( fd.descriptor() , sets[i] );
                 }
             }
-\
+
             struct timeval tv;
             tv.tv_sec = wait_milli_sec / 1000;
             tv.tv_usec =( wait_milli_sec % 1000 ) * 1000;
-            int ret = ::select( fd.descriptor() + 1 , &rdfds , &wrfds , nullptr  , &tv );
-            int result = 0;
-            if ( ret > 0  ) {
-                for ( int i = 0 ; i < 2 ; ++i ) {
-                    if ( FD_ISSET( fd.descriptor() , sets[i] ) ) {
-                        result |= io_ops[i];
-                    }
+
+            int interest_ops = 0;
+#if CX_PLATFORM == CX_P_WINDOWS
+            int ret = ::select( 0 , &rdfds , &wrfds , nullptr  , &tv );
+            if ( ret == 0 || ret == -1) // timeout or error
+                return interest_ops;
+#else
+            while ( true ) {
+                int ret = ::select( fd.descriptor() + 1 , &rdfds , &wrfds , nullptr  , &tv );
+                if ( ret > 0 )  break;
+                if ( ret == -1 && errno == EINTR ) continue;
+                if ( ret == -1 || ret == 0 )
+                    return interest_ops;
+            }
+#endif
+            
+            for ( int i = 0 ; i < 2 ; ++i ) {
+                if ( FD_ISSET( fd.descriptor() , sets[i] ) ) {
+                    interest_ops |= io_ops[i];
                 }
             }
-            return result;
+            return interest_ops;
         }
     };
 

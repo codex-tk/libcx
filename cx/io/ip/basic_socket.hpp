@@ -57,7 +57,16 @@ namespace cx::io::ip{
         }
 
         bool connect( const cx::io::ip::address& address ) {
-            return ::connect( _fd , address.sockaddr() , address.length() ) != socket_error;
+            if (::connect( _fd , address.sockaddr() , address.length() == 0 ) 
+                return true;
+#if CX_PLATFORM == CX_P_WINDOWS
+            if ( WSAGetLastError() == WSAEWOULDBLOCK ) 
+                return true;
+#else
+            if ( errno == EINPROGRESS )
+                return true;
+#endif
+            return flase;
         }
 
         int write( const cx::io::buffer& buf ) {
@@ -71,7 +80,6 @@ namespace cx::io::ip{
         int write( const std::string_view& msg ) {
             return write( cx::io::buffer(msg));
         }
-
 
         descriptor_type descriptor( void ) {  
             return _fd;
