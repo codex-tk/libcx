@@ -12,6 +12,8 @@
 
 namespace cx::io::ip::option{
 
+    enum { disable = 0, enable = 1, };
+
     template < typename T , int level , int opt >
     class value_option {
     public:
@@ -38,7 +40,7 @@ namespace cx::io::ip::option{
     private:
         T _option;
     };
-    
+
     class blocking {
     public:
         blocking( void ): _option(0){}
@@ -71,7 +73,9 @@ private:
         unsigned long _option;
     };
 
+   
     using reuse_address = value_option< int , SOL_SOCKET , SO_REUSEADDR	>;
+    using bind_ipv6only = value_option< int , IPPROTO_IPV6 , IPV6_V6ONLY >;
     /*
     typedef value_option< int       , SOL_SOCKET	, SO_BROADCAST			> broad_cast;
     typedef value_option< int		, SOL_SOCKET	, SO_RCVBUF				> recv_buffer;

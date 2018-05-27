@@ -12,20 +12,22 @@
 
 namespace cx::io::ip{
     namespace detail{
-        static bool inet_ntop( struct sockaddr_storage& addr , char* out , const int len ) {
+        static bool inet_ntop( const struct sockaddr_storage& addr , char* out , const int len ) {
             void* ptr = nullptr;
-            switch( reinterpret_cast< sockaddr* >(&addr)->sa_family) {
-                case AF_INET: ptr = &(reinterpret_cast< sockaddr_in* >(&addr)->sin_addr); break;
-                case AF_INET6: ptr = &(reinterpret_cast< sockaddr_in6* >(&addr)->sin6_addr); break;
+            struct sockaddr* psockaddr = reinterpret_cast< struct sockaddr* >(
+                                        const_cast<struct sockaddr_storage*>(&addr));
+            switch( psockaddr->sa_family ) {
+                case AF_INET: ptr = &(reinterpret_cast< sockaddr_in* >(psockaddr)->sin_addr); break;
+                case AF_INET6: ptr = &(reinterpret_cast< sockaddr_in6* >(psockaddr)->sin6_addr); break;
             }
             if ( ptr ) {
-                return ::inet_ntop( reinterpret_cast< sockaddr* >(&addr)->sa_family , ptr , out , len ) != nullptr;
+                return ::inet_ntop( psockaddr->sa_family , ptr , out , len ) != nullptr;
             }
             return false;
         }
 
     #if CX_PLATFORM != CX_P_WINDOWS
-        static bool inet_ntop( struct sockaddr_un& addr , char* out , const int len ) {
+        static bool inet_ntop( const struct sockaddr_un& addr , char* out , const int len ) {
             strncpy( out , addr.sun_path , len );
             return true;
         }
@@ -35,7 +37,7 @@ namespace cx::io::ip{
     template < typename SockAddrT >
     class basic_address {
     public:
-        basic_address( void ) : _length(0) {
+        basic_address( void ) : _length(sizeof(SockAddrT)) {
             memset( &_address , 0x00 , sizeof( _address ));
         }
 
@@ -48,6 +50,24 @@ namespace cx::io::ip{
             memcpy( sockaddr()  , rhs.sockaddr() , _length );
         }
 
+        basic_address( const short family , const char* ip , const uint16_t port ){
+            void* ptr = nullptr;
+            sockaddr()->sa_family = family;
+            if ( family == AF_INET ) {
+                struct sockaddr_in* paddr = reinterpret_cast< struct sockaddr_in* >(sockaddr());
+                paddr->sin_port = htons(port);  
+                ptr = &(paddr->sin_addr);
+                _length = sizeof(struct sockaddr_in);
+            }
+            if ( family == AF_INET6 ) {
+                struct sockaddr_in6* paddr = reinterpret_cast< struct sockaddr_in6* >(sockaddr());
+                paddr->sin6_port = htons(port);  
+                ptr = &(paddr->sin6_addr);
+                _length = sizeof(struct sockaddr_in6);
+            }
+            ::inet_pton(  family , ip , ptr );
+        }
+        
         ~basic_address( void ) {
         }
         
@@ -68,7 +88,7 @@ namespace cx::io::ip{
             return &_length;
         }
 
-        bool inet_ntop( char* out , const int len ) {
+        bool inet_ntop( char* out , const int len ) const {
             return detail::inet_ntop( _address , out , len );
         }
 
@@ -80,7 +100,7 @@ namespace cx::io::ip{
             return 0;
         }
 
-        std::string to_string( void ) {
+        std::string to_string( void ) const {
             char buf[MAX_PATH] = { 0 , };
             if ( this->inet_ntop( buf , MAX_PATH )){
                 int len = strlen(buf);

@@ -23,16 +23,17 @@ namespace cx::io::ip{
     static const descriptor_type socket_error = -1;
 #endif   
 
-    template < int Family , int Type , int Proto >
+    template < int Type , int Proto >
     class basic_socket {
     public:
         basic_socket( void ) : _fd(invalid_descriptor){}
+        basic_socket( descriptor_type fd ) : _fd(fd){}
 
-        bool open( void ) {
+        bool open( int family = AF_INET ) {
 #if CX_PLATFORM == CX_P_WINDOWS
-            _fd = WSASocketW( Family , Type , Proto , nullptr , 0 , WSA_FLAG_OVERLAPPED  );
+            _fd = WSASocketW( family , Type , Proto , nullptr , 0 , WSA_FLAG_OVERLAPPED  );
 #else
-            _fd = socket( Family , Type , Proto );   
+            _fd = socket( family , Type , Proto );   
 #endif   
             return _fd != invalid_descriptor;
         }
@@ -57,7 +58,7 @@ namespace cx::io::ip{
         }
 
         bool connect( const cx::io::ip::address& address ) {
-            if (::connect( _fd , address.sockaddr() , address.length() == 0 ) 
+            if (::connect( _fd , address.sockaddr() , address.length()) == 0 )
                 return true;
 #if CX_PLATFORM == CX_P_WINDOWS
             if ( WSAGetLastError() == WSAEWOULDBLOCK ) 
@@ -66,7 +67,7 @@ namespace cx::io::ip{
             if ( errno == EINPROGRESS )
                 return true;
 #endif
-            return flase;
+            return false;
         }
 
         int write( const cx::io::buffer& buf ) {
@@ -81,10 +82,34 @@ namespace cx::io::ip{
             return write( cx::io::buffer(msg));
         }
 
+        descriptor_type accept( cx::io::ip::address& addr ) {
+            return ::accept( _fd , addr.sockaddr() , addr.length_ptr());
+        }
+
+        int shutdown( int how ) {
+            return ::shutdown( _fd , how );
+        }
+
+        cx::io::ip::address local_address( void ) const {
+            cx::io::ip::address addr;
+            ::getsockname( _fd , addr.sockaddr() , addr.length_ptr() );
+            return addr;
+        }
+
+        cx::io::ip::address remote_address( void ) const {
+            cx::io::ip::address addr;
+            ::getpeername( _fd , addr.sockaddr() , addr.length_ptr() );
+            return addr;
+        }
+
         descriptor_type descriptor( void ) {  
             return _fd;
         }
 
+        descriptor_type descriptor( descriptor_type fd ) {
+            std::swap( _fd , fd );
+            return fd;
+        }
         template < typename T >
         bool set_option( T opt ) {
             return opt.set( _fd );
@@ -99,13 +124,11 @@ namespace cx::io::ip{
     };
 
     namespace tcp {
-        inline namespace v4 {
-            using socket = basic_socket< AF_INET , SOCK_STREAM , IPPROTO_TCP >;
-        }
+        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP >;
+    }
 
-        namespace v6{
-            using socket = basic_socket< AF_INET6, SOCK_STREAM , IPPROTO_TCP >;
-        }
+    namespace udp {
+        using socket = basic_socket<  SOCK_DGRAM , IPPROTO_UDP >;
     }
 } // cx::io::ip
 

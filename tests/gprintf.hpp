@@ -5,8 +5,7 @@
 #include <stdarg.h>
 
 
-template < class ...Args >
-void gprintf( const char* fmt , Args&&... arg ) {
+void gprintf( const char* fmt , ... ) {
     printf( "[   USER   ] " );
     va_list args;
     va_start(args, fmt);
