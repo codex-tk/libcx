@@ -8,27 +8,7 @@
 #ifndef __cx_io_ip_address_h__
 #define __cx_io_ip_address_h__
 
-#include <cx/cxdefine.hpp>
-
-#if CX_PLATFORM == CX_P_WINDOWS
-
-#include <WinSock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#pragma comment( lib , "ws2_32")
-namespace cx::io::ip::detail{
-    namespace {
-        struct win32_socket_initializer {
-            win32_socket_initializer(void){
-                WSADATA    wsaData;
-                WSAStartup(MAKEWORD(2,2), &wsaData);
-            }
-        };
-        static win32_socket_initializer initializer;
-    }
-}
-
-#endif
+#include <cx/io/io.hpp>
 
 namespace cx::io::ip{
     namespace detail{
@@ -92,10 +72,10 @@ namespace cx::io::ip{
             return detail::inet_ntop( _address , out , len );
         }
 
-        int port( void ) const{
+        int port( void ) const {
             switch( sockaddr()->sa_family ){
-                case AF_INET: return ntohs(reinterpret_cast< struct sockaddr_in* >(sockaddr())->sin_port);
-                case AF_INET6: return ntohs(reinterpret_cast< struct sockaddr_in6* >(sockaddr())->sin6_port);
+                case AF_INET: return ntohs(reinterpret_cast< const struct sockaddr_in* >(sockaddr())->sin_port);
+                case AF_INET6: return ntohs(reinterpret_cast< const struct sockaddr_in6* >(sockaddr())->sin6_port);
             }
             return 0;
         }
@@ -103,6 +83,8 @@ namespace cx::io::ip{
         std::string to_string( void ) {
             char buf[MAX_PATH] = { 0 , };
             if ( this->inet_ntop( buf , MAX_PATH )){
+                int len = strlen(buf);
+                sprintf_s( buf + len , MAX_PATH - len , " (%d)" , port() );
                 return std::string(buf);
             }
             return std::string("");

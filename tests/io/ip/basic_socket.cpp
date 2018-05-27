@@ -26,7 +26,7 @@ TEST( cx_io_ip_socket , open_close ) {
 }
 
 TEST( cx_io_ip_socket , connect ) {
-    auto addresses = ip::address::resolve( "google.com" , 80);
+    auto addresses = ip::address::resolve( "google.com" , 80 );
     for ( auto a : addresses ) {
         char ipaddress[1024];
         a.inet_ntop( ipaddress , 1024 );
@@ -41,6 +41,13 @@ TEST( cx_io_ip_socket , connect ) {
     ASSERT_TRUE( io::selector::select( fd , io::ops::write , 5000 ) == io::ops::write );
     
     ASSERT_EQ( fd.write( "GET / HTTP/1.1\r\n\r\n" ) , strlen("GET / HTTP/1.1\r\n\r\n"));
+
+    ASSERT_TRUE( io::selector::select( fd , io::ops::read , 5000 ) == io::ops::read );
+
+    char buf[4086] = { 0 , };
+    int len = fd.read( io::buffer( buf , 4096 ) );
+    gprintf( "%s" , buf );
+    ASSERT_TRUE( len > 0 );
 }
 
 TEST( cx_io_ip_socket , bind ) {

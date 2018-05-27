@@ -49,7 +49,14 @@
         "xstddef": "cpp",
         "list": "cpp",
         "xfunctional": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "cctype": "cpp",
+        "forward_list": "cpp",
+        "fstream": "cpp",
+        "functional": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "xhash": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true

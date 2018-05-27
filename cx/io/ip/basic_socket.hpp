@@ -60,9 +60,18 @@ namespace cx::io::ip{
             return ::connect( _fd , address.sockaddr() , address.length() ) != socket_error;
         }
 
-        int write( const std::string_view& msg ) {
-            return send( _fd , msg.data() , msg.size() , 0 );
+        int write( const cx::io::buffer& buf ) {
+             return send( _fd , static_cast<const char*>(buf.ptr()) , buf.len() , 0 );
         }
+
+        int read( const cx::io::buffer& buf ) {
+            return recv( _fd , static_cast<char*>(buf.ptr()) , buf.len() , 0 );
+        }
+
+        int write( const std::string_view& msg ) {
+            return write( cx::io::buffer(msg));
+        }
+
 
         descriptor_type descriptor( void ) {  
             return _fd;
