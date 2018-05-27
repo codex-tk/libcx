@@ -11,6 +11,7 @@
 #include <cx/io/ip/option.hpp>
 #include <cx/io/selector.hpp>
 
+
 using namespace cx;
 using namespace io;
 
@@ -28,28 +29,25 @@ TEST( cx_io_ip_socket , open_close ) {
 TEST( cx_io_ip_socket , connect ) {
     ip::tcp::socket fd;
     
-    auto addresses = ip::address::resolve( "google.com" , 80 );
+    auto addresses = ip::address::resolve( "naver.com" , 80 );
     for ( auto a : addresses ) {
         gprintf( a.to_string().c_str() );
     }
 
     ASSERT_FALSE( addresses.empty());
     ASSERT_TRUE( fd.open() );
-    ip::address addr( AF_INET , "216.58.197.206" , 80 );
-    //ASSERT_TRUE( fd.connect(addresses[0]) );
-    
-    ASSERT_TRUE( fd.connect(addr) );
-    ASSERT_TRUE( io::selector::select( fd , io::ops::read | io::ops::write , 5000 ) == io::ops::write );
+    //ip::address addr( AF_INET , "216.58.197.206" , 80 );
+    //ASSERT_TRUE( fd.connect(addr) );
+
+    ASSERT_TRUE( fd.connect(addresses[0]) );
+    ASSERT_TRUE( io::selector::select( fd , io::ops::write , 5000 ) == io::ops::write );
     ASSERT_EQ( fd.write( "GET / HTTP/1.1\r\n\r\n" ) , strlen("GET / HTTP/1.1\r\n\r\n"));
     ASSERT_TRUE( io::selector::select( fd , io::ops::read , 5000 ) == io::ops::read );
     char buf[4096] = { 0 , };
     int len = fd.read( io::buffer( buf , 1024 ) );
-    //gprintf( "%s" , buf );
     ASSERT_TRUE( len > 0 );
-
-    gprintf( "%s" , fd.local_address().to_string().c_str() );
-    gprintf( "%s" , fd.remote_address().to_string().c_str());
-
+    gprintf( "Local : %s" , fd.local_address().to_string().c_str() );
+    gprintf( "Remote : %s" , fd.remote_address().to_string().c_str());
     fd.shutdown(SD_BOTH);
     fd.close();
 }

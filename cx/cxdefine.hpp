@@ -29,3 +29,8 @@ Windows	 _WIN32 or __WIN32__
 
 #endif
 
+
+#include <string>
+#include <cstdint>
+#include <system_error>
+#include <string.h>
