@@ -36,13 +36,30 @@ namespace cx::io::ip {
         if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR) {
             pAdapter = pAdapterInfo;
             while ( pAdapter ) {
-                ifaddr addr;
-                addr.name = pAdapter->AdapterName;
-                addr.ip_address = pAdapter->IpAddressList.IpAddress.String;
-                addr.mask = pAdapter->IpAddressList.IpMask.String;
-                addr.gateway = pAdapter->GatewayList.IpMask.String;
-                ifaddrs.push_back(addr);
+                switch (pAdapter->Type) {
+                case MIB_IF_TYPE_ETHERNET:
+                //case IF_TYPE_IEEE80211: wifi and bluetooth
+                    {
+                        char buf[1024] = {0 , };
+                        ifaddr addr;
+                        addr.name = if_indextoname(pAdapter->Index , buf);
+                        addr.ip_address = pAdapter->IpAddressList.IpAddress.String;
+                        addr.mask = pAdapter->IpAddressList.IpMask.String;
+                        addr.gateway = pAdapter->GatewayList.IpMask.String;
+                        ifaddrs.push_back(addr);
+                    }
+                    break;
+                case MIB_IF_TYPE_OTHER:
+                case MIB_IF_TYPE_TOKENRING:
+                case MIB_IF_TYPE_FDDI:
+                case MIB_IF_TYPE_PPP:
+                case MIB_IF_TYPE_LOOPBACK:
+                case MIB_IF_TYPE_SLIP:
+                default:
+                    break;
+                }
                 pAdapter = pAdapter->Next;
+               
             }
         }
 #else

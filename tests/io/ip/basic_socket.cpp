@@ -52,6 +52,15 @@ TEST( cx_io_ip_socket , connect ) {
     fd.close();
 }
 
+TEST( cx_io_ip , any ) {
+    auto ipv4 = cx::io::ip::address::any( 80 , AF_INET );
+    auto ipv6 = cx::io::ip::address::any( 80 , AF_INET6 );
+    auto all = cx::io::ip::address::any( 80 , AF_UNSPEC );
+    std::for_each( ipv4.begin() , ipv4.end() , [] ( auto a ) { gprintf( "V4 %s" , a.to_string().c_str());} );
+    std::for_each( ipv6.begin() , ipv6.end() , [] ( auto a ) { gprintf( "V6 %s" ,a.to_string().c_str());} );
+    std::for_each( all.begin() , all.end() , [] ( auto a ) { gprintf( "ALL %s" ,a.to_string().c_str());} );
+}
+
 TEST( cx_io_ip_socket , sample_echo ) {
     char buf[1024] = { 0 , };
 
@@ -59,7 +68,7 @@ TEST( cx_io_ip_socket , sample_echo ) {
     ASSERT_TRUE( server.open() );
     ASSERT_TRUE( server.set_option( ip::option::reuse_address(ip::option::enable)));
     ASSERT_TRUE( server.set_option( ip::option::non_blocking()));
-    ASSERT_TRUE( server.bind(ip::address::any(7543)));
+    ASSERT_TRUE( server.bind(ip::address::any(7543 , AF_INET )[0]));
     ASSERT_TRUE( server.listen() );
 
     ip::tcp::socket client;

@@ -9,6 +9,7 @@
 #define __cx_io_ip_address_h__
 
 #include <cx/io/io.hpp>
+#include <vector>
 
 namespace cx::io::ip{
     namespace detail{
@@ -92,8 +93,12 @@ namespace cx::io::ip{
             return detail::inet_ntop( _address , out , len );
         }
 
+        const uint16_t family( void ) const {
+            return sockaddr()->sa_family;
+        }
+
         int port( void ) const {
-            switch( sockaddr()->sa_family ){
+            switch( family() ){
                 case AF_INET: return ntohs(reinterpret_cast< const struct sockaddr_in* >(sockaddr())->sin_port);
                 case AF_INET6: return ntohs(reinterpret_cast< const struct sockaddr_in6* >(sockaddr())->sin6_port);
             }
@@ -102,14 +107,22 @@ namespace cx::io::ip{
 
         std::string to_string( void ) const {
             char buf[MAX_PATH] = { 0 , };
-            if ( this->inet_ntop( buf , MAX_PATH )){
-                int len = strlen(buf);
+            int len = 0;
+            switch( family() ){
+                case AF_INET: len += sprintf_s( buf + len , MAX_PATH - len , "AF_INET "); break;
+                case AF_INET6: len += sprintf_s( buf + len , MAX_PATH - len , "AF_INET6 "); break;
+                default:
+                    len += sprintf_s( buf + len ,  MAX_PATH - len , "UNKNOWN "); break;
+            }
+            if ( this->inet_ntop( buf + len , MAX_PATH - len )){
+                len = strlen(buf);
                 sprintf_s( buf + len , MAX_PATH - len , " (%d)" , port() );
                 return std::string(buf);
             }
             return std::string("");
         }
     public:
+    /*
         static basic_address any( const uint16_t port , const short family = AF_INET ) {
             sockaddr_in addr;
             memset( &addr , 0x00 , sizeof(addr));
@@ -119,9 +132,10 @@ namespace cx::io::ip{
             return address( reinterpret_cast< struct sockaddr*>(&addr)
                 , sizeof(addr));
         }
-
-        static std::vector< basic_address > resolve( const char* name  , int port 
-                , int address_family = AF_UNSPEC ) {
+    */
+        static std::vector< basic_address > resolve( const char* name  
+                , const uint16_t port 
+                , const uint16_t family = AF_UNSPEC ) {
             struct addrinfo hints;
             struct addrinfo* result = nullptr;
             struct addrinfo* rp = nullptr;
@@ -129,10 +143,10 @@ namespace cx::io::ip{
             memset( &hints , 0x00 , sizeof( hints ));
 
             hints.ai_flags = AI_PASSIVE;
-            hints.ai_family = address_family;
+            hints.ai_family = family;
             hints.ai_socktype = SOCK_STREAM;
 
-            char port_str[16] = { 0 , };
+            char port_str[32] = { 0 , };
 
             sprintf_s( port_str , "%d" , port );
 
@@ -147,7 +161,10 @@ namespace cx::io::ip{
             freeaddrinfo( result );
             return addrs;
         }
-
+        static std::vector< basic_address > any( const uint16_t port 
+                , const short family = AF_UNSPEC ) {
+            return resolve( nullptr , port , family );
+        }
     private:
         SockAddrT _address;
         int _length;
