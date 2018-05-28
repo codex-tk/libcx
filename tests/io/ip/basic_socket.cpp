@@ -22,7 +22,7 @@ TEST( cx_io_ip_socket , open_close ) {
     
     ASSERT_TRUE( fd.open() );
     ASSERT_NE( fd.descriptor() 
-            , ip::invalid_descriptor );
+            , cx::io::invalid_descriptor );
     fd.close();
 }
 
@@ -73,7 +73,6 @@ TEST( cx_io_ip_socket , sample_echo ) {
 
     ip::tcp::socket client;
     ip::address clientaddr( AF_INET , "127.0.0.1" , 7543 );
-    
     ASSERT_TRUE( client.open() );
     ASSERT_TRUE( client.connect( clientaddr ));
     ASSERT_TRUE( io::selector::select( client , io::ops::write , 5000 ) == io::ops::write );
@@ -82,7 +81,7 @@ TEST( cx_io_ip_socket , sample_echo ) {
 
     ip::address addr;
     ip::tcp::socket accepted( server.accept( addr ));   
-    ASSERT_TRUE( accepted.descriptor() != ip::socket_error );
+    ASSERT_TRUE( accepted.descriptor() != io::invalid_descriptor );
 
     ASSERT_EQ( client.write("Hello") , strlen("Hello"));
     ASSERT_EQ( accepted.read( io::buffer(buf,1024)), strlen("Hello"));

@@ -20,15 +20,17 @@ namespace cx::io::ip {
             auto addresses = cx::io::ip::address::any( port , family );
             for ( auto addr : addresses ) {
                 cx::io::ip::basic_socket<Type,Proto> fd;
-                fd.open( addr.family());
-                fd.set_option( cx::io::ip::option::reuse_address(cx::io::ip::option::enable));
-                if ( addr.family() == AF_INET6 )
-                    fd.set_option( cx::io::ip::option::bind_ipv6only(cx::io::ip::option::enable));
-                fd.bind( addr );
-                fd.listen();
-                _listen_fds.push_back(fd);
+                if ( fd.open( addr.family())) {
+                    fd.set_option( cx::io::ip::option::reuse_address(cx::io::ip::option::enable));
+                    if ( addr.family() == AF_INET6 )
+                        fd.set_option( cx::io::ip::option::bind_ipv6only(cx::io::ip::option::enable));
+                    if ( fd.bind( addr ) && fd.listen() ){
+                        _listen_fds.emplace_back(fd.descriptor(cx::io::invalid_descriptor));
+                    }
+                }
+                fd.close();
             }
-            return true;
+            return !_listen_fds.empty();
         }
         void close(void){
             for ( auto fd : _listen_fds ) {
@@ -38,7 +40,6 @@ namespace cx::io::ip {
         }
     private:
         std::vector< cx::io::ip::basic_socket< Type , Proto > > _listen_fds;
-        
     };
 
 }

@@ -21,17 +21,17 @@ namespace cx::io::ip::option{
 
         explicit value_option( const T& t ) : _option(t) {}
 
-        bool set( ip::descriptor_type fd ) {
+        bool set( descriptor_type fd ) {
             return setsockopt( fd ,  level ,   opt , 
                         reinterpret_cast< char*>(&_option) , 
                         sizeof( _option ) ) != -1;
         }
 
-        bool get( ip::descriptor_type fd ) {
+        bool get( descriptor_type fd ) {
             int size = sizeof( _option );
             return getsockopt( fd, level , opt , 
                                 reinterpret_cast< char*>(&_option) ,
-                                &size ) != SOCKET_ERROR;
+                                &size ) != -1;
         }
 
         T& value( void ) { return _option; }
@@ -45,12 +45,12 @@ namespace cx::io::ip::option{
     public:
         blocking( void ): _option(0){}
         ~blocking( void ){}
-        bool set( ip::descriptor_type fd ) { 
+        bool set( descriptor_type fd ) { 
 #if CX_PLATFORM == CX_P_WINDOWS
-            return ioctlsocket( fd , FIONBIO , &_option ) != socket_error;
+            return ioctlsocket( fd , FIONBIO , &_option ) != -1;
 #else
             int x = fcntl( fd , F_GETFL , 0);
-            return fcntl(fd , F_SETFL , x & ~O_NONBLOCK ) != socket_error;
+            return fcntl(fd , F_SETFL , x & ~O_NONBLOCK ) != -1;
 #endif
         } 
 private:
@@ -61,12 +61,12 @@ private:
     public:
         non_blocking( void ): _option(1){}
         ~non_blocking( void ){}
-        bool set( ip::descriptor_type fd ) {  
+        bool set( descriptor_type fd ) {  
 #if CX_PLATFORM == CX_P_WINDOWS
-            return ioctlsocket( fd , FIONBIO , &_option ) != socket_error;
+            return ioctlsocket( fd , FIONBIO , &_option ) != -1;
 #else
             int x = fcntl( fd , F_GETFL , 0);
-            return fcntl(fd , F_SETFL , x | O_NONBLOCK )!= socket_error;
+            return fcntl(fd , F_SETFL , x | O_NONBLOCK )!= -1;
 #endif
         }
     private:

@@ -34,6 +34,14 @@ namespace cx::io::ip::detail{
 #endif
 namespace cx::io {
 
+#if CX_PLATFORM == CX_P_WINDOWS
+    using descriptor_type = SOCKET;
+    static const descriptor_type invalid_descriptor = INVALID_SOCKET;
+#else
+    using descriptor_type = int;
+    static const descriptor_type invalid_descriptor = -1;
+#endif   
+
     namespace ops {
         enum {
             read = 0x01 ,

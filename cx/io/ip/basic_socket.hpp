@@ -13,16 +13,6 @@
 
 namespace cx::io::ip{
 
-#if CX_PLATFORM == CX_P_WINDOWS
-    using descriptor_type = SOCKET;
-    static const descriptor_type invalid_descriptor = INVALID_SOCKET;
-    static const int socket_error = SOCKET_ERROR;
-#else
-    using descriptor_type = int;
-    static const descriptor_type invalid_descriptor = -1;
-    static const descriptor_type socket_error = -1;
-#endif   
-
     template < int Type , int Proto >
     class basic_socket {
     public:
