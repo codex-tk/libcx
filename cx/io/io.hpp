@@ -30,6 +30,8 @@ namespace cx::io::ip::detail{
 #else
 
 #include <sys/uio.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #endif
 namespace cx::io {
@@ -67,7 +69,7 @@ namespace cx::io {
             return old;
         }
 #else
-    class buffer : public struct iovec {
+    class buffer : public iovec {
     public:
         void* ptr( void ) const { return this->iov_base; }
         std::size_t len( void ) const { return this->iov_len; }
@@ -87,7 +89,11 @@ namespace cx::io {
             this->len(len);
         }
         buffer( const std::string_view& msg ) {
+#if CX_PLATFORM != CX_P_WINDOWS
+            this->ptr( const_cast<char*>(msg.data()));
+#else
             this->ptr( msg.data());
+#endif
             this->len( msg.size());
         }
     };

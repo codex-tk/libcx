@@ -18,8 +18,8 @@ namespace cx::io::ip{
             struct sockaddr* psockaddr = reinterpret_cast< struct sockaddr* >(
                                         const_cast<struct sockaddr_storage*>(&addr));
             switch( psockaddr->sa_family ) {
-                case AF_INET: ptr = &(reinterpret_cast< sockaddr_in* >(psockaddr)->sin_addr); break;
-                case AF_INET6: ptr = &(reinterpret_cast< sockaddr_in6* >(psockaddr)->sin6_addr); break;
+                case AF_INET: ptr = &(reinterpret_cast< struct sockaddr_in* >(psockaddr)->sin_addr); break;
+                case AF_INET6: ptr = &(reinterpret_cast< struct sockaddr_in6* >(psockaddr)->sin6_addr); break;
             }
             if ( ptr ) {
                 return ::inet_ntop( psockaddr->sa_family , ptr , out , len ) != nullptr;
