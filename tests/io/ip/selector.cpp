@@ -36,8 +36,8 @@ TEST( cx_io_selector , to  ) {
     cx::io::selector::iterator it(selector);
     while ( it ) {
         cx::io::descriptor_type fd = it.descriptor();
-        int ops = it.signal();
-        void* ctx = it.context();
+        int ops = it.operations();
+        void* ctx = it.user_context();
         if ( fd == server.descriptor() ) {
             ASSERT_EQ( ops , cx::io::ops::read );
             ASSERT_EQ( ctx , nullptr );
