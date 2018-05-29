@@ -3,35 +3,6 @@
 
 #include <cx/cxdefine.hpp>
 
-#if CX_PLATFORM == CX_P_WINDOWS
-
-#include <WinSock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-#include <windows.h>
-#include <stdint.h>
-
-#pragma comment( lib , "ws2_32.lib")
-#pragma comment( lib , "Mswsock.lib") 
-#pragma comment( lib , "IPHLPAPI.lib")
-
-namespace cx::io::ip::detail{
-    namespace {
-        struct win32_socket_initializer {
-            win32_socket_initializer(void){
-                WSADATA    wsaData;
-                WSAStartup(MAKEWORD(2,2), &wsaData);
-            }
-        };
-        static win32_socket_initializer initializer;
-    }
-}
-
-#else
-
-#include <sys/uio.h>
-
-#endif
 namespace cx::io {
 
 #if CX_PLATFORM == CX_P_WINDOWS
@@ -67,7 +38,7 @@ namespace cx::io {
             return old;
         }
 #else
-    class buffer : public struct iovec {
+    class buffer : public iovec {
     public:
         void* ptr( void ) const { return this->iov_base; }
         std::size_t len( void ) const { return this->iov_len; }
@@ -87,7 +58,11 @@ namespace cx::io {
             this->len(len);
         }
         buffer( const std::string_view& msg ) {
+#if CX_PLATFORM != CX_P_WINDOWS
+            this->ptr( const_cast<char*>(msg.data()));
+#else
             this->ptr( msg.data());
+#endif
             this->len( msg.size());
         }
     };
