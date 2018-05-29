@@ -82,11 +82,22 @@ namespace cx::io{
             iterator ( selector& s ) : _selector(s) { 
                 _it = _selector._sigfds.begin();
             }
-            bool has_next( void ) {  return _it != _selector._sigfds.end(); }
-            void next( void ) { ++_it; }
             cx::io::descriptor_type descriptor( void ) { return _it->first; }
             int signal( void ) { return std::get<0>(_it->second); }
             void* context( void ) { return std::get<1>(_it->second); }
+            explicit operator bool( void ) const {
+                return _it != _selector._sigfds.end();
+            }
+            iterator& operator++() {
+                ++_it;
+                return *this;
+            }
+            iterator operator++(int){
+                iterator it( _selector );
+                it._it = _it;
+                ++_it;
+                return it;
+            }
         private:
             selector& _selector;
             selector::container_type::iterator _it;

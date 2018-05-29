@@ -30,11 +30,11 @@ TEST( cx_io_selector , to  ) {
 
     cx::io::selector selector;
     selector.bind( server.descriptor() , cx::io::ops::read , nullptr );
-    selector.bind( client.descriptor() ,  cx::io::ops::read | cx::io::ops::write , nullptr );
+    selector.bind( client.descriptor() , cx::io::ops::read | cx::io::ops::write , nullptr );
     ASSERT_EQ( selector.select(4000) , 2);
 
     cx::io::selector::iterator it(selector);
-    while ( it.has_next() ) {
+    while ( it ) {
         cx::io::descriptor_type fd = it.descriptor();
         int ops = it.signal();
         void* ctx = it.context();
@@ -46,7 +46,7 @@ TEST( cx_io_selector , to  ) {
             ASSERT_EQ( ops , cx::io::ops::write );
             ASSERT_EQ( ctx , nullptr );
         }
-        it.next();
+        ++it;
     }
 
     client.close();
