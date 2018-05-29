@@ -21,9 +21,9 @@ namespace cx::io::ip{
 
         bool open( int family = AF_INET ) {
 #if CX_PLATFORM == CX_P_WINDOWS
-            _fd = WSASocketW( family , Type , Proto , nullptr , 0 , WSA_FLAG_OVERLAPPED  );
+            _fd = ::WSASocketW( family , Type , Proto , nullptr , 0 , WSA_FLAG_OVERLAPPED  );
 #else
-            _fd = socket( family , Type , Proto );   
+            _fd = ::socket( family , Type , Proto );   
 #endif   
             return _fd != invalid_descriptor;
         }
@@ -31,9 +31,9 @@ namespace cx::io::ip{
         void close( void ) {
             if ( _fd != invalid_descriptor ) {
 #if CX_PLATFORM == CX_P_WINDOWS
-                closesocket( _fd );
+                ::closesocket( _fd );
 #else
-                close(_fd);
+                ::close(_fd);
 #endif      
             }
             _fd = invalid_descriptor;

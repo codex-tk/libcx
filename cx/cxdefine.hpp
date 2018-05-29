@@ -29,8 +29,56 @@ Windows	 _WIN32 or __WIN32__
 
 #endif
 
+#if CX_PLATFORM == CX_P_WINDOWS
+
+#include <WinSock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#include <windows.h>
+#include <stdint.h>
+
+#pragma comment( lib , "ws2_32.lib")
+#pragma comment( lib , "Mswsock.lib") 
+#pragma comment( lib , "IPHLPAPI.lib")
+
+namespace cx::io::ip::detail{
+    namespace {
+        struct win32_socket_initializer {
+            win32_socket_initializer(void){
+                WSADATA    wsaData;
+                WSAStartup(MAKEWORD(2,2), &wsaData);
+            }
+        };
+        static win32_socket_initializer initializer;
+    }
+}
+
+#else
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/uio.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
+
+#endif
+
 
 #include <string>
 #include <cstdint>
 #include <system_error>
 #include <string.h>
+
+#ifndef MAX_PATH
+#define MAX_PATH 256
+#endif

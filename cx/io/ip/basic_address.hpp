@@ -42,7 +42,7 @@ namespace cx::io::ip{
             memset( &_address , 0x00 , sizeof( _address ));
         }
 
-        basic_address( struct sockaddr* addr_ptr , const int length )
+        basic_address( struct sockaddr* addr_ptr , const socklen_t length )
             : _length(length) {
             memcpy( sockaddr()  , addr_ptr , _length );
         }
@@ -81,11 +81,11 @@ namespace cx::io::ip{
             return reinterpret_cast< const struct sockaddr* >( &_address );
         }
 
-        int length( void ) const {
+        socklen_t length( void ) const {
             return _length;
         }
 
-        int* length_ptr( void ) {
+        socklen_t* length_ptr( void ) {
             return &_length;
         }
 
@@ -109,14 +109,14 @@ namespace cx::io::ip{
             char buf[MAX_PATH] = { 0 , };
             int len = 0;
             switch( family() ){
-                case AF_INET: len += sprintf_s( buf + len , MAX_PATH - len , "AF_INET "); break;
-                case AF_INET6: len += sprintf_s( buf + len , MAX_PATH - len , "AF_INET6 "); break;
+                case AF_INET: len += snprintf( buf + len , MAX_PATH - len , "AF_INET "); break;
+                case AF_INET6: len += snprintf( buf + len , MAX_PATH - len , "AF_INET6 "); break;
                 default:
-                    len += sprintf_s( buf + len ,  MAX_PATH - len , "UNKNOWN "); break;
+                    len += snprintf( buf + len ,  MAX_PATH - len , "UNKNOWN "); break;
             }
             if ( this->inet_ntop( buf + len , MAX_PATH - len )){
                 len = strlen(buf);
-                sprintf_s( buf + len , MAX_PATH - len , " (%d)" , port() );
+                snprintf( buf + len , MAX_PATH - len , " (%d)" , port() );
                 return std::string(buf);
             }
             return std::string("");
@@ -148,9 +148,9 @@ namespace cx::io::ip{
 
             char port_str[32] = { 0 , };
 
-            sprintf_s( port_str , "%d" , port );
+            snprintf( port_str , 32 , "%d" , port );
 
-            std::vector< address > addrs;
+            std::vector< basic_address > addrs;
             if ( getaddrinfo( name , port_str , &hints , &result ) != 0 )
                 return addrs;
 
@@ -167,7 +167,7 @@ namespace cx::io::ip{
         }
     private:
         SockAddrT _address;
-        int _length;
+        socklen_t _length;
     };
 
     using address = basic_address< struct sockaddr_storage >;

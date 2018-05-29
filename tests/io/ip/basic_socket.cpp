@@ -48,7 +48,11 @@ TEST( cx_io_ip_socket , connect ) {
     ASSERT_TRUE( len > 0 );
     gprintf( "Local : %s" , fd.local_address().to_string().c_str() );
     gprintf( "Remote : %s" , fd.remote_address().to_string().c_str());
+#if CX_PLATFORM == CX_P_WINDOWS
     fd.shutdown(SD_BOTH);
+#else
+    fd.shutdown(SHUT_RDWR);
+#endif
     fd.close();
 }
 

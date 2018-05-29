@@ -3,37 +3,6 @@
 
 #include <cx/cxdefine.hpp>
 
-#if CX_PLATFORM == CX_P_WINDOWS
-
-#include <WinSock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-#include <windows.h>
-#include <stdint.h>
-
-#pragma comment( lib , "ws2_32.lib")
-#pragma comment( lib , "Mswsock.lib") 
-#pragma comment( lib , "IPHLPAPI.lib")
-
-namespace cx::io::ip::detail{
-    namespace {
-        struct win32_socket_initializer {
-            win32_socket_initializer(void){
-                WSADATA    wsaData;
-                WSAStartup(MAKEWORD(2,2), &wsaData);
-            }
-        };
-        static win32_socket_initializer initializer;
-    }
-}
-
-#else
-
-#include <sys/uio.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#endif
 namespace cx::io {
 
 #if CX_PLATFORM == CX_P_WINDOWS

@@ -36,7 +36,13 @@ namespace cx::io{
             for ( int i = 0 ; i < 2 ; ++i ) {
                 FD_ZERO( sets[i] );
             }
+#if CX_PLATFORM != CX_P_WINDOWS
+            int maxfd = 0;
+#endif
             for ( auto fd : _fds ){
+#if CX_PLATFORM != CX_P_WINDOWS
+                if ( fd.first > maxfd ) maxfd = fd.first;
+#endif
                 for ( int i = 0 ; i < 2 ; ++i ) {
                     if ( std::get<0>(fd.second) & io_ops[i] )
                         FD_SET( fd.first , sets[i] );
@@ -52,8 +58,9 @@ namespace cx::io{
             if ( ret == 0 || ret == -1 ) // timeout or error
                 return 0;
 #else
+            int ret = 0;
             while ( true ) {
-                int ret = ::select( fd.descriptor() + 1 , &rdfds , &wrfds , nullptr  , &tv );
+                ret = ::select( maxfd  + 1 , &rdfds , &wrfds , nullptr  , &tv );
                 if ( ret > 0 )  
                     break;
                 if ( ret == -1 && errno == EINTR ) 
