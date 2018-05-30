@@ -6,7 +6,8 @@
 #include "tests/gprintf.hpp"
 
 TEST( cx_io_ip_basic_acceptor , open ) {
-    cx::io::ip::basic_acceptor< SOCK_STREAM , IPPROTO_TCP > acceptor;
+    cx::io::ip::tcp::acceptor acceptor;
     ASSERT_TRUE(acceptor.open( 7543 , AF_UNSPEC ));
+    acceptor.handle_accept( [] {} ,std::chrono::milliseconds(4000));
     acceptor.close();
 }

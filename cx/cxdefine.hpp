@@ -65,19 +65,19 @@ namespace cx::io::ip::detail{
 #include <net/if.h>
 
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <fcntl.h>
 
 #endif
-
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstdint>
 
 #include <string>
-#include <cstdint>
 #include <system_error>
-#include <string.h>
+#include <chrono>
+
 
 #ifndef MAX_PATH
 #define MAX_PATH 256

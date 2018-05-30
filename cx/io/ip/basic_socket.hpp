@@ -9,32 +9,24 @@
 #ifndef __cx_io_ip_basic_socket_h__
 #define __cx_io_ip_basic_socket_h__
 
-#include <cx/io/ip/basic_address.hpp>
+#include <cx/io/ip/detail/socket_layer.hpp>
 
 namespace cx::io::ip{
 
-    template < int Type , int Proto >
+    template < int Type , int Proto , typename SocketLayer >
     class basic_socket {
     public:
         basic_socket( void ) : _fd(invalid_descriptor){}
         basic_socket( descriptor_type fd ) : _fd(fd){}
 
         bool open( int family = AF_INET ) {
-#if CX_PLATFORM == CX_P_WINDOWS
-            _fd = ::WSASocketW( family , Type , Proto , nullptr , 0 , WSA_FLAG_OVERLAPPED  );
-#else
-            _fd = ::socket( family , Type , Proto );   
-#endif   
+            _fd = SocketLayer::open( family , Type , Proto );
             return _fd != invalid_descriptor;
         }
 
         void close( void ) {
             if ( _fd != invalid_descriptor ) {
-#if CX_PLATFORM == CX_P_WINDOWS
-                ::closesocket( _fd );
-#else
-                ::close(_fd);
-#endif      
+                SocketLayer::close(_fd);
             }
             _fd = invalid_descriptor;
         }
@@ -114,11 +106,11 @@ namespace cx::io::ip{
     };
 
     namespace tcp {
-        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP >;
+        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP , tcp::socket_layer_impl >;
     }
 
     namespace udp {
-        using socket = basic_socket<  SOCK_DGRAM , IPPROTO_UDP >;
+        //using socket = basic_socket<  SOCK_DGRAM , IPPROTO_UDP >;
     }
 } // cx::io::ip
 

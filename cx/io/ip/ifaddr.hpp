@@ -33,7 +33,7 @@ namespace cx::io::ip {
             std::free(pAdapterInfo);
             pAdapterInfo = (IP_ADAPTER_INFO *) std::malloc(ulOutBufLen);
             if (pAdapterInfo == NULL) {
-                return ifaddrs;
+                return retifaddrs;
             }
         }
         DWORD dwRetVal = 0;
@@ -62,9 +62,9 @@ namespace cx::io::ip {
                 default:
                     break;
                 }
-                pAdapter = pAdapter->Next;
-               
+                pAdapter = pAdapter->Next;  
             }
+            std::free(pAdapterInfo);
         }
 #else
         struct ifaddrs* ifaddrs, *ifa;
