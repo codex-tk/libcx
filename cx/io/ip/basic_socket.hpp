@@ -11,61 +11,48 @@
 
 #include <cx/io/ip/detail/socket_layer.hpp>
 
-namespace cx::io::ip{
+namespace cx::io::ip {
 
-    template < int Type , int Proto , typename SocketLayer >
+    template < int Type , int Proto , template < int , int > class SocketLayerT >
     class basic_socket {
     public:
-        basic_socket( void ) : _fd(invalid_descriptor){}
-        basic_socket( descriptor_type fd ) : _fd(fd){}
+        using implementation = SocketLayerT<Type,Proto>;
+        using buf_type = typename implementation::buf_type;
+        using bufv_type = typename implementation::bufv_type;
+
+        basic_socket( void ) : _fd(invalid_socket){}
+        basic_socket( socket_type fd ) : _fd(fd){}
 
         bool open( int family = AF_INET ) {
-            _fd = SocketLayer::open( family , Type , Proto );
-            return _fd != invalid_descriptor;
+            _fd = implementation::open( family );
+            return _fd != invalid_socket;
         }
 
         void close( void ) {
-            if ( _fd != invalid_descriptor ) {
-                SocketLayer::close(_fd);
+            if ( _fd != invalid_socket ) {
+                implementation::close(_fd);
             }
-            _fd = invalid_descriptor;
+            _fd = invalid_socket;
         }
 
-        bool bind( const ip::address& addr ) {
+        bool bind( const cx::io::ip::address& addr ) {
             return ::bind( _fd , addr.sockaddr() , addr.length()) != -1;
         }
 
-        bool listen( void ) {
-            return ::listen( _fd , SOMAXCONN ) != -1;
+        int write( const buf_type& buf ) {
+            return implementation::write(_fd,buf);
         }
 
-        bool connect( const cx::io::ip::address& address ) {
-            if (::connect( _fd , address.sockaddr() , address.length()) == 0 )
-                return true;
-#if CX_PLATFORM == CX_P_WINDOWS
-            if ( WSAGetLastError() == WSAEWOULDBLOCK ) 
-                return true;
-#else
-            if ( errno == EINPROGRESS )
-                return true;
-#endif
-            return false;
+        int read( const buf_type& buf ) {
+            return implementation::read(_fd,buf);
         }
 
-        int write( const cx::io::buffer& buf ) {
-             return send( _fd , static_cast<const char*>(buf.ptr()) , buf.len() , 0 );
+        int writev( const bufv_type& buf ) {
+            return implementation::writev(_fd,buf);
         }
 
-        int read( const cx::io::buffer& buf ) {
-            return recv( _fd , static_cast<char*>(buf.ptr()) , buf.len() , 0 );
-        }
-
-        int write( const std::string_view& msg ) {
-            return write( cx::io::buffer(msg));
-        }
-
-        descriptor_type accept( cx::io::ip::address& addr ) {
-            return ::accept( _fd , addr.sockaddr() , addr.length_ptr());
+        int readv( const bufv_type& buf ) {
+            return implementation::readv(_fd,buf);
         }
 
         int shutdown( int how ) {
@@ -84,11 +71,11 @@ namespace cx::io::ip{
             return addr;
         }
 
-        descriptor_type descriptor( void ) {  
+        socket_type handle( void ) {  
             return _fd;
         }
 
-        descriptor_type descriptor( descriptor_type fd ) {
+        socket_type handle( socket_type fd ) {
             std::swap( _fd , fd );
             return fd;
         }
@@ -102,11 +89,11 @@ namespace cx::io::ip{
             return opt.get( _fd );
         }
     private:
-        descriptor_type _fd;
+        socket_type _fd;
     };
 
     namespace tcp {
-        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP , tcp::socket_layer_impl >;
+        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP , ip::socket_layer >;
     }
 
     namespace udp {

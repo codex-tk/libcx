@@ -5,12 +5,27 @@
 
 namespace cx::io {
 
+    template < typename T >
+    struct handle_trait;
 #if CX_PLATFORM == CX_P_WINDOWS
-    using descriptor_type = SOCKET;
-    static const descriptor_type invalid_descriptor = INVALID_SOCKET;
+    template <>
+    struct handle_trait<HANDLE> {
+        using handle_type = HANDLE;
+        static constexpr handle_type invalid( void ) { return INVALID_HANDLE_VALUE; }
+    };
+
+    template <>
+    struct handle_trait<SOCKET> {
+        using handle_type = SOCKET;
+        static constexpr handle_type invalid( void ) { return INVALID_SOCKET; }
+    };
+    
 #else
-    using descriptor_type = int;
-    static const descriptor_type invalid_descriptor = -1;
+    template <>
+    struct handle_trait<int> {
+        using handle_type = int;
+        static constexpr handle_type invalid( void ) { return -1; }
+    };
 #endif   
 
     namespace ops {
@@ -22,8 +37,20 @@ namespace cx::io {
 
      
 #if CX_PLATFORM == CX_P_WINDOWS
-    class buffer : public WSABUF {
+    class basic_buffer : public WSABUF {
+#else
+    class basic_buffer : public iovec {
+#endif
     public:
+        basic_buffer( void* ptr , std::size_t len ) {
+            this->ptr(ptr);
+            this->len(len);
+        }
+        basic_buffer( const std::string_view& msg ) {            
+            this->ptr( const_cast<char*>(msg.data()));
+            this->len( msg.size());
+        }
+#if CX_PLATFORM == CX_P_WINDOWS
         void* ptr( void ) const { return this->buf; }
         std::size_t len( void ) const { return static_cast< const WSABUF*>(this)->len; }
         void* ptr( const void* new_ptr ) { 
@@ -38,8 +65,6 @@ namespace cx::io {
             return old;
         }
 #else
-    class buffer : public iovec {
-    public:
         void* ptr( void ) const { return this->iov_base; }
         std::size_t len( void ) const { return this->iov_len; }
         void* ptr( void* new_ptr ) { 
@@ -52,19 +77,7 @@ namespace cx::io {
             this->iov_len = new_size;
             return old;
         }
-#endif
-        buffer( void* ptr , std::size_t len ) {
-            this->ptr(ptr);
-            this->len(len);
-        }
-        buffer( const std::string_view& msg ) {
-#if CX_PLATFORM != CX_P_WINDOWS
-            this->ptr( const_cast<char*>(msg.data()));
-#else
-            this->ptr( msg.data());
-#endif
-            this->len( msg.size());
-        }
+#endif       
     };
 }
 

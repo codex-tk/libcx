@@ -12,6 +12,16 @@
 #include <vector>
 
 namespace cx::io::ip{
+
+#if CX_PLATFORM == CX_P_WINDOWS
+    using socket_type = SOCKET;
+    static const socket_type invalid_socket = INVALID_SOCKET;    
+#else
+    using socket_type = int;
+    static const socket_type invalid_socket = -1;
+#endif    
+
+
     namespace detail{
         static bool inet_ntop( const struct sockaddr_storage& addr , char* out , const int len ) {
             void* ptr = nullptr;

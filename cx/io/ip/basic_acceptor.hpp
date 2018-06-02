@@ -9,55 +9,88 @@
 #include <cx/io/ip/option.hpp>
 #include <cx/io/selector.hpp>
 
-namespace cx::io::ip {
+namespace cx::io::ip
+{
 
-    template < int Type , int Proto , typename Impl >
-    class basic_acceptor {
-    public:
-        basic_acceptor( void ) {}
-        ~basic_acceptor( void ) {}
+/**
+     * class HandlerT {
+     *      bool select_address( const cx::io::ip::address& addr );
+     *      void handle_accept( socket_type fd ,  const cx::io::ip::address& addr  )
+     * }
+     */
+template <typename HandlerT, int Type, int Proto, template <int, int> class SocketLayerT>
+class basic_acceptor
+{
+  public:
+    using implementation = SocketLayerT<Type, Proto>;
+    basic_acceptor(HandlerT &handler)
+        : _handler(handler)
+    {
+    }
+    ~basic_acceptor(void) {}
 
-        bool open( const uint16_t port , const uint16_t family ) {
-            auto addresses = cx::io::ip::address::any( port , family );
-            for ( auto addr : addresses ) {
-                cx::io::ip::basic_socket<Type,Proto,Impl> fd;
-                if ( fd.open( addr.family())) {
-                    fd.set_option( cx::io::ip::option::reuse_address(cx::io::ip::option::enable));
-                    if ( addr.family() == AF_INET6 )
-                        fd.set_option( cx::io::ip::option::bind_ipv6only(cx::io::ip::option::enable));
-                    if ( fd.bind( addr ) && fd.listen() ){
-                        _listen_fds.emplace_back(fd.descriptor(cx::io::invalid_descriptor));
+    bool open(const uint16_t port, const uint16_t family = AF_UNSPEC){
+        auto addresses = cx::io::ip::address::any(port, family);
+        for (auto addr : addresses){
+            if (_handler.select_address(addr)){
+                cx::io::ip::basic_socket<Type, Proto, SocketLayerT> fd;
+                if (fd.open(addr.family())) {
+                    fd.set_option(cx::io::ip::option::reuse_address(cx::io::ip::option::enable));
+                    if (addr.family() == AF_INET6)
+                        fd.set_option(cx::io::ip::option::bind_ipv6only(cx::io::ip::option::enable));
+                    if (fd.bind(addr) && implementation::listen(fd.handle())) {
+                        _listen_fds.emplace_back(fd.handle(cx::io::ip::invalid_socket));
                     }
                 }
                 fd.close();
             }
-            for ( auto fd : _listen_fds ) {
-                _selector.bind( fd.descriptor(), cx::io::ops::read , nullptr );
-            }
-            return !_listen_fds.empty();
         }
-        void close(void){
-            for ( auto fd : _listen_fds ) {
-                _selector.unbind( fd.descriptor() );
-                fd.close();
-            }
-            _listen_fds.clear();
+        for (auto fd : _listen_fds) {
+            _selector.bind(fd.handle(), cx::io::ops::read, nullptr);
         }
-
-        template < typename Handler >
-        void handle_accept( const Handler& handler  , const std::chrono::milliseconds& ms ){
-            
+        return !_listen_fds.empty();
+    }
+    void close(void) {
+        for (auto fd : _listen_fds) {
+            _selector.unbind(fd.handle());
+            fd.close();
         }
-    private:
-        std::vector< cx::io::ip::basic_socket< Type , Proto , Impl > > _listen_fds;
-        cx::io::selector _selector;
-    };
-
-    namespace tcp {
-        using acceptor = basic_acceptor<  SOCK_STREAM , IPPROTO_TCP , tcp::socket_layer_impl >;
+        _listen_fds.clear();
     }
 
+    int accept(  const std::chrono::milliseconds& ms) {
+        int cnt = _selector.select( ms.count() );
+        if ( cnt > 0 ) {
+            selector::iterator it(_selector);
+            while ( it ) {
+                cx::io::ip::address addr;
+                socket_type fd = implementation::accept( it.handle() , addr );
+                if ( fd != invalid_socket ) {
+                    _handler.handle_accept( fd , addr );
+                }
+                ++it;
+            }
+        }
+        return cnt;
+    }
 
+  private:
+    HandlerT &_handler;
+    std::vector<cx::io::ip::basic_socket<Type, Proto, SocketLayerT>> _listen_fds;
+#if CX_PLATFORM == CX_P_WINDOWS
+    using selector = cx::io::selector<SOCKET, 32>;
+     #else
+    using selector = cx::io::selector<int, 32>;
+#endif
+    selector _selector;
+};
+
+namespace tcp
+{
+    template < typename HandlerT >
+    using acceptor = basic_acceptor< HandlerT , SOCK_STREAM, IPPROTO_TCP, ip::socket_layer >;
 }
+
+} // namespace cx::io::ip
 
 #endif

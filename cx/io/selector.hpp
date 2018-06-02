@@ -2,36 +2,65 @@
 #define __cx_io_select_h__
 
 #include <cx/io/io.hpp>
-#include <map>
+#include <array>
 namespace cx::io{
 
-    class selector{
+    template < typename HandleT , std::size_t N >
+    class selector {
     public:
-        using context = std::tuple< cx::io::descriptor_type , int , void* >;
+        using handle_type = typename cx::io::handle_trait<HandleT>::handle_type;
+        using context = std::tuple< handle_type , int , void* >;
         enum context_id {
-            descriptor = 0 ,
-            operations = 1 , 
-            user_context = 2 ,
+            handle = 0 ,
+            ops = 1 , 
+            udata = 2 ,
         };
-        using container_type = std::map< cx::io::descriptor_type , context >;
 
-        selector( void ){
+        selector( void ) : _fds_length(0) , _sigfds_length(0) {
+            for ( std::size_t i = 0 ; i < N ; ++i ) {
+                std::get<context_id::handle>(_fds[i]) = cx::io::handle_trait<HandleT>::invalid();
+                std::get<context_id::handle>(_sigfds[i]) = cx::io::handle_trait<HandleT>::invalid();
+            }            
         }
 
         ~selector( void ){
         }
 
-        bool bind( cx::io::descriptor_type fd , int ops , void* ctx ) {
-            _fds[fd] = std::make_tuple( fd , ops , ctx );
-            return true;
+        bool bind( handle_type fd , int ops , void* udata ) {
+            for ( std::size_t i = 0 ; i < N ; ++i ) {
+                if ( std::get<context_id::handle>(_fds[i]) == cx::io::handle_trait<HandleT>::invalid() ) {
+                    std::get<context_id::handle>(_fds[i]) = fd;
+                    std::get<context_id::ops>(_fds[i]) = ops;
+                    std::get<context_id::udata>(_fds[i]) = udata;
+                    ++_fds_length;
+                    return true;
+                }
+                if ( std::get< context_id::handle >( _fds[i] ) == fd ) {
+                    std::get<context_id::ops>(_fds[i]) = ops;
+                    std::get<context_id::udata>(_fds[i]) = udata;
+                    return true;
+                }
+            }
+            return false;
         }
 
-        void unbind( cx::io::descriptor_type fd ) {
-            _fds.erase( fd );
+        void unbind( handle_type fd ) {
+            for ( std::size_t i = 0 ; i < _fds_length ; ++i ) {
+                if ( std::get< context_id::handle >( _fds[i]) == fd ) {
+                    if ( i == _fds_length - 1 ) {
+                        std::get<context_id::handle>(_fds[i]) = cx::io::handle_trait<HandleT>::invalid();
+                    } else {
+                        std::get<context_id::handle>(_fds[i]) = std::get<context_id::handle>(_fds[_fds_length -1]);
+                        std::get<context_id::ops>(_fds[i]) = std::get<context_id::ops>(_fds[_fds_length -1]);
+                        std::get<context_id::udata>(_fds[i]) = std::get<context_id::udata>(_fds[_fds_length -1]);
+                        std::get<context_id::handle>(_fds[_fds_length -1]) = cx::io::handle_trait<HandleT>::invalid();
+                    }
+                }
+            }
         }
 
         int select( int wait_milli_sec ) {
-            _sigfds.clear();
+            _sigfds_length = 0;
             fd_set rdfds;
             fd_set wrfds;
             FD_ZERO( &rdfds );
@@ -39,14 +68,16 @@ namespace cx::io{
 #if CX_PLATFORM != CX_P_WINDOWS
             int maxfd = 0;
 #endif
-            for ( auto fd : _fds ){
+            for ( std::size_t i = 0 ; i < _fds_length ; ++i ) {
+                handle_type fd = std::get<context_id::handle>(_fds[i]);
+                int ops = std::get< context_id::ops >(_fds[i]);
 #if CX_PLATFORM != CX_P_WINDOWS
-                if ( fd.first > maxfd ) maxfd = fd.first;
+                if ( fd > maxfd ) maxfd = std::get<context_id::handle>(_fds[i]);
 #endif
-                if ( std::get<context_id::operations>(fd.second) & cx::io::ops::read )
-                    FD_SET( fd.first , &rdfds );
-                if ( std::get<context_id::operations>(fd.second) & cx::io::ops::write )
-                    FD_SET( fd.first , &wrfds );
+                if ( ops & cx::io::ops::read )
+                    FD_SET( fd , &rdfds );
+                if ( ops & cx::io::ops::write )
+                    FD_SET( fd , &wrfds );
             }    
 
             struct timeval tv;
@@ -68,104 +99,79 @@ namespace cx::io{
                 return 0;
             }
 #endif
-            for ( auto fd : _fds ){
+            for ( std::size_t i = 0 ; i < _fds_length ; ++i ) {
                 bool pushed = false;
-                if ( std::get<context_id::operations>(fd.second) & cx::io::ops::read ) {
-                    if ( FD_ISSET( fd.first , &rdfds )) {
-                        _sigfds.push_back( fd.second );
-                        std::get<context_id::operations>(_sigfds.back()) = cx::io::ops::read;
+                handle_type fd = std::get<context_id::handle>(_fds[i]);
+                int ops = std::get< context_id::ops >(_fds[i]);
+                if ( ops & cx::io::ops::read ) {
+                    if ( FD_ISSET( fd , &rdfds )) {
+                        std::get<context_id::handle>(_sigfds[_sigfds_length]) = fd;
+                        std::get<context_id::ops>(_sigfds[_sigfds_length]) = cx::io::ops::read;
                         pushed = true;
                     }
                 }
-                if ( std::get<context_id::operations>(fd.second) & cx::io::ops::write ) {
-                    if ( FD_ISSET( fd.first , &wrfds )) {
+                if ( ops & cx::io::ops::write ) {
+                    if ( FD_ISSET( fd , &wrfds )) {
                         if ( pushed ) {
-                            std::get<context_id::operations>(_sigfds.back()) |= cx::io::ops::read;
+                            std::get<context_id::ops>(_sigfds[_sigfds_length]) |= cx::io::ops::read;
                         } else {
-                            _sigfds.push_back( fd.second );
-                            std::get<context_id::operations>(_sigfds.back()) = cx::io::ops::write;
+                            std::get<context_id::handle>(_sigfds[_sigfds_length]) = fd;
+                            std::get<context_id::ops>(_sigfds[_sigfds_length]) = cx::io::ops::write;
+                            pushed = true;
                         }                 
                     }
                 }
+                if ( pushed ) ++_sigfds_length;
             }  
             return ret;
         }
     public:
         class iterator {
         public:
-            iterator ( selector& s ) : _selector(s) { 
-                _it = _selector._sigfds.begin();
+            iterator ( selector& s ) : _selector(s) , _index(0) {}
+            iterator ( selector& s , std::size_t index ) : _selector(s) , _index(index) {}
+
+            handle_type handle( void ) { 
+                return std::get< context_id::handle>( _selector._sigfds[_index] );
             }
-            iterator ( selector& s , std::vector< selector::context >::iterator it ) 
-                : _selector(s) , _it(it) {
+            int ops( void ) {  
+                return std::get< context_id::ops>(_selector._sigfds[_index]); 
             }
-            cx::io::descriptor_type descriptor( void ) { 
-                return std::get< context_id::descriptor>(*_it);
-            }
-            int operations( void ) {  
-                return std::get< context_id::operations>(*_it); 
-            }
-            void* user_context( void ) { 
-                return std::get< context_id::user_context>(*_it); 
+            void* udata( void ) { 
+                return std::get< context_id::udata>(_selector._sigfds[_index]); 
             }
             explicit operator bool( void ) const {
-                return _it != _selector._sigfds.end();
+                return _index != _selector._sigfds_length;
             }
             iterator& operator++(void) {
-                ++_it;
+                ++_index;
                 return *this;
             }
             iterator operator++(int){
-                iterator ret( _selector , _it );
-                ++_it;
+                iterator ret( _selector , _index );
+                ++_index;
                 return ret;
             }
         private:
             selector& _selector;
-            std::vector< selector::context >::iterator _it;
+            std::size_t _index;
         };
     private:
-        container_type _fds;
-        std::vector< context > _sigfds;
+        std::array< context , N > _fds;
+        std::size_t _fds_length;
+        std::array< context , N > _sigfds;
+        std::size_t _sigfds_length;
     public:
-        template < typename T >
-        static int select( T& fd , int ops , int wait_milli_sec ) {
-            fd_set rdfds;
-            fd_set wrfds;
-            fd_set* sets[2] = { &rdfds , &wrfds };
-            int io_ops[2] = { io::ops::read , io::ops::write };
-            for ( int i = 0 ; i < 2 ; ++i ) {
-                FD_ZERO( sets[i] );
-                if ( ops & io_ops[i] ) {
-                    FD_SET( fd.descriptor() , sets[i] );
-                }
+        static int select( handle_type fd , int ops , int wait_milli_sec ) {
+            selector s;
+            s.bind( fd , ops , nullptr );
+            if (  s.select( wait_milli_sec) > 0 ) {
+                selector::iterator it( s );
+                ops = it.ops();
+            } else {
+                ops = 0;
             }
-
-            struct timeval tv;
-            tv.tv_sec = wait_milli_sec / 1000;
-            tv.tv_usec =( wait_milli_sec % 1000 ) * 1000;
-
-            int interest_ops = 0;
-#if CX_PLATFORM == CX_P_WINDOWS
-            int ret = ::select( 0 , &rdfds , &wrfds , nullptr  , &tv );
-            if ( ret == 0 || ret == -1 ) // timeout or error
-                return interest_ops;
-#else
-            while ( true ) {
-                int ret = ::select( fd.descriptor() + 1 , &rdfds , &wrfds , nullptr  , &tv );
-                if ( ret > 0 )  
-                    break;
-                if ( ret == -1 && errno == EINTR ) 
-                    continue;
-                return interest_ops;
-            }
-#endif
-            for ( int i = 0 ; i < 2 ; ++i ) {
-                if ( FD_ISSET( fd.descriptor() , sets[i] ) ) {
-                    interest_ops |= io_ops[i];
-                }
-            }
-            return interest_ops;
+            return ops;
         }
     };
 

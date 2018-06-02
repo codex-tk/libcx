@@ -14,6 +14,12 @@
 
 using namespace cx;
 using namespace io;
+#if CX_PLATFORM == CX_P_WINDOWS        
+using selector_t = cx::io::selector< SOCKET , 32 >;
+#else
+using selector_t = cx::io::selector< int , 32 >;
+#endif
+
 
 TEST( cx_io_ip_socket , open_close ) { 
     ip::tcp::socket fd;
@@ -21,8 +27,8 @@ TEST( cx_io_ip_socket , open_close ) {
     ASSERT_NE( addr.sockaddr() , nullptr );
     
     ASSERT_TRUE( fd.open() );
-    ASSERT_NE( fd.descriptor() 
-            , cx::io::invalid_descriptor );
+    ASSERT_NE( fd.handle() 
+            , cx::io::ip::invalid_socket );
     fd.close();
 }
 
@@ -39,12 +45,13 @@ TEST( cx_io_ip_socket , connect ) {
     //ip::address addr( AF_INET , "216.58.197.206" , 80 );
     //ASSERT_TRUE( fd.connect(addr) );
 
-    ASSERT_TRUE( fd.connect(addresses[0]) );
-    ASSERT_TRUE( io::selector::select( fd , io::ops::write , 5000 ) == io::ops::write );
-    ASSERT_EQ( fd.write( "GET / HTTP/1.1\r\n\r\n" ) , strlen("GET / HTTP/1.1\r\n\r\n"));
-    ASSERT_TRUE( io::selector::select( fd , io::ops::read , 5000 ) == io::ops::read );
+    ASSERT_TRUE( ip::tcp::socket::implementation::connect( fd.handle() , addresses[0]) );
+    ASSERT_TRUE( selector_t::select( fd.handle() , io::ops::write , 5000 ) == io::ops::write );
+    ASSERT_EQ( fd.write(  io::basic_buffer( "GET / HTTP/1.1\r\n\r\n" ) ) 
+    , strlen("GET / HTTP/1.1\r\n\r\n"));
+    ASSERT_TRUE( selector_t::select( fd.handle() , io::ops::read , 5000 ) == io::ops::read );
     char buf[4096] = { 0 , };
-    int len = fd.read( io::buffer( buf , 1024 ) );
+    int len = fd.read( io::basic_buffer( buf , 1024 ) );
     ASSERT_TRUE( len > 0 );
     gprintf( "Local : %s" , fd.local_address().to_string().c_str() );
     gprintf( "Remote : %s" , fd.remote_address().to_string().c_str());
@@ -73,26 +80,26 @@ TEST( cx_io_ip_socket , sample_echo ) {
     ASSERT_TRUE( server.set_option( ip::option::reuse_address(ip::option::enable)));
     ASSERT_TRUE( server.set_option( ip::option::non_blocking()));
     ASSERT_TRUE( server.bind(ip::address::any(7543 , AF_INET )[0]));
-    ASSERT_TRUE( server.listen() );
+    ASSERT_TRUE( ip::tcp::socket::implementation::listen( server.handle() ) );
 
     ip::tcp::socket client;
     ip::address clientaddr( AF_INET , "127.0.0.1" , 7543 );
     ASSERT_TRUE( client.open() );
-    ASSERT_TRUE( client.connect( clientaddr ));
-    ASSERT_TRUE( io::selector::select( client , io::ops::write , 5000 ) == io::ops::write );
+    ASSERT_TRUE( ip::tcp::socket::implementation::connect( client.handle() , clientaddr) );
+    ASSERT_TRUE( selector_t::select( client.handle() , io::ops::write , 5000 ) == io::ops::write );
     
-    ASSERT_TRUE( io::selector::select( server , io::ops::read , 1000 ) == io::ops::read );
+    ASSERT_TRUE( selector_t::select( server.handle() , io::ops::read , 1000 ) == io::ops::read );
 
     ip::address addr;
-    ip::tcp::socket accepted( server.accept( addr ));   
-    ASSERT_TRUE( accepted.descriptor() != io::invalid_descriptor );
+    ip::tcp::socket accepted( ip::tcp::socket::implementation::accept(server.handle() , addr ));   
+    ASSERT_TRUE( accepted.handle() != io::ip::invalid_socket );
 
-    ASSERT_EQ( client.write("Hello") , strlen("Hello"));
-    ASSERT_EQ( accepted.read( io::buffer(buf,1024)), strlen("Hello"));
+    ASSERT_EQ( client.write(io::basic_buffer("Hello")) , strlen("Hello"));
+    ASSERT_EQ( accepted.read( io::basic_buffer(buf,1024)), strlen("Hello"));
     ASSERT_STREQ( "Hello" , buf );
 
-    accepted.write("World");
-    ASSERT_EQ( client.read( io::buffer(buf,1024)), strlen("World"));
+    accepted.write(io::basic_buffer("World"));
+    ASSERT_EQ( client.read( io::basic_buffer(buf,1024)), strlen("World"));
     ASSERT_STREQ( "World" , buf );
 
     server.close();
