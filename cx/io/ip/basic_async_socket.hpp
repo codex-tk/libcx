@@ -27,6 +27,11 @@ namespace cx::io::ip {
             connect_op<HandlerT>* op = new connect_op<HandlerT>( addr , std::forward<HandlerT>(handler));
             _handle->layer.connect( _handle , op );
         }
+
+        void close( void ) {
+            _handle->layer.closesocket( _handle );
+            _handle = nullptr;
+        }
     private:
         cx::io::async_layer::handle_ptr _handle;
     };

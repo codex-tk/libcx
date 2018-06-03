@@ -6,6 +6,7 @@
  * @date 2018-06-03
  */
 
+#include <memory>
 #include <cx/core/allocators.hpp>
 
 namespace cx::core{

@@ -9,17 +9,22 @@
 #ifndef __cx_io_ip_basic_connect_h__
 #define __cx_io_ip_basic_connect_h__
 
+#include <cx/io/async_layer_impl/base_op.hpp>
 #include <cx/io/ip/basic_address.hpp>
 
 namespace cx::io { class engine; }
 namespace cx::io::ip::detail {
     
-    class base_connect {
+    class base_connect : public base_op {
     public:
-        base_connect( const cx::io::ip::address& address ) {}
+        base_connect( const cx::io::ip::address& address )
+            : _address(address) 
+        {
+        }
         virtual ~base_connect( void ){}
-        virtual void operator()(const std::error_code& ec) = 0;
 
+        virtual int type(void) = 0;
+        virtual int proto(void) = 0;
         cx::io::ip::address& address( void ) {
             return _address;
         }
@@ -37,11 +42,17 @@ namespace cx::io::ip::detail {
         }
 
         virtual ~basic_connect( void ) {
-
         }
 
-        virtual void operator()(const std::error_code& ec) override {
-            _handler(ec);
+        virtual void operator()(void) override {
+            _handler(error());
+        }
+
+        virtual int type(void) override {
+            return Type;
+        }
+        virtual int proto(void) override {
+            return Proto;
         }
     private:
         HandlerT _handler;

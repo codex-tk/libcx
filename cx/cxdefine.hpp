@@ -33,6 +33,7 @@ Windows	 _WIN32 or __WIN32__
 
 #include <WinSock2.h>
 #include <ws2tcpip.h>
+#include <MSWsock.h>
 #include <iphlpapi.h>
 #include <windows.h>
 #include <stdint.h>

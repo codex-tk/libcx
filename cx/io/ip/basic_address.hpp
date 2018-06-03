@@ -134,13 +134,25 @@ namespace cx::io::ip{
     public:
     
         static basic_address any( const uint16_t port , const short family = AF_INET ) {
-            sockaddr_in addr;
-            memset( &addr , 0x00 , sizeof(addr));
-            addr.sin_family = family; 
-            addr.sin_port = htons( port ); 
-            addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-            return address( reinterpret_cast< struct sockaddr*>(&addr)
-                , sizeof(addr));
+            if ( family == AF_INET ) {
+                sockaddr_in addr;
+                memset( &addr , 0x00 , sizeof(addr));
+                addr.sin_family = family; 
+                addr.sin_port = htons( port ); 
+                addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+                return address( reinterpret_cast< struct sockaddr*>(&addr)
+                    , sizeof(addr));
+            } 
+            if ( family == AF_INET6 ) {
+                sockaddr_in6 addr;
+                memset( &addr , 0x00 , sizeof(addr));
+                addr.sin6_family = AF_INET6;
+                addr.sin6_flowinfo = 0;
+                addr.sin6_port = htons(port);
+                addr.sin6_addr = in6addr_any;
+                return address( reinterpret_cast< struct sockaddr*>(&addr)
+                    , sizeof(addr));
+            }
         }
     
         static std::vector< basic_address > resolve( const char* name  
