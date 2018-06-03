@@ -10,16 +10,12 @@
 
 #include <memory>
 #include <cx/cxdefine.hpp>
-#include <cx/core/function.hpp>
-#include <cx/core/allocators.hpp>
+#include <cx/io/async_layer_impl/basic_connect.hpp>
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
-namespace cx::io {
-
-    class engine;
-
-namespace detail {
+namespace cx::io { class engine; }
+namespace cx::io::detail {
     
     class iocp_async_layer {
     public:
@@ -39,24 +35,9 @@ namespace detail {
             iocp_async_layer& layer;
         };
 
-        class connect_op {
-        public:
-            template < typename T >
-            connect_op( T&& h ) 
-                : _function(std::forward<T>(h)){}
-            ~connect_op( void ){}
-            void operator()(const std::error_code& ec){
-                _function(ec);
-            }
-        private:
-            cx::core::function< void ( const std::error_code& ec ) > _function;
-        };
-
-        void connect( handle_ptr ptr , connect_op * op ) {
+        void connect( handle_ptr ptr , cx::io::ip::detail::base_connect * op ) {
             (*op)( std::error_code());
-            cx::core::async_op_allocator<connect_op> _a1;
-            _a1.destroy(op);
-            _a1.deallocate( op , 1 );
+            delete op;
         }
 
          cx::io::engine& engine( void ) {
@@ -65,7 +46,6 @@ namespace detail {
     private:
         cx::io::engine& _engine;
     };
-}
 }
 #endif
 
