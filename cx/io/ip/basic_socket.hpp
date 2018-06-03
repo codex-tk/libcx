@@ -9,7 +9,7 @@
 #ifndef __cx_io_ip_basic_socket_h__
 #define __cx_io_ip_basic_socket_h__
 
-#include <cx/io/ip/detail/socket_layer.hpp>
+#include <cx/io/ip/socket_layer.hpp>
 
 namespace cx::io::ip {
 
