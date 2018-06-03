@@ -5,6 +5,10 @@
  * @author ghtak
  * @date 2018-05-31
  */
+
+#ifndef __cx_io_ip_socket_layer_h__
+#define __cx_io_ip_socket_layer_h__
+
 #include <cx/io/ip/basic_address.hpp>
 
 namespace cx::io::ip {
@@ -12,11 +16,10 @@ namespace cx::io::ip {
     template < int Type , int Proto >
     class socket_layer;
 
-
     template <>
     class socket_layer< SOCK_STREAM , IPPROTO_TCP >{
     public:
-        using buf_type = cx::io::basic_buffer;
+        using buffer_type = cx::io::basic_buffer;
         using bufv_type = std::vector<cx::io::basic_buffer>;
 
         static socket_type open( int family ) {
@@ -56,11 +59,11 @@ namespace cx::io::ip {
             return ::accept( fd , addr.sockaddr() , addr.length_ptr());
         }
 
-        static int write( socket_type fd ,const buf_type& buf ) {
+        static int write( socket_type fd ,const buffer_type& buf ) {
             return send( fd , static_cast<const char*>(buf.ptr()) , buf.len() , 0 );
         }
 
-        static int read( socket_type fd ,const buf_type& buf ) {
+        static int read( socket_type fd ,const buffer_type& buf ) {
             return recv( fd , static_cast<char*>(buf.ptr()) , buf.len() , 0 );
         }
 
@@ -72,5 +75,6 @@ namespace cx::io::ip {
             return 0;
         }
     };
-    
 }
+
+#endif

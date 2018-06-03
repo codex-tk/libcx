@@ -18,7 +18,25 @@ TEST( async_layer , connect ) {
         , [&] ( const std::error_code& ec ) {
             testValue = 1;
         });
-    engine.async_layer().run( std::chrono::milliseconds(1000));
-    fd.close();
+    ASSERT_EQ( engine.async_layer().run( std::chrono::milliseconds(1000)) , 1);
+    
     ASSERT_EQ( testValue , 1 );
+    auto get = cx::io::ip::basic_async_socket< SOCK_STREAM , IPPROTO_TCP >::buffer_type( "GET / HTTP/1.1\r\n\r\n" );
+
+    fd.write( get , [&] ( const std::error_code& ec , int io_size ){
+        testValue = io_size;
+    });
+    ASSERT_EQ( engine.async_layer().run( std::chrono::milliseconds(1000)) , 1);
+    ASSERT_EQ( testValue , get.len() );
+    char read_buffer[1024] = { 0 , };
+    cx::io::ip::basic_async_socket< SOCK_STREAM , IPPROTO_TCP >::buffer_type rdbuf( read_buffer , 1023 );
+    testValue = 0;
+    fd.read( rdbuf , [&] ( const std::error_code& ec , int io_size ){
+        testValue = io_size;
+    });
+    ASSERT_EQ( engine.async_layer().run( std::chrono::milliseconds(1000)) , 1);
+    ASSERT_TRUE( testValue != 0 );
+
+    gprintf( "Recv %s" , read_buffer );
+    fd.close();
 }

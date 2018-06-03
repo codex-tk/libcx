@@ -13,6 +13,8 @@
 #include <cx/error.hpp>
 #include <cx/io/ip/option.hpp>
 #include <cx/io/async_layer_impl/basic_connect.hpp>
+#include <cx/io/async_layer_impl/basic_write.hpp>
+#include <cx/io/async_layer_impl/basic_read.hpp>
 #include <cx/container_of.hpp>
 
 #include <set>
@@ -71,26 +73,66 @@ namespace cx::io::detail {
                     cx::io::ip::address addr = cx::io::ip::address::any( 0 , op->address().family());
                     if ( ::bind( ptr->fd , addr.sockaddr() , addr.length()) != SOCKET_ERROR ) {
                         if ( this->bind( ptr )) {
-                            memset( op->overlapped() , 0x00 , sizeof(decltype(op->overlapped())));
+                            memset( op->overlapped() , 0x00 , sizeof(OVERLAPPED));
                             bytes_returned = 0;
                             if ( _connect_ex(ptr->fd
                                 , op->address().sockaddr() 
                                 , op->address().length() 
                                 , nullptr , 0 
-                                , &bytes_returned , op->overlapped() ) == TRUE ) {
+                                , &bytes_returned , op->overlapped() ) == TRUE ) 
                                 return;
-                            }
+                            if (WSAGetLastError() == WSA_IO_PENDING)
+							    return;
                         }
                     }
                 }
             }
             op->error( std::error_code( WSAGetLastError() , cx::windows_category()));
+            post(op);
         }
 
         void closesocket( handle_ptr& ptr ) {
             ::closesocket( ptr->fd );
             ptr->fd = INVALID_SOCKET;
             unbind( ptr );
+        }
+
+        void write( handle_ptr ptr , cx::io::ip::detail::base_write< SOCK_STREAM , IPPROTO_TCP >* op ) {
+            memset( op->overlapped() , 0x00 , sizeof(OVERLAPPED));
+            DWORD flag = 0;
+            DWORD bytes_transferred = 0;
+            if ( WSASend( ptr->fd
+                        , &(op->buffer())
+                        , 1
+                        , &bytes_transferred 
+                        , flag 
+                        , op->overlapped()
+                        , nullptr ) == SOCKET_ERROR )
+            {
+                if ( WSAGetLastError() != WSA_IO_PENDING ){
+                    op->error( std::error_code( WSAGetLastError() , cx::windows_category()));
+                    post(op);
+                }
+            }
+        }
+
+        void read( handle_ptr ptr , cx::io::ip::detail::base_read< SOCK_STREAM , IPPROTO_TCP >* op ) {
+            memset( op->overlapped() , 0x00 , sizeof(OVERLAPPED));
+            DWORD flag = 0;
+            DWORD bytes_transferred = 0;
+            if ( WSARecv( ptr->fd
+                        , &(op->buffer())
+                        , 1
+                        , &bytes_transferred 
+                        , &flag 
+                        , op->overlapped()
+                        , nullptr ) == SOCKET_ERROR )
+            {
+                if ( WSAGetLastError() != WSA_IO_PENDING ){
+                    op->error( std::error_code( WSAGetLastError() , cx::windows_category()));
+                    post(op);
+                }
+            }
         }
         cx::io::engine& engine( void ) {
             return _engine;
@@ -114,7 +156,7 @@ namespace cx::io::detail {
         }
 
         int run( const const std::chrono::milliseconds& ms ) {
-            LPOVERLAPPED ov;
+            LPOVERLAPPED ov = nullptr;
             DWORD bytes_transferred = 0;
             ULONG_PTR key;
             BOOL ret = GetQueuedCompletionStatus( _handle
@@ -131,7 +173,15 @@ namespace cx::io::detail {
                 }
                 op->io_size(bytes_transferred);
                 (*op)();
+                delete op;
                 return 1;
+            }
+        }
+
+        void post( base_op* op ) {
+            if ( PostQueuedCompletionStatus( _handle , 0 , 0 , op->overlapped() ) == 0 ){
+                (*op)();
+                delete op;
             }
         }
     private:

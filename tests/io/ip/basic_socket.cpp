@@ -44,7 +44,7 @@ TEST( cx_io_ip_socket , connect ) {
     cx::io::ip::tcp::connector connector;
     cx::io::ip::tcp::socket fd = connector.connect(addresses[0] , std::chrono::milliseconds(1000));
     ASSERT_TRUE( fd.handle() != cx::io::ip::invalid_socket );
-    auto get = io::ip::tcp::socket::buf_type( "GET / HTTP/1.1\r\n\r\n" );
+    auto get = io::ip::tcp::socket::buffer_type( "GET / HTTP/1.1\r\n\r\n" );
     ASSERT_EQ( fd.write( get ) , get.len());
     ASSERT_TRUE( selector_t::select( fd.handle() , io::ops::read , 5000 ) == io::ops::read );
     char buf[4096] = { 0 , };
