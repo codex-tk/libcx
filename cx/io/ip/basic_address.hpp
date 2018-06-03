@@ -100,7 +100,7 @@ namespace cx::io::ip{
         }
 
         bool inet_ntop( char* out , const int len ) const {
-            return detail::inet_ntop( _address , out , len );
+            return cx::io::ip::detail::inet_ntop( _address , out , len );
         }
 
         const uint16_t family( void ) const {
@@ -132,7 +132,7 @@ namespace cx::io::ip{
             return std::string("");
         }
     public:
-    /*
+    
         static basic_address any( const uint16_t port , const short family = AF_INET ) {
             sockaddr_in addr;
             memset( &addr , 0x00 , sizeof(addr));
@@ -142,7 +142,7 @@ namespace cx::io::ip{
             return address( reinterpret_cast< struct sockaddr*>(&addr)
                 , sizeof(addr));
         }
-    */
+    
         static std::vector< basic_address > resolve( const char* name  
                 , const uint16_t port 
                 , const uint16_t family = AF_UNSPEC ) {
@@ -171,7 +171,7 @@ namespace cx::io::ip{
             freeaddrinfo( result );
             return addrs;
         }
-        static std::vector< basic_address > any( const uint16_t port 
+        static std::vector< basic_address > anys( const uint16_t port 
                 , const short family = AF_UNSPEC ) {
             return resolve( nullptr , port , family );
         }

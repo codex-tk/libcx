@@ -13,10 +13,10 @@
 
 namespace cx::io::ip {
 
-    template < int Type , int Proto , template < int , int > class SocketLayerT >
+    template < int Type , int Proto >
     class basic_socket {
     public:
-        using implementation = SocketLayerT<Type,Proto>;
+        using implementation = ip::socket_layer<Type,Proto>;
         using buf_type = typename implementation::buf_type;
         using bufv_type = typename implementation::bufv_type;
 
@@ -93,7 +93,7 @@ namespace cx::io::ip {
     };
 
     namespace tcp {
-        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP , ip::socket_layer >;
+        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP >;
     }
 
     namespace udp {

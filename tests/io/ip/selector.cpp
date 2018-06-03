@@ -19,7 +19,7 @@ TEST( cx_io_selector , to  ) {
     ASSERT_TRUE( server.open() );
     ASSERT_TRUE( server.set_option( ip::option::reuse_address(ip::option::enable)));
     ASSERT_TRUE( server.set_option( ip::option::non_blocking()));
-    ASSERT_TRUE( server.bind(ip::address::any(7543 , AF_INET )[0]));
+    ASSERT_TRUE( server.bind(ip::address::anys(7543 , AF_INET )[0]));
     ASSERT_TRUE( ip::tcp::socket::implementation::listen( server.handle()) );
 
     ip::tcp::socket client;

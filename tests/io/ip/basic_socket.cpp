@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 #include "tests/gprintf.hpp"
 #include <cx/io/ip/basic_socket.hpp>
+#include <cx/io/ip/basic_connector.hpp>
 #include <cx/io/ip/option.hpp>
 #include <cx/io/selector.hpp>
 
@@ -33,22 +34,18 @@ TEST( cx_io_ip_socket , open_close ) {
 }
 
 TEST( cx_io_ip_socket , connect ) {
-    ip::tcp::socket fd;
-    
     auto addresses = ip::address::resolve( "naver.com" , 80 );
     for ( auto a : addresses ) {
         gprintf( a.to_string().c_str() );
     }
 
     ASSERT_FALSE( addresses.empty());
-    ASSERT_TRUE( fd.open() );
-    //ip::address addr( AF_INET , "216.58.197.206" , 80 );
-    //ASSERT_TRUE( fd.connect(addr) );
 
-    ASSERT_TRUE( ip::tcp::socket::implementation::connect( fd.handle() , addresses[0]) );
-    ASSERT_TRUE( selector_t::select( fd.handle() , io::ops::write , 5000 ) == io::ops::write );
-    ASSERT_EQ( fd.write(  io::basic_buffer( "GET / HTTP/1.1\r\n\r\n" ) ) 
-    , strlen("GET / HTTP/1.1\r\n\r\n"));
+    cx::io::ip::tcp::connector connector;
+    cx::io::ip::tcp::socket fd = connector.connect(addresses[0] , std::chrono::milliseconds(1000));
+    ASSERT_TRUE( fd.handle() != cx::io::ip::invalid_socket );
+    auto get = io::ip::tcp::socket::buf_type( "GET / HTTP/1.1\r\n\r\n" );
+    ASSERT_EQ( fd.write( get ) , get.len());
     ASSERT_TRUE( selector_t::select( fd.handle() , io::ops::read , 5000 ) == io::ops::read );
     char buf[4096] = { 0 , };
     int len = fd.read( io::basic_buffer( buf , 1024 ) );
@@ -64,9 +61,9 @@ TEST( cx_io_ip_socket , connect ) {
 }
 
 TEST( cx_io_ip , any ) {
-    auto ipv4 = cx::io::ip::address::any( 80 , AF_INET );
-    auto ipv6 = cx::io::ip::address::any( 80 , AF_INET6 );
-    auto all = cx::io::ip::address::any( 80 , AF_UNSPEC );
+    auto ipv4 = cx::io::ip::address::anys( 80 , AF_INET );
+    auto ipv6 = cx::io::ip::address::anys( 80 , AF_INET6 );
+    auto all = cx::io::ip::address::anys( 80 , AF_UNSPEC );
     std::for_each( ipv4.begin() , ipv4.end() , [] ( auto a ) { gprintf( "V4 %s" , a.to_string().c_str());} );
     std::for_each( ipv6.begin() , ipv6.end() , [] ( auto a ) { gprintf( "V6 %s" ,a.to_string().c_str());} );
     std::for_each( all.begin() , all.end() , [] ( auto a ) { gprintf( "ALL %s" ,a.to_string().c_str());} );
@@ -79,14 +76,15 @@ TEST( cx_io_ip_socket , sample_echo ) {
     ASSERT_TRUE( server.open() );
     ASSERT_TRUE( server.set_option( ip::option::reuse_address(ip::option::enable)));
     ASSERT_TRUE( server.set_option( ip::option::non_blocking()));
-    ASSERT_TRUE( server.bind(ip::address::any(7543 , AF_INET )[0]));
+    ASSERT_TRUE( server.bind(ip::address::anys(7543 , AF_INET )[0]));
     ASSERT_TRUE( ip::tcp::socket::implementation::listen( server.handle() ) );
 
     ip::tcp::socket client;
     ip::address clientaddr( AF_INET , "127.0.0.1" , 7543 );
-    ASSERT_TRUE( client.open() );
-    ASSERT_TRUE( ip::tcp::socket::implementation::connect( client.handle() , clientaddr) );
-    ASSERT_TRUE( selector_t::select( client.handle() , io::ops::write , 5000 ) == io::ops::write );
+
+    cx::io::ip::tcp::connector connector;
+    client = connector.connect(clientaddr , std::chrono::milliseconds(1000));
+    ASSERT_TRUE( client.handle() != cx::io::ip::invalid_socket );
     
     ASSERT_TRUE( selector_t::select( server.handle() , io::ops::read , 1000 ) == io::ops::read );
 

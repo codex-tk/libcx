@@ -58,7 +58,9 @@
         "unordered_set": "cpp",
         "xhash": "cpp",
         "chrono": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "array": "cpp",
+        "thread": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true

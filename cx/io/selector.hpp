@@ -17,6 +17,9 @@ namespace cx::io{
         };
 
         selector( void ) : _fds_length(0) , _sigfds_length(0) {
+#if CX_PLATFORM == CX_P_WINDOWS
+            static_assert( N < 64 );
+#endif
             for ( std::size_t i = 0 ; i < N ; ++i ) {
                 std::get<context_id::handle>(_fds[i]) = cx::io::handle_trait<HandleT>::invalid();
                 std::get<context_id::handle>(_sigfds[i]) = cx::io::handle_trait<HandleT>::invalid();
