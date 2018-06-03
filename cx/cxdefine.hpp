@@ -27,7 +27,7 @@ Windows	 _WIN32 or __WIN32__
 #define CX_PLATFORM CX_P_UNKNOWN
 #endif
 
-#endif
+
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
@@ -78,7 +78,8 @@ namespace cx::io::ip::detail{
 #include <system_error>
 #include <chrono>
 
-
 #ifndef MAX_PATH
 #define MAX_PATH 256
+#endif
+
 #endif

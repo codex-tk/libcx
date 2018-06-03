@@ -10,7 +10,7 @@
 #include <cx/io/ip/basic_socket.hpp>
 #include <cx/io/ip/option.hpp>
 #include <cx/io/selector.hpp>
-
+#include <thread>
 using namespace cx;
 using namespace io;
 
@@ -31,6 +31,7 @@ TEST( cx_io_selector , to  ) {
     cx::io::selector< cx::io::ip::socket_type , 32 > selector;
     selector.bind( server.handle() , cx::io::ops::read , nullptr );
     selector.bind( client.handle() , cx::io::ops::read | cx::io::ops::write , nullptr );
+    std::this_thread::sleep_for( std::chrono::milliseconds(500));
     ASSERT_EQ( selector.select(4000) , 2);
 
     cx::io::selector< cx::io::ip::socket_type , 32 >::iterator it(selector);

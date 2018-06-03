@@ -17,6 +17,11 @@
             "label": "build release",
             "type": "shell",
             "command": "cmake --build ./build --config Release --target ALL_BUILD -- /m /property:GenerateFullPaths=true"
+        },
+        {
+            "label": "compile command",
+            "type": "shell",
+            "command": "cd build;mkdir cc;cd cc ;cmake -G 'MinGW Makefiles' ../..;cp ./compile_commands.json ../"
         }
     ]
 }

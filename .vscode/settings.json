@@ -60,7 +60,10 @@
         "chrono": "cpp",
         "ratio": "cpp",
         "array": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "*.tcc": "cpp",
+        "clocale": "cpp",
+        "cwctype": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true
