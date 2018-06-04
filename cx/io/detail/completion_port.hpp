@@ -1,7 +1,7 @@
 /**
  */
-#ifndef __cx_io_impl_completion_port_h__
-#define __cx_io_impl_completion_port_h__
+#ifndef __cx_io_detail_completion_port_h__
+#define __cx_io_detail_completion_port_h__
 
 /*
 */
@@ -16,7 +16,7 @@
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
-namespace cx::io::impl {
+namespace cx::io::detail {
 
     class completion_port {
     public:

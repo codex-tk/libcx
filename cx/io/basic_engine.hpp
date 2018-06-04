@@ -5,7 +5,21 @@
 
 #include <cx/service_repository.hpp>
 
+#include <cx/io/detail/completion_port.hpp>
+
 namespace cx::io {
+
+    using basic_implementation = 
+#if CX_PLATFORM == CX_P_WINDOWS
+        cx::io::detail::completion_port;
+#elif CX_PLATFORM == CX_P_LINUX
+        cx::io::detail::epoll;
+#elif CX_PLATFORM == CX_P_MACOSX
+        cx::io::detail::kqueue;
+#else
+        cx::io::detail::poll;
+#endif
+    
 
     template < typename Implementation , typename ... Services >
     class basic_engine {
