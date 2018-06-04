@@ -27,6 +27,7 @@ namespace cx::io::ip::detail {
     template < typename HandlerT , int Type , int Proto >
     class basic_write : public base_write<Type,Proto> {
     public:
+        using buffer_type = typename base_write<Type,Proto>::buffer_type;
         basic_write( const buffer_type& buf , HandlerT&& h ) 
             : base_write(buf) 
             , _handler( std::forward<HandlerT>(h)) 

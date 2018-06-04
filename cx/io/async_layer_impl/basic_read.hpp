@@ -27,6 +27,7 @@ namespace cx::io::ip::detail {
     template < typename HandlerT , int Type , int Proto >
     class basic_read : public base_read<Type,Proto> {
     public:
+        using buffer_type = typename base_read<Type,Proto>::buffer_type;
         basic_read( const buffer_type& buf , HandlerT&& h ) 
             : base_read(buf) 
             , _handler( std::forward<HandlerT>(h)) 

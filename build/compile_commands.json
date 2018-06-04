@@ -31,6 +31,11 @@
 },
 {
   "directory": "C:/Users/pieta/works/projects/libcx/build/cc/tests",
+  "command": "C:\\MinGW\\bin\\g++.exe   @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\function.cpp.obj -c C:\\Users\\pieta\\works\\projects\\libcx\\tests\\core\\function.cpp",
+  "file": "C:/Users/pieta/works/projects/libcx/tests/core/function.cpp"
+},
+{
+  "directory": "C:/Users/pieta/works/projects/libcx/build/cc/tests",
   "command": "C:\\MinGW\\bin\\g++.exe   @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\mp.cpp.obj -c C:\\Users\\pieta\\works\\projects\\libcx\\tests\\core\\mp.cpp",
   "file": "C:/Users/pieta/works/projects/libcx/tests/core/mp.cpp"
 },
@@ -83,5 +88,10 @@
   "directory": "C:/Users/pieta/works/projects/libcx/build/cc/tests",
   "command": "C:\\MinGW\\bin\\g++.exe   @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\main.cpp.obj -c C:\\Users\\pieta\\works\\projects\\libcx\\tests\\main.cpp",
   "file": "C:/Users/pieta/works/projects/libcx/tests/main.cpp"
+},
+{
+  "directory": "C:/Users/pieta/works/projects/libcx/build/cc/tests",
+  "command": "C:\\MinGW\\bin\\g++.exe   @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\vftable.cpp.obj -c C:\\Users\\pieta\\works\\projects\\libcx\\tests\\vftable.cpp",
+  "file": "C:/Users/pieta/works/projects/libcx/tests/vftable.cpp"
 }
 ]

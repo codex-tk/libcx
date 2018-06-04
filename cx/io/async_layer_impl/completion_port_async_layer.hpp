@@ -91,6 +91,10 @@ namespace cx::io::detail {
             post(op);
         }
 
+        bool open( handle_ptr& ptr , int type , int proto , const cx::io::ip::address& addr ){
+            return false;
+        }
+
         void closesocket( handle_ptr& ptr ) {
             ::closesocket( ptr->fd );
             ptr->fd = INVALID_SOCKET;

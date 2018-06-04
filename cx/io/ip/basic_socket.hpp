@@ -18,7 +18,7 @@ namespace cx::io::ip {
     public:
         using implementation = ip::socket_layer<Type,Proto>;
         using buffer_type = typename implementation::buffer_type;
-        using bufv_type = typename implementation::bufv_type;
+        using bufferv_type = typename implementation::bufferv_type;
 
         basic_socket( void ) : _fd(invalid_socket){}
         basic_socket( socket_type fd ) : _fd(fd){}
@@ -47,11 +47,11 @@ namespace cx::io::ip {
             return implementation::read(_fd,buf);
         }
 
-        int writev( const bufv_type& buf ) {
+        int writev( const bufferv_type& buf ) {
             return implementation::writev(_fd,buf);
         }
 
-        int readv( const bufv_type& buf ) {
+        int readv( const bufferv_type& buf ) {
             return implementation::readv(_fd,buf);
         }
 

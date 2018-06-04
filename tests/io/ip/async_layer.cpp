@@ -1,6 +1,7 @@
 #include "tests/gprintf.hpp"
 #include <cx/io/engine.hpp>
 #include <cx/io/ip/basic_async_socket.hpp>
+#include <cx/io/ip/basic_async_acceptor.hpp>
 
 TEST( async_layer , bs ) {
     cx::io::engine engine;
@@ -47,4 +48,9 @@ TEST( async_layer , connect ) {
 
     gprintf( "Recv %s" , read_buffer );
     fd.close();
+}
+
+TEST( async_layer , accept ){
+    cx::io::engine e;
+    cx::io::ip::basic_async_acceptor< SOCK_STREAM , IPPROTO_TCP > acceptor(e);
 }

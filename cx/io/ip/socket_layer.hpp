@@ -20,7 +20,7 @@ namespace cx::io::ip {
     class socket_layer< SOCK_STREAM , IPPROTO_TCP >{
     public:
         using buffer_type = cx::io::basic_buffer;
-        using bufv_type = std::vector<cx::io::basic_buffer>;
+        using bufferv_type = std::vector<cx::io::basic_buffer>;
 
         static socket_type open( int family ) {
   #if CX_PLATFORM == CX_P_WINDOWS          
@@ -67,11 +67,11 @@ namespace cx::io::ip {
             return recv( fd , static_cast<char*>(buf.ptr()) , buf.len() , 0 );
         }
 
-        static int writev( socket_type fd , const bufv_type& buf ) {
+        static int writev( socket_type fd , const bufferv_type& buf ) {
             return 0;
         }
 
-        static int readv( socket_type fd , const bufv_type& buf ) {
+        static int readv( socket_type fd , const bufferv_type& buf ) {
             return 0;
         }
     };
