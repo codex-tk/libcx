@@ -9,7 +9,8 @@ namespace cx::io {
 
     class base_op{
     public:
-        base_op(void) {
+        base_op(void) 
+            : _next(nullptr) {
 #if CX_PLATFORM == CX_P_WINDOWS
             memset(overlapped(), 0x00, sizeof(_ov));
 #endif
@@ -46,8 +47,15 @@ namespace cx::io {
         }
 
         virtual void operator()(void) = 0;
+
+        base_op* next( void ) { return _next; }
+        base_op* next( base_op* op ) { 
+            std::swap(_next,op);
+            return op; 
+        }
     private:
         std::error_code _ec;
+        base_op* _next;
 #if CX_PLATFORM == CX_P_WINDOWS
     public:
         OVERLAPPED _ov;

@@ -1,0 +1,47 @@
+#include "tests/gprintf.hpp"
+#include <cx/io/basic_engine.hpp>
+#include <cx/cxdefine.hpp>
+#include <cx/io/impl/completion_port.hpp>
+
+class impl {
+public:
+    impl( void ){ handle = 32;}
+    int handle;
+};
+
+class foo_service {
+public:
+    foo_service( cx::io::impl::completion_port& impl ) 
+        : _impl(impl)
+    {
+
+    }
+    cx::io::impl::completion_port& _impl;
+};
+
+
+struct handle {
+    union {
+        SOCKET s;
+        HANDLE h;
+    } fd;
+};
+
+TEST( basic_engine , t0 ) {
+    cx::io::basic_engine< cx::io::impl::completion_port , foo_service > engine;
+    ASSERT_EQ(engine.service<foo_service>()._impl.run( std::chrono::milliseconds(1)) , 0 );
+    int value = 0;
+    engine.implementation().post_handler([&] {
+        ++value;
+    });
+    engine.implementation().post_handler([&] {
+        ++value;
+    });
+    ASSERT_EQ(engine.service<foo_service>()._impl.run( std::chrono::milliseconds(1)) , 2 );
+    ASSERT_EQ( value , 2 );
+}
+
+TEST( union_test , to ) {
+    handle h;
+    h.fd.s = INVALID_SOCKET;
+}

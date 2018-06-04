@@ -53,7 +53,7 @@ namespace cx {
         }
     };
 
-	std::error_category& windows_category() {
+	static std::error_category& windows_category() {
 		static windows_category_impl impl;
 		return impl;
 	}
