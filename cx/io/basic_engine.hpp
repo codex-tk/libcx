@@ -6,7 +6,7 @@
 #include <cx/service_repository.hpp>
 
 #include <cx/io/detail/completion_port.hpp>
-
+#include <cx/io/detail/completion_port_socket_service.hpp>
 namespace cx::io {
 
     using basic_implementation = 
@@ -19,7 +19,14 @@ namespace cx::io {
 #else
         cx::io::detail::poll;
 #endif
-    
+    namespace ip {
+        namespace tcp {
+            using service = cx::io::ip::completion_port_socket_service<basic_implementation , SOCK_STREAM,IPPROTO_TCP>;
+        }
+        namespace udp {
+            using service = cx::io::ip::completion_port_socket_service<basic_implementation , SOCK_DGRAM,IPPROTO_UDP>;
+        }
+    }
 
     template < typename Implementation , typename ... Services >
     class basic_engine {
