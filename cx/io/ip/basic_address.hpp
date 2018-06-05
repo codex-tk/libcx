@@ -13,41 +13,9 @@
 
 namespace cx::io::ip{
 
-inline namespace v1 {
-
-#if CX_PLATFORM == CX_P_WINDOWS
-    using socket_type = SOCKET;
-    static const socket_type invalid_socket = INVALID_SOCKET;    
-#else
-    using socket_type = int;
-    static const socket_type invalid_socket = -1;
-#endif    
 
 
-    namespace {
-        static bool inet_ntop( const struct sockaddr_storage& addr , char* out , const int len ) {
-            void* ptr = nullptr;
-            struct sockaddr* psockaddr = reinterpret_cast< struct sockaddr* >(
-                                        const_cast<struct sockaddr_storage*>(&addr));
-            switch( psockaddr->sa_family ) {
-                case AF_INET: ptr = &(reinterpret_cast< struct sockaddr_in* >(psockaddr)->sin_addr); break;
-                case AF_INET6: ptr = &(reinterpret_cast< struct sockaddr_in6* >(psockaddr)->sin6_addr); break;
-            }
-            if ( ptr ) {
-                return ::inet_ntop( psockaddr->sa_family , ptr , out , len ) != nullptr;
-            }
-            return false;
-        }
-
-    #if CX_PLATFORM != CX_P_WINDOWS
-        static bool inet_ntop( const struct sockaddr_un& addr , char* out , const int len ) {
-            strncpy( out , addr.sun_path , len );
-            return true;
-        }
-    #endif
-    }
-
-    template < typename SockAddrT >
+    template < typename SockAddrT , int Type , int Proto >
     class basic_address {
     public:
         basic_address( void ) : _length(sizeof(SockAddrT)) {
@@ -63,22 +31,33 @@ inline namespace v1 {
             memcpy( sockaddr()  , rhs.sockaddr() , _length );
         }
 
-        basic_address( const short family , const char* ip , const uint16_t port ){
-            void* ptr = nullptr;
+        basic_address( const short family , const char* dst , const uint16_t port ){
             sockaddr()->sa_family = family;
-            if ( family == AF_INET ) {
-                struct sockaddr_in* paddr = reinterpret_cast< struct sockaddr_in* >(sockaddr());
-                paddr->sin_port = htons(port);  
-                ptr = &(paddr->sin_addr);
-                _length = sizeof(struct sockaddr_in);
+            _length = family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6)
+            switch( sockaddr()->sa_family ) {
+            case AF_INET:
+                reinterpret_cast< struct sockaddr_in* >(sockaddr())->sin_port = htons(port);
+                ::inet_pton( family , dst ,
+                    &(reinterpret_cast< struct sockaddr_in* >(sockaddr())->sin_addr));
+                break;
+            case AF_INET6:
+                reinterpret_cast< struct sockaddr_in6* >(sockaddr())->sin6_port = htons(port);
+                ::inet_pton( family , dst , 
+                    &(reinterpret_cast< struct sockaddr_in6* >(sockaddr())->->sin6_addr));
+                break;
+#if CX_PLATFORM != CX_P_WINDOWS
+            case AF_UNIX:
+            case PF_FILE:
+                _address.sun_family  = family;
+                strcpy( _address.sun_path , dst );
+                _length = sizeof(struct sockaddr_un);
+                break;
+#endif
+            default:
+                assert(0);
+                _length = 0;
+                break;
             }
-            if ( family == AF_INET6 ) {
-                struct sockaddr_in6* paddr = reinterpret_cast< struct sockaddr_in6* >(sockaddr());
-                paddr->sin6_port = htons(port);  
-                ptr = &(paddr->sin6_addr);
-                _length = sizeof(struct sockaddr_in6);
-            }
-            ::inet_pton(  family , ip , ptr );
         }
         
         ~basic_address( void ) {
@@ -102,7 +81,29 @@ inline namespace v1 {
         }
 
         bool inet_ntop( char* out , const int len ) const {
-            return cx::io::ip::inet_ntop( _address , out , len );
+            struct sockaddr* psockaddr = const_cast< struct sockaddr* >(this->sockaddr());
+            switch( psockaddr->sa_family ) {
+            case AF_INET: 
+                return ::inet_ntop( psockaddr->sa_family 
+                    , &(reinterpret_cast< struct sockaddr_in* >(psockaddr)->sin_addr)
+                    , out 
+                    , len ) != nullptr;
+            case AF_INET6:
+                return ::inet_ntop( psockaddr->sa_family 
+                    , &(reinterpret_cast< struct sockaddr_in6* >(psockaddr)->sin6_addr)
+                    , out 
+                    , len ) != nullptr;
+#if CX_PLATFORM != CX_P_WINDOWS
+            case AF_UNIX:
+            case PF_FILE:
+                strncpy( out , _address.sun_path , len );
+                return true;
+#endif
+            default: 
+                assert(0); 
+                break;
+            }
+            return false;
         }
 
         const uint16_t family( void ) const {
@@ -121,10 +122,21 @@ inline namespace v1 {
             char buf[MAX_PATH] = { 0 , };
             int len = 0;
             switch( family() ){
-                case AF_INET: len += snprintf( buf + len , MAX_PATH - len , "AF_INET "); break;
-                case AF_INET6: len += snprintf( buf + len , MAX_PATH - len , "AF_INET6 "); break;
+                case AF_INET: 
+                    len += snprintf( buf + len , MAX_PATH - len , "AF_INET "); 
+                    break;
+                case AF_INET6: 
+                    len += snprintf( buf + len , MAX_PATH - len , "AF_INET6 "); 
+                    break;
+#if CX_PLATFORM != CX_P_WINDOWS
+                case AF_UNIX:
+                case PF_FILE:
+                    len += snprintf( buf + len , MAX_PATH - len , "AF_UNIX "); 
+                    break;
+#endif
                 default:
-                    len += snprintf( buf + len ,  MAX_PATH - len , "UNKNOWN "); break;
+                    len += snprintf( buf + len ,  MAX_PATH - len , "UNKNOWN "); 
+                    break;
             }
             if ( this->inet_ntop( buf + len , MAX_PATH - len )){
                 len = strlen(buf);
@@ -133,56 +145,65 @@ inline namespace v1 {
             }
             return std::string("");
         }
+
+        int type( void ) {
+            return Type;
+        }
+
+        int proto( void ) {
+            return Proto;
+        } 
     public:
-    
         static basic_address any( const uint16_t port , const short family = AF_INET ) {
-            if ( family == AF_INET ) {
-                sockaddr_in addr;
-                memset( &addr , 0x00 , sizeof(addr));
-                addr.sin_family = family; 
-                addr.sin_port = htons( port ); 
-                addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-                return address( reinterpret_cast< struct sockaddr*>(&addr)
-                    , sizeof(addr));
-            } 
-            if ( family == AF_INET6 ) {
-                sockaddr_in6 addr;
-                memset( &addr , 0x00 , sizeof(addr));
-                addr.sin6_family = AF_INET6;
-                addr.sin6_flowinfo = 0;
-                addr.sin6_port = htons(port);
-                addr.sin6_addr = in6addr_any;
-                return address( reinterpret_cast< struct sockaddr*>(&addr)
-                    , sizeof(addr));
+            SockAddrT addr;
+            memset( &addr , 0x00 , sizeof(addr));
+            socklen_t length = 0;
+            switch( family ) {
+            case AF_INET:
+                reinterpret_cast<struct sockaddr_in*>(&addr)->sin_family = family; 
+                reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port = htons( port ); 
+                reinterpret_cast<struct sockaddr_in*>(&addr)->sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+                length = sizeof(struct sockaddr_in);
+                break;
+            case AF_INET6:
+                reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_family = family; 
+                reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_flowinfo = 0; 
+                reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port = htons( port ); 
+                reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_addr = in6addr_any;
+                length = sizeof(struct sockaddr_in6);
+                break;
+            default:
+                break;
             }
+            return address( reinterpret_cast< struct sockaddr*>(&addr) ,length);
         }
     
         static std::vector< basic_address > resolve( const char* name  
                 , const uint16_t port 
                 , const uint16_t family = AF_UNSPEC ) {
             struct addrinfo hints;
-            struct addrinfo* result = nullptr;
-            struct addrinfo* rp = nullptr;
-
             memset( &hints , 0x00 , sizeof( hints ));
-
             hints.ai_flags = AI_PASSIVE;
             hints.ai_family = family;
             hints.ai_socktype = SOCK_STREAM;
-
-            char port_str[32] = { 0 , };
-
-            snprintf( port_str , 32 , "%d" , port );
+            
+            constexpr std::size_t max_string = 16;
+            
+            char port_str[max_string] = { 0 , };
+            snprintf( port_str , max_string , "%d" , port );
 
             std::vector< basic_address > addrs;
-            if ( getaddrinfo( name , port_str , &hints , &result ) != 0 )
-                return addrs;
 
-            for ( rp = result ; rp != nullptr ; rp = rp->ai_next ){
-                basic_address addr( rp->ai_addr , (int)(rp->ai_addrlen));
-                addrs.push_back( addr );
+            struct addrinfo* result = nullptr;
+            struct addrinfo* rp = nullptr;
+            
+            if ( getaddrinfo( name , port_str , &hints , &result ) == 0 ){
+                for (rp = result; rp != nullptr; rp = rp->ai_next) {
+                    basic_address addr(rp->ai_addr, static_cast<socklen_t>(rp->ai_addrlen));
+                    addrs.push_back(addr);
+                }
+                freeaddrinfo(result);
             }
-            freeaddrinfo( result );
             return addrs;
         }
         static std::vector< basic_address > anys( const uint16_t port 
@@ -192,21 +213,7 @@ inline namespace v1 {
     private:
         SockAddrT _address;
         socklen_t _length;
-    };
-
-    using address = basic_address< struct sockaddr_storage >;
-
-}
-
-    namespace v2 {
-
-        template < int Type , int Proto >
-        class basic_address {
-
-        };
-
-    }
-    
+    }; 
 }
 
 #endif

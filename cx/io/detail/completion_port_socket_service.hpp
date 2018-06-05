@@ -23,7 +23,7 @@ namespace ip::detail {
     public:
         using implementation_type = cx::io::detail::completion_port;
         using handle_type = cx::io::detail::completion_port::handle_type;
-        using address_type = cx::io::ip::v2::basic_address< SOCK_STREAM , IPPROTO_TCP >;
+        using address_type = cx::io::ip::basic_address< struct sockaddr_storage , SOCK_STREAM , IPPROTO_TCP >;
 
         completion_port_socket_service(implementation_type& impl)
             : _implementation( impl )
@@ -39,7 +39,7 @@ namespace ip::detail {
     public:
         using implementation_type = cx::io::detail::completion_port;
         using handle_type = cx::io::detail::completion_port::handle_type;
-        using address_type = cx::io::ip::v2::basic_address< SOCK_DGRAM , IPPROTO_UDP >;
+        using address_type = cx::io::ip::basic_address< struct sockaddr_storage , SOCK_DGRAM , IPPROTO_UDP >;
 
         completion_port_socket_service(implementation_type& impl)
             : _implementation( impl )

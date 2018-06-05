@@ -74,6 +74,7 @@ namespace cx::io::ip::detail{
 #include <cstdlib>
 #include <cstring>
 #include <cstdint>
+#include <cassert>
 
 #include <string>
 #include <system_error>
