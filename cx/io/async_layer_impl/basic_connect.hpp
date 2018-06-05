@@ -9,7 +9,7 @@
 #ifndef __cx_io_ip_basic_connect_h__
 #define __cx_io_ip_basic_connect_h__
 
-#include <cx/io/async_layer_impl/base_op.hpp>
+#include <cx/io/base_op.hpp>
 #include <cx/io/ip/basic_address.hpp>
 
 namespace cx::io { class engine; }
