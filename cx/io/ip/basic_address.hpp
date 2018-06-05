@@ -13,6 +13,8 @@
 
 namespace cx::io::ip{
 
+inline namespace v1 {
+
 #if CX_PLATFORM == CX_P_WINDOWS
     using socket_type = SOCKET;
     static const socket_type invalid_socket = INVALID_SOCKET;    
@@ -22,7 +24,7 @@ namespace cx::io::ip{
 #endif    
 
 
-    namespace detail{
+    namespace {
         static bool inet_ntop( const struct sockaddr_storage& addr , char* out , const int len ) {
             void* ptr = nullptr;
             struct sockaddr* psockaddr = reinterpret_cast< struct sockaddr* >(
@@ -100,7 +102,7 @@ namespace cx::io::ip{
         }
 
         bool inet_ntop( char* out , const int len ) const {
-            return cx::io::ip::detail::inet_ntop( _address , out , len );
+            return cx::io::ip::inet_ntop( _address , out , len );
         }
 
         const uint16_t family( void ) const {
@@ -193,6 +195,17 @@ namespace cx::io::ip{
     };
 
     using address = basic_address< struct sockaddr_storage >;
+
+}
+
+    namespace v2 {
+
+        template < int Type , int Proto >
+        class basic_address {
+
+        };
+
+    }
     
 }
 

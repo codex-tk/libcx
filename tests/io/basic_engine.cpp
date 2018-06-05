@@ -15,7 +15,7 @@ public:
     {
 
     }
-    cx::io::basic_implementation& _impl;
+   cx::io::basic_implementation& _impl;
 };
 
 
@@ -36,7 +36,7 @@ TEST( basic_engine , t0 ) {
 TEST( basic_engine , socket_service ) {
     cx::io::basic_engine< 
         cx::io::basic_implementation 
-        , cx::io::ip::tcp::service  
+        , cx::io::ip::tcp::service
         , cx::io::ip::udp::service > engine;
     ASSERT_EQ(engine.implementation().run( std::chrono::milliseconds(1)) , 0 );
     int value = 0;
@@ -61,4 +61,13 @@ TEST( union_test , to ) {
 
     handle h;
     h.fd.s = INVALID_SOCKET;
+}
+
+TEST( basic_engine , tcp ) {
+    cx::io::basic_engine< 
+        cx::io::basic_implementation
+        , cx::io::ip::tcp::service  
+        , cx::io::ip::udp::service > engine;
+    cx::io::ip::tcp::socket fd(engine);
+    ASSERT_TRUE( fd.handle().get() != nullptr );
 }

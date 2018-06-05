@@ -4,6 +4,7 @@
 #define __cx_io_detail_completion_port_socket_h__
 
 #include <cx/cxdefine.hpp>
+#include <cx/io/ip/basic_address.hpp>
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
@@ -13,33 +14,41 @@ namespace detail {
     class completion_port;
 }
 
-namespace ip {
+namespace ip::detail {
 
-    template < typename Implementation , int Type , int Proto >
+    template < int Type , int Proto >
     class completion_port_socket_service ;
         
-    template <typename Implementation> class completion_port_socket_service< Implementation , SOCK_STREAM , IPPROTO_TCP >{
+    template <> class completion_port_socket_service< SOCK_STREAM , IPPROTO_TCP >{
     public:
-        completion_port_socket_service(Implementation& impl)
+        using implementation_type = cx::io::detail::completion_port;
+        using handle_type = cx::io::detail::completion_port::handle_type;
+        using address_type = cx::io::ip::v2::basic_address< SOCK_STREAM , IPPROTO_TCP >;
+
+        completion_port_socket_service(implementation_type& impl)
             : _implementation( impl )
         {}
-        Implementation& implementation( void ) {
+        implementation_type& implementation( void ) {
             return _implementation;
         }
     private:
-        Implementation& _implementation;
+        implementation_type& _implementation;
     };
 
-    template <typename Implementation> class completion_port_socket_service< Implementation , SOCK_DGRAM , IPPROTO_UDP>{
+    template <> class completion_port_socket_service< SOCK_DGRAM , IPPROTO_UDP>{
     public:
-        completion_port_socket_service(Implementation& impl)
+        using implementation_type = cx::io::detail::completion_port;
+        using handle_type = cx::io::detail::completion_port::handle_type;
+        using address_type = cx::io::ip::v2::basic_address< SOCK_DGRAM , IPPROTO_UDP >;
+
+        completion_port_socket_service(implementation_type& impl)
             : _implementation( impl )
         {}
-        Implementation& implementation( void ) {
+        implementation_type& implementation( void ) {
             return _implementation;
         }
     private:
-        Implementation& _implementation;
+        implementation_type& _implementation;
     };
 
 }}

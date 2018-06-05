@@ -29,9 +29,9 @@ namespace cx::io::detail {
             } fd;
             completion_port& implementation;
         };
-        using handle_ptr = std::shared_ptr<completion_port::handle>;
+        using handle_type = std::shared_ptr<completion_port::handle>;
 
-        handle_ptr make_shared_handle( void ) {
+        handle_type make_shared_handle( void ) {
             return std::make_shared< completion_port::handle >( *this );
         }
     public:
@@ -45,7 +45,7 @@ namespace cx::io::detail {
 		    _handle = INVALID_HANDLE_VALUE;
         }
 
-        bool bind( handle_ptr& ptr , const int /*ops*/ ) {
+        bool bind( handle_type& ptr , const int /*ops*/ ) {
             if ( CreateIoCompletionPort(
                 ptr->fd.h
                 , _handle
@@ -58,7 +58,7 @@ namespace cx::io::detail {
             return false;
         }
 
-        void unbind( handle_ptr& ptr ) {
+        void unbind( handle_type& ptr ) {
             _active_handles.erase( ptr );
         }
 
@@ -124,7 +124,7 @@ namespace cx::io::detail {
         }
     private:
         HANDLE _handle;
-        std::set< handle_ptr > _active_handles;
+        std::set< handle_type > _active_handles;
         std::recursive_mutex _mutex;
         cx::slist< base_op > _ops;
     };
