@@ -5,6 +5,7 @@
 
 #include <cx/cxdefine.hpp>
 #include <cx/io/ip/basic_address.hpp>
+#include <cx/io/basic_buffer.hpp>
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
@@ -24,6 +25,7 @@ namespace ip::detail {
         using implementation_type = cx::io::detail::completion_port;
         using handle_type = cx::io::detail::completion_port::handle_type;
         using address_type = cx::io::ip::basic_address< struct sockaddr_storage , SOCK_STREAM , IPPROTO_TCP >;
+        using buffer_type = cx::io::buffer;
 
         completion_port_socket_service(implementation_type& impl)
             : _implementation( impl )
@@ -48,6 +50,14 @@ namespace ip::detail {
         void close( handle_type& handle ) {
             ::closesocket( handle->fd.s );
             handle->fd.s = INVALID_SOCKET;
+        }
+
+        int write( handle_type& handle , const buffer_type& buf ){ 
+            return 0;
+        }
+
+        int read( handle_type& handle , buffer_type& buf ){ 
+           return 0;
         }
     private:
         implementation_type& _implementation;
@@ -58,6 +68,11 @@ namespace ip::detail {
         using implementation_type = cx::io::detail::completion_port;
         using handle_type = cx::io::detail::completion_port::handle_type;
         using address_type = cx::io::ip::basic_address< struct sockaddr_storage , SOCK_DGRAM , IPPROTO_UDP >;
+        struct _buffer_type {
+            address_type address;
+            cx::io::buffer buffer;
+        };
+        using buffer_type = _buffer_type;
 
         completion_port_socket_service(implementation_type& impl)
             : _implementation( impl )
@@ -81,6 +96,14 @@ namespace ip::detail {
         void close( handle_type& handle ) {
             ::closesocket( handle->fd.s );
             handle->fd.s = INVALID_SOCKET;
+        }
+
+        int write( handle_type& handle , const buffer_type& buf ){ 
+            return 0;
+        }
+
+        int read( handle_type& handle , buffer_type& buf ){ 
+            return 0;
         }
     private:
         implementation_type& _implementation;
