@@ -379,3 +379,7 @@ cmake_gen
 .vs
 
 build*
+
+GPATH
+GRTAGS
+GTAGS

@@ -33,7 +33,7 @@ namespace cx::io::ip{
 
         basic_address( const short family , const char* dst , const uint16_t port ){
             sockaddr()->sa_family = family;
-            _length = family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6)
+            _length = family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6);
             switch( sockaddr()->sa_family ) {
             case AF_INET:
                 reinterpret_cast< struct sockaddr_in* >(sockaddr())->sin_port = htons(port);
@@ -43,7 +43,7 @@ namespace cx::io::ip{
             case AF_INET6:
                 reinterpret_cast< struct sockaddr_in6* >(sockaddr())->sin6_port = htons(port);
                 ::inet_pton( family , dst , 
-                    &(reinterpret_cast< struct sockaddr_in6* >(sockaddr())->->sin6_addr));
+                    &(reinterpret_cast< struct sockaddr_in6* >(sockaddr())->sin6_addr));
                 break;
 #if CX_PLATFORM != CX_P_WINDOWS
             case AF_UNIX:
@@ -146,11 +146,11 @@ namespace cx::io::ip{
             return std::string("");
         }
 
-        int type( void ) {
+        int type( void ) const {
             return Type;
         }
 
-        int proto( void ) {
+        int proto( void ) const {
             return Proto;
         } 
     public:

@@ -9,96 +9,58 @@
 #ifndef __cx_io_ip_basic_socket_h__
 #define __cx_io_ip_basic_socket_h__
 
-#include <cx/io/ip/socket_layer.hpp>
+#include <cx/io/basic_object.hpp>
 
 namespace cx::io::ip {
 
-    template < int Type , int Proto >
-    class basic_socket {
+    template < typename ServiceType >
+    class basic_socket : public cx::io::basic_object<ServiceType>{
     public:
-        using implementation = ip::socket_layer<Type,Proto>;
-        using buffer_type = typename implementation::buffer_type;
-        using bufferv_type = typename implementation::bufferv_type;
-
-        basic_socket( void ) : _fd(invalid_socket){}
-        basic_socket( socket_type fd ) : _fd(fd){}
-
-        bool open( int family = AF_INET ) {
-            _fd = implementation::open( family );
-            return _fd != invalid_socket;
+        template < typename EngineType >
+        basic_socket( EngineType& engine )
+            : basic_object( engine )
+        {
         }
 
-        void close( void ) {
-            if ( _fd != invalid_socket ) {
-                implementation::close(_fd);
-            }
-            _fd = invalid_socket;
-        }
-
-        bool bind( const cx::io::ip::address& addr ) {
-            return ::bind( _fd , addr.sockaddr() , addr.length()) != -1;
-        }
-
-        int write( const buffer_type& buf ) {
-            return implementation::write(_fd,buf);
-        }
-
-        int read( const buffer_type& buf ) {
-            return implementation::read(_fd,buf);
-        }
-
-        int writev( const bufferv_type& buf ) {
-            return implementation::writev(_fd,buf);
-        }
-
-        int readv( const bufferv_type& buf ) {
-            return implementation::readv(_fd,buf);
+        bool bind( const address_type& bind ) {
+            return false;
+            //return ::bind( _fd , addr.sockaddr() , addr.length()) != -1;
         }
 
         int shutdown( int how ) {
-            return ::shutdown( _fd , how );
+            return 0;
+            //return ::shutdown( _fd , how );
         }
 
-        cx::io::ip::address local_address( void ) const {
+        address_type local_address( void ) const {
+            /*
             cx::io::ip::address addr;
             ::getsockname( _fd , addr.sockaddr() , addr.length_ptr() );
-            return addr;
+            return addr;*/
+            return address_type();
         }
 
-        cx::io::ip::address remote_address( void ) const {
+        address_type remote_address( void ) const {
+            /*
             cx::io::ip::address addr;
             ::getpeername( _fd , addr.sockaddr() , addr.length_ptr() );
-            return addr;
+            return addr;*/
+            return address_type();
         }
 
-        socket_type handle( void ) {  
-            return _fd;
-        }
-
-        socket_type handle( socket_type fd ) {
-            std::swap( _fd , fd );
-            return fd;
-        }
         template < typename T >
         bool set_option( T opt ) {
-            return opt.set( _fd );
+            return false;
+            //return opt.set( handle->set );
         }
 
         template < typename T >
         bool get_option( T& opt ) {
-            return opt.get( _fd );
+            return false;
+            //return opt.get( _fd );
         }
-    private:
-        socket_type _fd;
     };
 
-    namespace tcp {
-        using socket = basic_socket<  SOCK_STREAM , IPPROTO_TCP >;
-    }
-
-    namespace udp {
-        //using socket = basic_socket<  SOCK_DGRAM , IPPROTO_UDP >;
-    }
 } // cx::io::ip
 
 #endif

@@ -14,16 +14,26 @@ namespace cx::io {
         
         template < typename EngineType >
         basic_object( EngineType& engine )
-            : _handle( engine.service<ServiceType>()
-                    .implementation()
-                    .make_shared_handle())
+            : _service(engine.service<ServiceType>())
+            , _handle(engine.service<ServiceType>()
+                        .implementation()
+                        .make_shared_handle())
         {
         }
 
         handle_type handle( void ) {
             return _handle;
         }
+
+        bool open( const address_type& address ){
+            return _service.open( _handle , address );
+        }
+
+        void close( void ) {
+            _service.close( _handle );
+        }
     private:
+        ServiceType& _service;
         handle_type _handle;
     };
 

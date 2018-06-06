@@ -31,6 +31,24 @@ namespace ip::detail {
         implementation_type& implementation( void ) {
             return _implementation;
         }
+
+        bool open( handle_type& handle , const address_type& address ){
+            close(handle);
+            handle->fd.s = ::WSASocketW( address.family() 
+                        , address.type() 
+                        , address.proto() 
+                        , nullptr
+                        , 0 
+                        , WSA_FLAG_OVERLAPPED );
+            if ( handle->fd.s != INVALID_SOCKET )  
+                return true;
+            return false;
+        }
+
+        void close( handle_type& handle ) {
+            ::closesocket( handle->fd.s );
+            handle->fd.s = INVALID_SOCKET;
+        }
     private:
         implementation_type& _implementation;
     };
@@ -46,6 +64,23 @@ namespace ip::detail {
         {}
         implementation_type& implementation( void ) {
             return _implementation;
+        }
+        bool open( handle_type& handle , const address_type& address ){
+            close(handle);
+            handle->fd.s = ::WSASocketW( address.family() 
+                        , address.type() 
+                        , address.proto() 
+                        , nullptr
+                        , 0 
+                        , WSA_FLAG_OVERLAPPED );
+            if ( handle->fd.s != INVALID_SOCKET )  
+                return true;
+            return false;
+        }
+
+        void close( handle_type& handle ) {
+            ::closesocket( handle->fd.s );
+            handle->fd.s = INVALID_SOCKET;
         }
     private:
         implementation_type& _implementation;

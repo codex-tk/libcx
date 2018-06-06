@@ -64,7 +64,8 @@
         "*.tcc": "cpp",
         "clocale": "cpp",
         "cwctype": "cpp",
-        "xthread": "cpp"
+        "xthread": "cpp",
+        "mutex": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true

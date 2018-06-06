@@ -1,6 +1,5 @@
 #include "tests/gprintf.hpp"
-#include <cx/io/basic_engine.hpp>
-#include <cx/cxdefine.hpp>
+#include <cx/io/services.hpp>
 
 class impl {
 public:

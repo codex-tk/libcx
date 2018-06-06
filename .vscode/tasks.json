@@ -21,7 +21,7 @@
         {
             "label": "compile command",
             "type": "shell",
-            "command": "cd build;mkdir cc;cd cc ;cmake -G 'MinGW Makefiles' ../..;cp ./compile_commands.json ../"
-        }
+            "command": "C:/msys64/usr/bin/gtags.exe;cd build;mkdir cc;cd cc ;cmake -G 'MinGW Makefiles' ../..;cp ./compile_commands.json ../"
+        } 
     ]
 }
