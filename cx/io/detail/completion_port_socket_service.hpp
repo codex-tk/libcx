@@ -108,12 +108,32 @@ namespace ip::detail {
             handle->fd.s = INVALID_SOCKET;
         }
 
+        bool connect( handle_type& handle , const address_type& address ) {
+            if (::connect( handle->fd.s , address.sockaddr() , address.length()) == 0 )
+                return true;
+            if ( WSAGetLastError() == WSAEWOULDBLOCK ) 
+                return true;
+            //if ( errno == EINPROGRESS )
+            //    return true;
+            return false;
+        }
+
         int write( handle_type& handle , const buffer_type& buf ){ 
-            return 0;
+            return sendto( handle->fd.s 
+                , static_cast<const char*>(buf.buffer.base()) 
+                , buf.buffer.length() 
+                , 0 
+                , buf.address.sockaddr()
+                , buf.address.length());
         }
 
         int read( handle_type& handle , buffer_type& buf ){ 
-            return 0;
+           return recvfrom( handle->fd.s 
+                , static_cast<char*>(buf.buffer.base()) 
+                , buf.buffer.length() 
+                , 0 
+                , buf.address.sockaddr()
+                , buf.address.length_ptr());
         }
     private:
         implementation_type& _implementation;
