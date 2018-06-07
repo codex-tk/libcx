@@ -52,12 +52,22 @@ namespace ip::detail {
             handle->fd.s = INVALID_SOCKET;
         }
 
+        bool connect( handle_type& handle , const address_type& address ) {
+            if (::connect( handle->fd.s , address.sockaddr() , address.length()) == 0 )
+                return true;
+            if ( WSAGetLastError() == WSAEWOULDBLOCK ) 
+                return true;
+            //if ( errno == EINPROGRESS )
+            //    return true;
+            return false;
+        }
+
         int write( handle_type& handle , const buffer_type& buf ){ 
-            return 0;
+            return send( handle->fd.s , static_cast<const char*>(buf.base()) , buf.length() , 0 );
         }
 
         int read( handle_type& handle , buffer_type& buf ){ 
-           return 0;
+           return recv( handle->fd.s , static_cast<char*>(buf.base()) , buf.length() , 0 );
         }
     private:
         implementation_type& _implementation;

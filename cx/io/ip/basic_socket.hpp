@@ -22,6 +22,10 @@ namespace cx::io::ip {
         {
         }
 
+        bool connect( const address_type& addr ){
+            return service().connect( handle() , addr );
+        }
+
         bool bind( const address_type& bind ) {
             return false;
             //return ::bind( _fd , addr.sockaddr() , addr.length()) != -1;

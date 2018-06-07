@@ -7,41 +7,44 @@ namespace cx::io {
 
     namespace detail{
 #if CX_PLATFORM == CX_P_WINDOWS
-        void* buffer_ptr( const WSABUF* buf );
-        void* buffer_ptr( WSABUF* buf , void* ptr );
-        std::size_t buffer_len( const WSABUF* buf );
-        std::size_t buffer_len( WSABUF* buf , std::size_t len );
+        void* buffer_base( const WSABUF* buf );
+        void* buffer_base( WSABUF* buf , void* ptr );
+        std::size_t buffer_length( const WSABUF* buf );
+        std::size_t buffer_length( WSABUF* buf , std::size_t len );
 #else
-        void* buffer_ptr( const iovec* buf );
-        void* buffer_ptr( iovec* buf , void* ptr );
-        std::size_t buffer_len( const iovec* buf );
-        std::size_t buffer_len( iovec* buf , std::size_t len );
+        void* buffer_base( const iovec* buf );
+        void* buffer_base( iovec* buf , void* ptr );
+        std::size_t buffer_length( const iovec* buf );
+        std::size_t buffer_length( iovec* buf , std::size_t len );
 #endif
     }
 
     template < typename T > class basic_buffer : public T {
     public:
         basic_buffer( void* ptr , std::size_t len ) {
-            detail::buffer_ptr( raw_buffer() ,  ptr );
-            detail::buffer_len( raw_buffer() ,  len );
+            detail::buffer_base( raw_buffer() ,  ptr );
+            detail::buffer_length( raw_buffer() ,  len );
         }
 
         basic_buffer( const std::string_view& msg ) {   
-            detail::buffer_ptr( raw_buffer() ,  const_cast<char*>(msg.data()) );
-            detail::buffer_len( raw_buffer() ,  msg.size() );
+            detail::buffer_base( raw_buffer() ,  const_cast<char*>(msg.data()) );
+            detail::buffer_length( raw_buffer() ,  msg.size() );
         }
 
-        void* ptr( void ) const { return detail::buffer_ptr( raw_buffer()) }
-        std::size_t len( void ) const { return detail::buffer_len( raw_buffer()); }
-        void* ptr( void* new_ptr ) { 
-            return detail::buffer_ptr( raw_buffer() , new_ptr );
-        }
-        std::size_t len( const std::size_t new_size ) {
-            return detail::buffer_len( raw_buffer() , new_size );
+        void* base( void ) const { return detail::buffer_base( raw_buffer()); }
+
+        std::size_t length( void ) const { return detail::buffer_length( raw_buffer()); }
+
+        void* base( void* new_ptr ) { 
+            return detail::buffer_base( raw_buffer() , new_ptr );
         }
 
-        T* raw_buffer( void ) {
-            return static_cast< T* >(this);
+        std::size_t length( const std::size_t new_size ) {
+            return detail::buffer_length( raw_buffer() , new_size );
+        }
+
+        T* raw_buffer( void ) const {
+            return static_cast< T* >(const_cast<basic_buffer*>(this));
         }
     };
 

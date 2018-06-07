@@ -23,11 +23,13 @@ namespace cx::io {
         using service = cx::io::ip::detail::completion_port_socket_service<SOCK_STREAM,IPPROTO_TCP>;
         using address = typename service::address_type;
         using socket = cx::io::ip::basic_socket<service>;
+        using buffer = typename service::buffer_type;
     }
     namespace ip::udp { 
         using service = cx::io::ip::detail::completion_port_socket_service<SOCK_DGRAM,IPPROTO_UDP>; 
         using address = typename service::address_type;
         using socket =  cx::io::ip::basic_socket<service>;
+        using buffer = typename service::buffer_type;
     }
 #elif CX_PLATFORM == CX_P_LINUX
     using implementation_type = cx::io::detail::epoll;

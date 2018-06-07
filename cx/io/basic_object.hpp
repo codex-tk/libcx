@@ -26,6 +26,10 @@ namespace cx::io {
             return _handle;
         }
 
+        ServiceType& service( void ) {
+            return _service;
+        }
+
         bool open( const address_type& address ){
             return _service.open( _handle , address );
         }
@@ -37,6 +41,7 @@ namespace cx::io {
         int read( buffer_type& buf ){ 
             return _service.read( _handle , buf );
         }
+        
         void close( void ) {
             _service.close( _handle );
         }
