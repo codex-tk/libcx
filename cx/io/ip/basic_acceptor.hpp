@@ -49,7 +49,8 @@ namespace cx::io::ip {
 				handle_type handle = _fd.service().accept(_fd.handle(), addr);
 				return cx::io::ip::basic_socket<ServiceType>(_fd.service(), handle);
 			}
-			return cx::io::ip::basic_socket<ServiceType>(_fd.service(), nullptr );
+			return cx::io::ip::basic_socket<ServiceType>(_fd.service()
+				, _fd.service().make_shared_handle());
 		}
 	private:
 		cx::io::ip::basic_socket<ServiceType> _fd;

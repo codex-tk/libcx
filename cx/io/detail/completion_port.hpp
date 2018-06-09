@@ -21,7 +21,10 @@ namespace cx::io::detail {
 	public:
 		struct handle {
 			handle(completion_port& arg)
-				: implementation(arg) {}
+				: implementation(arg) 
+			{
+				fd.s = INVALID_SOCKET;
+			}
 			union {
 				SOCKET s;
 				HANDLE h;
@@ -50,7 +53,7 @@ namespace cx::io::detail {
 				return old;
 			}
 
-			virtual void operator()(void) = 0;
+			virtual int operator()(void) = 0;
 
 			operation* next(void) { return _next; }
 			operation* next(operation* op) {
@@ -81,6 +84,8 @@ namespace cx::io::detail {
 		}
 
 		bool bind(handle_type& ptr, const int /*ops*/) {
+			if (!ptr)
+				return false;
 			if (CreateIoCompletionPort(
 				ptr->fd.h
 				, _handle
@@ -115,9 +120,7 @@ namespace cx::io::detail {
 				int proc = 0;
 				while (operation_type* op = ops.head()) {
 					ops.remove_head();
-					(*op)();
-					delete op;
-					++proc;
+					proc += (*op)();
 				}
 				return proc;
 			} else {
@@ -127,7 +130,6 @@ namespace cx::io::detail {
 				}
 				op->io_size(bytes_transferred);
 				(*op)();
-				delete op;
 			}
 			return 1;
 		}
@@ -149,8 +151,10 @@ namespace cx::io::detail {
 				{}
 				virtual ~handler_op(void) override {
 				}
-				virtual void operator()(void) override {
+				virtual int operator()(void) override {
 					_handler();
+					delete this;
+					return 1;
 				}
 			private:
 				HandlerT _handler;

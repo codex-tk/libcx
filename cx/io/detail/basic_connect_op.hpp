@@ -33,8 +33,10 @@ namespace cx::io::ip{
         virtual ~basic_connect_op( void ) {
         }
 
-        virtual void operator()(void) override {
+        virtual int operator()(void) override {
             _handler(error());
+			delete this;
+			return 1;
         }
     private:
         HandlerType _handler;

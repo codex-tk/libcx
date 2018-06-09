@@ -17,10 +17,10 @@ endif()
 
 target_link_libraries( tests cx gtest )
 
-enable_testing()
-add_test(tests tests)
-add_custom_command(TARGET tests
-    POST_BUILD
-    COMMAND ctest -C $<CONFIGURATION> --verbose
+#enable_testing()
+#add_test(tests tests)
+#add_custom_command(TARGET tests
+    #POST_BUILD
+    #COMMAND ctest -C $<CONFIGURATION> --verbose
     #--output-on-failure
-    )
+    #)

@@ -17,7 +17,6 @@ namespace cx::io {
 		basic_object(EngineType& engine)
 			: _service(engine.service<ServiceType>())
 			, _handle(engine.service<ServiceType>()
-				.implementation()
 				.make_shared_handle())
 		{
 		}
@@ -26,6 +25,10 @@ namespace cx::io {
 			: _service(service)
 			, _handle(handle)
 		{
+		}
+
+		~basic_object(void) {
+			_service.close(_handle);
 		}
 
 		handle_type handle(void) const {

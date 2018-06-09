@@ -49,13 +49,13 @@ TEST(cx_io_ip_basic_acceptor, sample_echo) {
 	char buf[1024] = { 0 , };
 	cx::io::ip::tcp::buffer rdbuf(buf, 1024);
 
-	ASSERT_EQ(client.write(cx::io::ip::tcp::buffer("Hello"), std::chrono::milliseconds(1000))
-		, strlen("Hello"));
-	ASSERT_EQ(accepted.read(rdbuf, std::chrono::milliseconds(1000)), strlen("Hello"));
+	ASSERT_TRUE(client.write(cx::io::ip::tcp::buffer("Hello"), std::chrono::milliseconds(1000))
+		== strlen("Hello"));
+	ASSERT_TRUE(accepted.read(rdbuf, std::chrono::milliseconds(1000))== strlen("Hello"));
 	ASSERT_STREQ("Hello", buf);
 
 	accepted.write(cx::io::ip::tcp::buffer("World"));
-	ASSERT_EQ(client.read(rdbuf, std::chrono::milliseconds(1000)), strlen("World"));
+	ASSERT_TRUE(client.read(rdbuf, std::chrono::milliseconds(1000)) == strlen("World"));
 	ASSERT_STREQ("World", buf);
 
 	acceptor.close();

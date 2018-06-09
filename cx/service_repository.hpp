@@ -33,8 +33,12 @@ namespace cx::detail {
 		values(T&& t)
 			: value< Is,
 			typename cx::core::mp::at< Is, cx::core::type_list< Ts ... > >::type
-			>(std::forward<Ts>(t)) ...
+			>(std::forward<T>(t)) ...
 		{}
+
+		~values(void) {
+
+		}
 	};
 
 }

@@ -25,6 +25,10 @@ namespace cx::io::ip::detail {
 		using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
 		using operation_type = typename implementation_type::operation_type;
 
+		basic_completion_port_socket_service(implementation_type& impl)
+			: _implementation(impl)
+		{}
+
 		bool open(handle_type handle, const address_type& address) {
 			close(handle);
 			handle->fd.s = ::WSASocketW(address.family()
@@ -39,8 +43,11 @@ namespace cx::io::ip::detail {
 		}
 
 		void close(handle_type handle) {
-			::closesocket(handle->fd.s);
-			handle->fd.s = INVALID_SOCKET;
+			if (handle && handle->fd.s != INVALID_SOCKET) {
+				implementation().unbind(handle);
+				::closesocket(handle->fd.s);
+				handle->fd.s = INVALID_SOCKET;
+			}
 		}
 
 		bool connect(handle_type handle, const address_type& address) {
@@ -112,7 +119,18 @@ namespace cx::io::ip::detail {
 			}
 			return false;
 		}
+
+		handle_type make_shared_handle(void) {
+			handle_type handle = implementation().make_shared_handle();
+			handle->fd.s = INVALID_SOCKET;
+			return handle;
+		}
+
+		implementation_type& implementation(void) {
+			return _implementation;
+		}
 	private:
+		implementation_type& _implementation;
 	};
 
 	template < int Type, int Proto >
@@ -129,11 +147,8 @@ namespace cx::io::ip::detail {
 		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
-			: _implementation(impl)
+			: basic_completion_port_socket_service(impl)
 		{}
-		implementation_type& implementation(void) {
-			return _implementation;
-		}
 
 		int write(handle_type handle, const buffer_type& buf) {
 			return send(handle->fd.s, static_cast<const char*>(buf.base()), buf.length(), 0);
@@ -152,7 +167,7 @@ namespace cx::io::ip::detail {
 		}
 
 		handle_type accept(handle_type handle, address_type& addr) {
-			handle_type accepted_handle = _implementation.make_shared_handle();
+			handle_type accepted_handle = make_shared_handle();
 			accepted_handle->fd.s = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
 			return accepted_handle;
 		}
@@ -174,7 +189,7 @@ namespace cx::io::ip::detail {
 					, &bytes_returned, nullptr, nullptr)) {
 					address_type bindaddr = address_type::any(0, addr.family());
 					if (bind(handle, bindaddr)) {
-						if (_implementation.bind(handle, 0)) {
+						if (implementation().bind(handle, 0)) {
 							op->reset();
 							bytes_returned = 0;
 							if (_connect_ex(handle->fd.s
@@ -190,7 +205,7 @@ namespace cx::io::ip::detail {
 				}
 			}
 			op->error(cx::get_last_error());
-			_implementation.post(op);
+			implementation().post(op);
 		}
 
 		template < typename HandlerType >
@@ -210,7 +225,7 @@ namespace cx::io::ip::detail {
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::get_last_error());
-					_implementation.post(op);
+					implementation().post(op);
 				}
 			}
 		}
@@ -232,12 +247,12 @@ namespace cx::io::ip::detail {
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::get_last_error());
-					_implementation.post(op);
+					implementation().post(op);
 				}
 			}
 		}
 	private:
-		implementation_type& _implementation;
+		
 	};
 
 	template <> class completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
@@ -262,11 +277,8 @@ namespace cx::io::ip::detail {
 		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
-			: _implementation(impl)
+			: basic_completion_port_socket_service(impl)
 		{}
-		implementation_type& implementation(void) {
-			return _implementation;
-		}
 
 		int write(handle_type handle, const buffer_type& buf) {
 			return sendto(handle->fd.s
@@ -309,7 +321,7 @@ namespace cx::io::ip::detail {
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::get_last_error());
-					_implementation.post(op);
+					implementation().post(op);
 				}
 			}
 		}
@@ -333,12 +345,10 @@ namespace cx::io::ip::detail {
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::get_last_error());
-					_implementation.post(op);
+					implementation().post(op);
 				}
 			}
 		}
-	private:
-		implementation_type& _implementation;
 	};
 
 }

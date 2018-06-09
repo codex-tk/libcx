@@ -1,7 +1,7 @@
 
 #include "gtest/gtest.h"
 #include "tests/gprintf.hpp"
-#include <cx/io/services.hpp>
+#include <cx/services.hpp>
 
 TEST( cx_io_ip , any ) {
     auto ipv4 = cx::io::ip::tcp::address::anys( 80 , AF_INET );

@@ -33,8 +33,10 @@ namespace cx::io {
 		virtual ~basic_read_op(void) {
 		}
 
-		virtual void operator()(void) override {
+		virtual int operator()(void) override {
 			_handler(error(), io_size());
+			delete this;
+			return 1;
 		}
 	private:
 		HandlerType _handler;
