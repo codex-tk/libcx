@@ -42,6 +42,15 @@ namespace cx::io::ip {
 			handle_type handle = _fd.service().accept(_fd.handle(), addr);
 			return cx::io::ip::basic_socket<ServiceType>(_fd.service(), handle);
 		}
+
+		cx::io::ip::basic_socket<ServiceType> accept(address_type& addr
+			, const std::chrono::milliseconds& ms) {
+			if (cx::io::ops::read == _fd.service().poll(_fd.handle(), cx::io::ops::read, ms)) {
+				handle_type handle = _fd.service().accept(_fd.handle(), addr);
+				return cx::io::ip::basic_socket<ServiceType>(_fd.service(), handle);
+			}
+			return cx::io::ip::basic_socket<ServiceType>(_fd.service(), nullptr );
+		}
 	private:
 		cx::io::ip::basic_socket<ServiceType> _fd;
 	};

@@ -29,7 +29,43 @@ namespace cx::io::detail {
 			} fd;
 			completion_port& implementation;
 		};
+		class operation : public OVERLAPPED {
+		public:
+			operation(void)
+				: _next(nullptr) {
+			}
+
+			virtual ~operation(void) = default;
+			int io_size(void) { return this->Offset; }
+			int io_size(int sz) {
+				int old = this->Offset;
+				this->Offset = sz;
+				sz = old;
+				return sz;
+			}
+
+			std::error_code error(void) { return _ec; }
+			std::error_code error(const std::error_code& ec) {
+				std::error_code old(_ec);
+				_ec = ec;
+				return old;
+			}
+
+			virtual void operator()(void) = 0;
+
+			operation* next(void) { return _next; }
+			operation* next(operation* op) {
+				std::swap(_next, op);
+				return op;
+			}
+			OVERLAPPED *overlapped(void) { return static_cast<OVERLAPPED*>(this); }
+			void reset(void) { memset(overlapped(), 0x00, sizeof(decltype(*overlapped()))); }
+		private:
+			std::error_code _ec;
+			operation* _next;
+		};
 		using handle_type = std::shared_ptr<completion_port::handle>;
+		using operation_type = operation;
 
 		handle_type make_shared_handle(void) {
 			return std::make_shared< completion_port::handle >(*this);
@@ -72,13 +108,13 @@ namespace cx::io::detail {
 				, &ov
 				, static_cast<DWORD>(ms.count()));
 			if (ov == nullptr) {
-				cx::slist< base_op > ops;
+				cx::slist< operation_type > ops;
 				{
 					std::lock_guard<std::recursive_mutex> lock(_mutex);
 					_ops.swap(ops);
 				}
 				int proc = 0;
-				while (base_op* op = ops.head()) {
+				while (operation_type* op = ops.head()) {
 					ops.remove_head();
 					(*op)();
 					delete op;
@@ -86,7 +122,7 @@ namespace cx::io::detail {
 				}
 				return proc;
 			} else {
-				cx::io::base_op* op = cx::container_of(ov, &base_op::_ov);
+				operation_type* op = static_cast<operation_type*>(ov);
 				if (FALSE == ret) {
 					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
 				}
@@ -97,7 +133,7 @@ namespace cx::io::detail {
 			}
 		}
 
-		void post(base_op* op) {
+		void post(operation_type* op) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
 				_ops.add_tail(op);
@@ -107,7 +143,7 @@ namespace cx::io::detail {
 
 		template < typename HandlerT >
 		void post_handler(HandlerT&& handler) {
-			class handler_op : public base_op {
+			class handler_op : public operation_type {
 			public:
 				handler_op(HandlerT&& handler)
 					: _handler(std::forward<HandlerT>(handler))
@@ -126,7 +162,7 @@ namespace cx::io::detail {
 		HANDLE _handle;
 		std::set< handle_type > _active_handles;
 		std::recursive_mutex _mutex;
-		cx::slist< base_op > _ops;
+		cx::slist< operation_type > _ops;
 	};
 
 }

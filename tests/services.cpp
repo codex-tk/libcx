@@ -38,7 +38,6 @@ private:
 
 TEST(service, t0) {
 	core_object cobj;
-	//service< empty_service , foo_service > _s0(cobj);
 	cx::service_repository< empty_service, foo_service > _s0(cobj);
 	ASSERT_EQ(_s0.service<empty_service>().svcid(), 0);
 	ASSERT_EQ(_s0.service<foo_service>().svcid(), 1);

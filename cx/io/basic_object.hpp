@@ -53,7 +53,17 @@ namespace cx::io {
 		}
 
 		explicit operator bool() const {
-			return !_service.invalid(_handle);
+			return _service.good(_handle);
+		}
+	public:
+		template < typename HandlerType >
+		void async_write(const buffer_type& buf, HandlerType&& handler) {
+			service().async_write(handle(), buf, std::forward<HandlerType>(handler));
+		}
+
+		template < typename HandlerType >
+		void async_read(buffer_type& buf, HandlerType&& handler) {
+			service().async_read(handle(), buf, std::forward<HandlerType>(handler));
 		}
 	private:
 		ServiceType& _service;

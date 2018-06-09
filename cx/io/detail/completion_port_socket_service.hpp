@@ -6,16 +6,14 @@
 #include <cx/cxdefine.hpp>
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/basic_buffer.hpp>
+#include <cx/io/detail/completion_port.hpp>
+#include <cx/io/detail/basic_connect_op.hpp>
+#include <cx/io/detail/basic_read_op.hpp>
+#include <cx/io/detail/basic_write_op.hpp>
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
-namespace cx::io {
-
-namespace detail {
-	class completion_port;
-}
-
-namespace ip::detail {
+namespace cx::io::ip::detail {
 
 	template < int Type, int Proto >
 	class basic_completion_port_socket_service {
@@ -25,6 +23,7 @@ namespace ip::detail {
 		using implementation_type = cx::io::detail::completion_port;
 		using handle_type = cx::io::detail::completion_port::handle_type;
 		using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
+		using operation_type = typename implementation_type::operation_type;
 
 		bool open(handle_type handle, const address_type& address) {
 			close(handle);
@@ -107,8 +106,11 @@ namespace ip::detail {
 			return opt.get(handle->fd.s);
 		}
 
-		bool invalid(handle_type handle) {
-			return handle->fd.s == INVALID_SOCKET;
+		bool good(handle_type handle) {
+			if (handle) {
+				return handle->fd.s != INVALID_SOCKET;
+			}
+			return false;
 		}
 	private:
 	};
@@ -119,7 +121,15 @@ namespace ip::detail {
 	template <> class completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >
 		: public basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP > {
 	public:
+		using this_type = completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >;
 		using buffer_type = cx::io::buffer;
+		using basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP >::connect;
+		template < typename HandlerType >
+		using connect_op = basic_connect_op< this_type, HandlerType>;
+		template < typename HandlerType >
+		using read_op = basic_read_op< this_type, HandlerType>;
+		template < typename HandlerType >
+		using write_op = basic_write_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl)
@@ -150,6 +160,85 @@ namespace ip::detail {
 			return accepted_handle;
 		}
 
+		template < typename HandlerType >
+		void async_connect(handle_type handle, const address_type& addr, HandlerType&& handler) {
+			connect_op<HandlerType>* op =
+				new connect_op<HandlerType>(addr, std::forward<HandlerType>(handler));
+
+			if (INVALID_SOCKET != handle->fd.s) {
+				//set_option(handle, cx::io::ip::option::non_blocking());
+				LPFN_CONNECTEX _connect_ex = nullptr;
+				DWORD bytes_returned = 0;
+				GUID guid = WSAID_CONNECTEX;
+				if (SOCKET_ERROR != WSAIoctl(handle->fd.s
+					, SIO_GET_EXTENSION_FUNCTION_POINTER
+					, &guid, sizeof(guid)
+					, &_connect_ex, sizeof(_connect_ex)
+					, &bytes_returned, nullptr, nullptr)) {
+					address_type bindaddr = address_type::any(0, addr.family());
+					if (bind(handle, bindaddr)) {
+						if (_implementation.bind(handle, 0)) {
+							op->reset();
+							bytes_returned = 0;
+							if (_connect_ex(handle->fd.s
+								, op->address().sockaddr()
+								, op->address().length()
+								, nullptr, 0
+								, &bytes_returned, op->overlapped()) == TRUE)
+								return;
+							if (WSAGetLastError() == WSA_IO_PENDING)
+								return;
+						}
+					}
+				}
+			}
+			op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+			_implementation.post(op);
+		}
+
+		template < typename HandlerType >
+		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
+			write_op<HandlerType>* op =
+				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			op->reset();
+			DWORD flag = 0;
+			DWORD bytes_transferred = 0;
+			if (WSASend(handle->fd.s
+				, &(op->buffer())
+				, 1
+				, &bytes_transferred
+				, flag
+				, op->overlapped()
+				, nullptr) == SOCKET_ERROR)
+			{
+				if (WSAGetLastError() != WSA_IO_PENDING) {
+					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					_implementation.post(op);
+				}
+			}
+		}
+
+		template < typename HandlerType >
+		void async_read(handle_type handle, buffer_type& buf, HandlerType&& handler) {
+			read_op<HandlerType>* op =
+				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			op->reset();
+			DWORD flag = 0;
+			DWORD bytes_transferred = 0;
+			if (WSARecv(handle->fd.s
+				, &(op->buffer())
+				, 1
+				, &bytes_transferred
+				, &flag
+				, op->overlapped()
+				, nullptr) == SOCKET_ERROR)
+			{
+				if (WSAGetLastError() != WSA_IO_PENDING) {
+					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					_implementation.post(op);
+				}
+			}
+		}
 	private:
 		implementation_type& _implementation;
 	};
@@ -157,18 +246,25 @@ namespace ip::detail {
 	template <> class completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
 		: public basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP > {
 	public:
-		struct _buffer_type {
-			_buffer_type(void* ptr, std::size_t len)
+		struct _buffer {
+			_buffer(void* ptr, std::size_t len)
 				: buffer(ptr, len)
 			{}
-			_buffer_type(void)
+			_buffer(void)
 				: buffer(nullptr, 0)
 			{
 			}
 			address_type address;
 			cx::io::buffer buffer;
 		};
-		using buffer_type = _buffer_type;
+
+		using this_type = completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>;
+		using buffer_type = _buffer;
+		using basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP >::connect;
+		template < typename HandlerType >
+		using read_op = basic_read_op< this_type, HandlerType>;
+		template < typename HandlerType >
+		using write_op = basic_write_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl)
@@ -198,11 +294,58 @@ namespace ip::detail {
 		int shutdown(handle_type, int) {
 			return 0;
 		}
+
+		template < typename HandlerType >
+		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
+			write_op<HandlerType>* op =
+				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			op->reset();
+			DWORD flag = 0;
+			DWORD bytes_transferred = 0;
+			if (WSASendTo(handle->fd.s
+				, &(op->buffer())
+				, 1
+				, &bytes_transferred
+				, flag
+				, op->buffer().address.sockaddr()
+				, op->buffer().address.length()
+				, op->overlapped()
+				, nullptr) == SOCKET_ERROR)
+			{
+				if (WSAGetLastError() != WSA_IO_PENDING) {
+					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					_implementation.post(op);
+				}
+			}
+		}
+
+		template < typename HandlerType >
+		void async_read(handle_type handle, buffer_type& buf, HandlerType&& handler) {
+			read_op<HandlerType>* op =
+				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			op->reset();
+			DWORD flag = 0;
+			DWORD bytes_transferred = 0;
+			if (WSARecvFrom(handle->fd.s
+				, &(op->buffer())
+				, 1
+				, &bytes_transferred
+				, &flag
+				, op->buffer().address.sockaddr()
+				, op->buffer().address.length_ptr()
+				, op->overlapped()
+				, nullptr) == SOCKET_ERROR)
+			{
+				if (WSAGetLastError() != WSA_IO_PENDING) {
+					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					_implementation.post(op);
+				}
+			}
+		}
 	private:
 		implementation_type& _implementation;
 	};
 
-}
 }
 
 #endif // 

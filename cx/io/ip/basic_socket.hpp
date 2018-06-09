@@ -43,6 +43,8 @@ namespace cx::io::ip {
 			return false;
 		}
 
+
+
 		int write(const buffer_type& buf, const std::chrono::milliseconds& ms) {
 			if (cx::io::ops::write == service().poll(handle(), cx::io::ops::write, ms))
 				return this->write(buf);
@@ -80,6 +82,12 @@ namespace cx::io::ip {
 		bool get_option(T&& opt) {
 			return service().get_option(handle(), std::forward<T>(opt));
 		}
+	public:
+		template < typename HandlerType >
+		void async_connect(const address_type& addr, HandlerType&& handler) {
+			service().async_connect(handle(), addr, std::forward<HandlerType>(handler));
+		}
+
 	};
 
 } // cx::io::ip

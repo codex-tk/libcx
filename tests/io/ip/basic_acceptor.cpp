@@ -43,13 +43,14 @@ TEST(cx_io_ip_basic_acceptor, sample_echo) {
 	ASSERT_TRUE(client.connect(addr, std::chrono::milliseconds(1000)));
 
 	cx::io::ip::tcp::address aaddr;
-	auto accepted = acceptor.accept(aaddr);
+	auto accepted = acceptor.accept(aaddr, std::chrono::milliseconds(1000));
 	ASSERT_TRUE(accepted);
 
 	char buf[1024] = { 0 , };
 	cx::io::ip::tcp::buffer rdbuf(buf, 1024);
 
-	ASSERT_EQ(client.write(cx::io::ip::tcp::buffer("Hello"), std::chrono::milliseconds(1000)), strlen("Hello"));
+	ASSERT_EQ(client.write(cx::io::ip::tcp::buffer("Hello"), std::chrono::milliseconds(1000))
+		, strlen("Hello"));
 	ASSERT_EQ(accepted.read(rdbuf, std::chrono::milliseconds(1000)), strlen("Hello"));
 	ASSERT_STREQ("Hello", buf);
 
@@ -60,4 +61,20 @@ TEST(cx_io_ip_basic_acceptor, sample_echo) {
 	acceptor.close();
 	accepted.close();
 	client.close();
+}
+
+TEST(cx_io_ip_basic_acceptor, timeout ) {
+	cx::io::engine<
+		cx::io::ip::tcp::service
+	> engine;
+
+	cx::io::ip::tcp::acceptor acceptor(engine);
+
+	ASSERT_TRUE(acceptor.open(cx::io::ip::tcp::address::any(7543, AF_INET)));
+
+	cx::io::ip::tcp::address addr;
+	auto accepted = acceptor.accept(addr,std::chrono::milliseconds(100));
+	ASSERT_FALSE(accepted);
+
+	acceptor.close();
 }
