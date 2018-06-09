@@ -12,6 +12,11 @@
 
 namespace cx::io::ip::option{
 
+#if CX_PLATFORM == CX_P_WINDOWS
+    using socket_type = SOCKET;
+#else
+    using socket_type = int;
+#endif
     enum { disable = 0, enable = 1, };
 
     template < typename T , int level , int opt >
@@ -21,13 +26,13 @@ namespace cx::io::ip::option{
 
         explicit value_option( const T& t ) : _option(t) {}
 
-        bool set( cx::io::ip::socket_type fd ) {
+        bool set( socket_type fd ) {
             return setsockopt( fd ,  level ,   opt , 
                         reinterpret_cast< char*>(&_option) , 
                         sizeof( _option ) ) != -1;
         }
 
-        bool get( cx::io::ip::socket_type fd ) {
+        bool get( socket_type fd ) {
             int size = sizeof( _option );
             return getsockopt( fd, level , opt , 
                                 reinterpret_cast< char*>(&_option) ,
@@ -45,7 +50,7 @@ namespace cx::io::ip::option{
     public:
         blocking( void ): _option(0){}
         ~blocking( void ){}
-        bool set( cx::io::ip::socket_type fd ) { 
+        bool set( socket_type fd ) { 
 #if CX_PLATFORM == CX_P_WINDOWS
             return ioctlsocket( fd , FIONBIO , &_option ) != -1;
 #else
@@ -61,7 +66,7 @@ private:
     public:
         non_blocking( void ): _option(1){}
         ~non_blocking( void ){}
-        bool set( cx::io::ip::socket_type fd ) {  
+        bool set( socket_type fd ) {  
 #if CX_PLATFORM == CX_P_WINDOWS
             return ioctlsocket( fd , FIONBIO , &_option ) != -1;
 #else

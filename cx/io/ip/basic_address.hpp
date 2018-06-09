@@ -31,7 +31,7 @@ namespace cx::io::ip{
             memcpy( sockaddr()  , rhs.sockaddr() , _length );
         }
 
-        basic_address( const short family , const char* dst , const uint16_t port ){
+        basic_address( const char* dst , const uint16_t port , const short family ){
             sockaddr()->sa_family = family;
             _length = family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6);
             switch( sockaddr()->sa_family ) {
@@ -175,7 +175,7 @@ namespace cx::io::ip{
             default:
                 break;
             }
-            return address( reinterpret_cast< struct sockaddr*>(&addr) ,length);
+            return basic_address( reinterpret_cast< struct sockaddr*>(&addr) ,length);
         }
     
         static std::vector< basic_address > resolve( const char* name  

@@ -21,6 +21,11 @@ namespace cx::io {
 
     template < typename T > class basic_buffer : public T {
     public:
+		basic_buffer(void) {
+			detail::buffer_base(raw_buffer(), nullptr);
+			detail::buffer_length(raw_buffer(), 0);
+		}
+
         basic_buffer( void* ptr , std::size_t len ) {
             detail::buffer_base( raw_buffer() ,  ptr );
             detail::buffer_length( raw_buffer() ,  len );

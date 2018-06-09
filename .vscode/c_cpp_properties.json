@@ -4,13 +4,13 @@
             "name": "Win32",
             "browse": {
                 "path": [
-                    "${workspaceFolder}"
+                    "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             },
             "includePath": [
-                "${workspaceFolder}",
-                "${workspaceFolder}/googletest/googletest/include"
+                "${workspaceRoot}",
+                "${workspaceRoot}/googletest/googletest/include"
             ],
             "defines": [
                 "_DEBUG",

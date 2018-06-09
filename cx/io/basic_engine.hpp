@@ -4,6 +4,7 @@
 #define __cx_io_basic_engine_h__
 
 #include <cx/service_repository.hpp>
+#include <cx/io/services.hpp>
 
 namespace cx::io {
 
@@ -31,6 +32,9 @@ namespace cx::io {
         cx::service_repository< Services ... > _services;
     };
 
+
+	template < typename ... Services >
+	using engine = basic_engine< cx::io::basic_implementation , Services ... >;
 }
 
 #endif

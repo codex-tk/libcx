@@ -68,5 +68,6 @@
         "mutex": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
-    "C_Cpp.dimInactiveRegions": true
+    "C_Cpp.dimInactiveRegions": true ,
+    "codegnuglobal.executable": "C:/msys64/mingw64/bin/global.exe" ,
 }

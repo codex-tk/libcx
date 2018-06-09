@@ -26,9 +26,31 @@ namespace cx::io::ip {
             return service().connect( handle() , addr );
         }
 
-        bool bind( const address_type& bind ) {
+        bool connect( const address_type& addr , const std::chrono::milliseconds& ms ) {
+            if ( connect( addr) ) {
+                if ( cx::io::ops::write == service().poll( handle() , cx::io::ops::write , ms ))
+                    return true;
+            }
             return false;
-            //return ::bind( _fd , addr.sockaddr() , addr.length()) != -1;
+        }
+
+		using cx::io::basic_object<ServiceType>::write;
+		using cx::io::basic_object<ServiceType>::read;
+
+		int write(const buffer_type& buf, const std::chrono::milliseconds& ms) {
+			if (cx::io::ops::write == service().poll(handle(), cx::io::ops::write, ms))
+				return this->write(buf);
+			return -1;
+		}
+
+		int read( buffer_type& buf, const std::chrono::milliseconds& ms) {
+			if (cx::io::ops::read == service().poll(handle(), cx::io::ops::read, ms))
+				return this->read(buf);
+			return -1;
+		}
+
+        bool bind( const address_type& addr ) {
+            return service().bind( handle() , addr );
         }
 
         int shutdown( int how ) {
@@ -37,31 +59,21 @@ namespace cx::io::ip {
         }
 
         address_type local_address( void ) const {
-            /*
-            cx::io::ip::address addr;
-            ::getsockname( _fd , addr.sockaddr() , addr.length_ptr() );
-            return addr;*/
-            return address_type();
+			return service().local_address(handle());
         }
 
         address_type remote_address( void ) const {
-            /*
-            cx::io::ip::address addr;
-            ::getpeername( _fd , addr.sockaddr() , addr.length_ptr() );
-            return addr;*/
-            return address_type();
+			return service().remote_address(handle());
         }
 
         template < typename T >
-        bool set_option( T opt ) {
-            return false;
-            //return opt.set( handle->set );
+        bool set_option( T&& opt ) {
+            return service().set_option( handle() , std::forward<T>(opt));
         }
 
         template < typename T >
-        bool get_option( T& opt ) {
-            return false;
-            //return opt.get( _fd );
+        bool get_option( T&& opt ) {
+            return service().get_option( handle() , std::forward<T>(opt));
         }
     };
 

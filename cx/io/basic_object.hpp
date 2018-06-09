@@ -22,11 +22,11 @@ namespace cx::io {
         {
         }
 
-        handle_type handle( void ) {
+        handle_type handle( void ) const {
             return _handle;
         }
 
-        ServiceType& service( void ) {
+        ServiceType& service( void ) const {
             return _service;
         }
 
