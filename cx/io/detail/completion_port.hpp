@@ -9,7 +9,6 @@
 #include <cx/slist.hpp>
 #include <cx/container_of.hpp>
 #include <cx/error.hpp>
-#include <cx/io/base_op.hpp>
 
 #include <mutex>
 #include <set>
@@ -124,13 +123,13 @@ namespace cx::io::detail {
 			} else {
 				operation_type* op = static_cast<operation_type*>(ov);
 				if (FALSE == ret) {
-					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					op->error( cx::get_last_error() );
 				}
 				op->io_size(bytes_transferred);
 				(*op)();
 				delete op;
-				return 1;
 			}
+			return 1;
 		}
 
 		void post(operation_type* op) {

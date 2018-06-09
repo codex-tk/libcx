@@ -124,12 +124,9 @@ namespace cx::io::ip::detail {
 		using this_type = completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >;
 		using buffer_type = cx::io::buffer;
 		using basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP >::connect;
-		template < typename HandlerType >
-		using connect_op = basic_connect_op< this_type, HandlerType>;
-		template < typename HandlerType >
-		using read_op = basic_read_op< this_type, HandlerType>;
-		template < typename HandlerType >
-		using write_op = basic_write_op< this_type, HandlerType>;
+		template < typename HandlerType > using connect_op = basic_connect_op< this_type, HandlerType>;
+		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
+		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl)
@@ -192,7 +189,7 @@ namespace cx::io::ip::detail {
 					}
 				}
 			}
-			op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+			op->error(cx::get_last_error());
 			_implementation.post(op);
 		}
 
@@ -212,7 +209,7 @@ namespace cx::io::ip::detail {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					op->error(cx::get_last_error());
 					_implementation.post(op);
 				}
 			}
@@ -234,7 +231,7 @@ namespace cx::io::ip::detail {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					op->error(cx::get_last_error());
 					_implementation.post(op);
 				}
 			}
@@ -261,10 +258,8 @@ namespace cx::io::ip::detail {
 		using this_type = completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>;
 		using buffer_type = _buffer;
 		using basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP >::connect;
-		template < typename HandlerType >
-		using read_op = basic_read_op< this_type, HandlerType>;
-		template < typename HandlerType >
-		using write_op = basic_write_op< this_type, HandlerType>;
+		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
+		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl)
@@ -313,7 +308,7 @@ namespace cx::io::ip::detail {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					op->error(cx::get_last_error());
 					_implementation.post(op);
 				}
 			}
@@ -337,7 +332,7 @@ namespace cx::io::ip::detail {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(std::error_code(WSAGetLastError(), cx::windows_category()));
+					op->error(cx::get_last_error());
 					_implementation.post(op);
 				}
 			}

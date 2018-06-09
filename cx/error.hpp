@@ -57,6 +57,10 @@ namespace cx {
 		static windows_category_impl impl;
 		return impl;
 	}
+
+	static std::error_code get_last_error(void) {
+		return std::error_code(WSAGetLastError(), windows_category());
+	}
 #endif
 }
 
