@@ -19,9 +19,7 @@ TEST( cx_io_ip_sockets , t0 ) {
     }
     ASSERT_FALSE( addresses.empty());
     ASSERT_TRUE( fd.open(addresses[0]) );
-#if CX_PLATFORM == CX_P_WINDOWS
-    ASSERT_TRUE( fd.handle()->fd.s != INVALID_SOCKET );
-#endif
+	ASSERT_TRUE(fd);
     ASSERT_TRUE(fd.connect( addresses[0]));
 
 	gprintf("Remote Address : %s", fd.remote_address().to_string().c_str());
@@ -34,9 +32,7 @@ TEST( cx_io_ip_sockets , t0 ) {
     ASSERT_TRUE( fd.read( rdbuf ) > 0 );
     gprintf( "%s" , rdbuf.base());
     fd.close();
-#if CX_PLATFORM == CX_P_WINDOWS
-    ASSERT_TRUE( fd.handle()->fd.s == INVALID_SOCKET );
-#endif
+	ASSERT_TRUE(!fd);
     ASSERT_TRUE( fd.handle().get() != nullptr );
 }
 
@@ -54,9 +50,7 @@ TEST( cx_io_ip_sockets , timeout ) {
     }
     ASSERT_FALSE( addresses.empty());
     ASSERT_TRUE( fd.open(addresses[0]) );
-#if CX_PLATFORM == CX_P_WINDOWS
-    ASSERT_TRUE( fd.handle()->fd.s != INVALID_SOCKET );
-#endif
+	ASSERT_TRUE(fd);
     ASSERT_TRUE( fd.set_option( cx::io::ip::option::non_blocking()));
     ASSERT_TRUE( fd.connect( addresses[0] , std::chrono::milliseconds(1000)));
 
@@ -68,8 +62,6 @@ TEST( cx_io_ip_sockets , timeout ) {
     ASSERT_TRUE( fd.read( rdbuf, std::chrono::milliseconds(1000)) > 0 );
     gprintf( "%s" , rdbuf.base());
     fd.close();
-#if CX_PLATFORM == CX_P_WINDOWS
-    ASSERT_TRUE( fd.handle()->fd.s == INVALID_SOCKET );
-#endif
+	ASSERT_TRUE(!fd);
     ASSERT_TRUE( fd.handle().get() != nullptr );
 }

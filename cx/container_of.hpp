@@ -3,13 +3,13 @@
 
 #include <cstdint>
 
-namespace cx{
-    /*!
+namespace cx {
+	/*!
 	@brief 멤버 변수 포인터로 부터 부모 클래스 주소를 알아오는 함수
 	@detail Member Parent::* ptr 은 &Class::Member 를 의미함
 	*/
-	template < typename Parent , typename Member >
-	Parent* container_of0(Member* ptr , Member Parent::*mem_ptr) {
+	template < typename Parent, typename Member >
+	Parent* container_of0(Member* ptr, Member Parent::*mem_ptr) {
 		Parent* parent = nullptr;
 		std::ptrdiff_t val = reinterpret_cast<std::ptrdiff_t>(&(parent->*mem_ptr));
 		val = reinterpret_cast<std::ptrdiff_t>(ptr) - val;

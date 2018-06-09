@@ -12,7 +12,7 @@
 namespace cx::io {
 
 namespace detail {
-    class completion_port;
+	class completion_port;
 }
 
 namespace ip::detail {
@@ -20,7 +20,7 @@ namespace ip::detail {
 	template < int Type, int Proto >
 	class basic_completion_port_socket_service {
 	protected:
-		~basic_completion_port_socket_service( void ) {}
+		~basic_completion_port_socket_service(void) {}
 	public:
 		using implementation_type = cx::io::detail::completion_port;
 		using handle_type = cx::io::detail::completion_port::handle_type;
@@ -106,80 +106,104 @@ namespace ip::detail {
 		bool get_option(handle_type handle, T&& opt) {
 			return opt.get(handle->fd.s);
 		}
+
+		bool invalid(handle_type handle) {
+			return handle->fd.s == INVALID_SOCKET;
+		}
 	private:
 	};
 
-    template < int Type , int Proto >
-    class completion_port_socket_service ;
-        
-    template <> class completion_port_socket_service< SOCK_STREAM , IPPROTO_TCP >
-		: public basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP >  {
-    public:
+	template < int Type, int Proto >
+	class completion_port_socket_service;
+
+	template <> class completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >
+		: public basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP > {
+	public:
 		using buffer_type = cx::io::buffer;
 
 		completion_port_socket_service(implementation_type& impl)
-            : _implementation( impl )
-        {}
-        implementation_type& implementation( void ) {
-            return _implementation;
-        }
+			: _implementation(impl)
+		{}
+		implementation_type& implementation(void) {
+			return _implementation;
+		}
 
-        int write( handle_type handle , const buffer_type& buf ){ 
-            return send( handle->fd.s , static_cast<const char*>(buf.base()) , buf.length() , 0 );
-        }
+		int write(handle_type handle, const buffer_type& buf) {
+			return send(handle->fd.s, static_cast<const char*>(buf.base()), buf.length(), 0);
+		}
 
-        int read( handle_type handle , buffer_type& buf ){ 
-           return recv( handle->fd.s , static_cast<char*>(buf.base()) , buf.length() , 0 );
-        }
-    private:
-        implementation_type& _implementation;
-    };
+		int read(handle_type handle, buffer_type& buf) {
+			return recv(handle->fd.s, static_cast<char*>(buf.base()), buf.length(), 0);
+		}
 
-    template <> class completion_port_socket_service< SOCK_DGRAM , IPPROTO_UDP>
-		: public basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP >  {
-    public:
-        struct _buffer_type {
-            _buffer_type( void* ptr , std::size_t len ) 
-                : buffer(ptr,len)
-            {}
-            _buffer_type( void ) 
-                : buffer(nullptr,0)
-            {
-            }
-            address_type address;
-            cx::io::buffer buffer;
-        };
-        using buffer_type = _buffer_type;
+		bool listen(handle_type handle, int backlog) {
+			return ::listen(handle->fd.s, backlog) != SOCKET_ERROR;
+		}
 
-        completion_port_socket_service(implementation_type& impl)
-            : _implementation( impl )
-        {}
-        implementation_type& implementation( void ) {
-            return _implementation;
-        }
+		int shutdown(handle_type handle, int how) {
+			return ::shutdown(handle->fd.s, how);
+		}
 
-        int write( handle_type handle , const buffer_type& buf ){ 
-            return sendto( handle->fd.s 
-                , static_cast<const char*>(buf.buffer.base()) 
-                , buf.buffer.length() 
-                , 0 
-                , buf.address.sockaddr()
-                , buf.address.length());
-        }
+		handle_type accept(handle_type handle, address_type& addr) {
+			handle_type accepted_handle = _implementation.make_shared_handle();
+			accepted_handle->fd.s = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
+			return accepted_handle;
+		}
 
-        int read( handle_type handle , buffer_type& buf ){ 
-           return recvfrom( handle->fd.s 
-                , static_cast<char*>(buf.buffer.base()) 
-                , buf.buffer.length() 
-                , 0 
-                , buf.address.sockaddr()
-                , buf.address.length_ptr());
-        }
-    private:
-        implementation_type& _implementation;
-    };
+	private:
+		implementation_type& _implementation;
+	};
 
-}}
+	template <> class completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
+		: public basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP > {
+	public:
+		struct _buffer_type {
+			_buffer_type(void* ptr, std::size_t len)
+				: buffer(ptr, len)
+			{}
+			_buffer_type(void)
+				: buffer(nullptr, 0)
+			{
+			}
+			address_type address;
+			cx::io::buffer buffer;
+		};
+		using buffer_type = _buffer_type;
+
+		completion_port_socket_service(implementation_type& impl)
+			: _implementation(impl)
+		{}
+		implementation_type& implementation(void) {
+			return _implementation;
+		}
+
+		int write(handle_type handle, const buffer_type& buf) {
+			return sendto(handle->fd.s
+				, static_cast<const char*>(buf.buffer.base())
+				, buf.buffer.length()
+				, 0
+				, buf.address.sockaddr()
+				, buf.address.length());
+		}
+
+		int read(handle_type handle, buffer_type& buf) {
+			return recvfrom(handle->fd.s
+				, static_cast<char*>(buf.buffer.base())
+				, buf.buffer.length()
+				, 0
+				, buf.address.sockaddr()
+				, buf.address.length_ptr());
+		}
+
+		int shutdown(handle_type, int) {
+			return 0;
+		}
+	private:
+		implementation_type& _implementation;
+	};
+
+}
+}
 
 #endif // 
 

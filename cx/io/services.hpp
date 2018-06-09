@@ -10,6 +10,7 @@
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/ip/option.hpp>
 #include <cx/io/ip/basic_socket.hpp>
+#include <cx/io/ip/basic_acceptor.hpp>
 
 #include <cx/io/detail/completion_port.hpp>
 #include <cx/io/detail/completion_port_socket_service.hpp>
@@ -24,6 +25,7 @@ namespace cx::io {
         using address = typename service::address_type;
         using socket = cx::io::ip::basic_socket<service>;
         using buffer = typename service::buffer_type;
+		using acceptor = cx::io::ip::basic_acceptor<service>;
     }
     namespace ip::udp { 
         using service = cx::io::ip::detail::completion_port_socket_service<SOCK_DGRAM,IPPROTO_UDP>; 

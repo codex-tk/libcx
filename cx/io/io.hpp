@@ -5,12 +5,12 @@
 
 namespace cx::io {
 
-    namespace ops {
-        enum {
-            read = 0x01 ,
-            write = 0x02 ,
-        };
-    }
+	namespace ops {
+		enum {
+			read = 0x01,
+			write = 0x02,
+		};
+	}
 
 }
 

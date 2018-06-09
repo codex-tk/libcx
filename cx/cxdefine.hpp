@@ -5,11 +5,11 @@
 Darwin	 DARWIN						Darwin is not necessarily OS X, see below
 FreeBSD	 __FreeBSD__				Consider using the BSD macro
 Linux	 linux or __linux			I also found LINUX
-MacOS X	 __MACOSX__ or __APPLE__	
+MacOS X	 __MACOSX__ or __APPLE__
 NetBSD	 __NetBSD__					Consider using the BSD macro
 OpenBSD	 __OpenBSD__				Consider using the BSD macro
 Solaris	 sun or __sun				SunOS versions < 5 will not have __SVR4 or __svr4__ defined
-Windows	 _WIN32 or __WIN32__	
+Windows	 _WIN32 or __WIN32__
 */
 
 #define CX_P_LINUX 0
@@ -42,16 +42,16 @@ Windows	 _WIN32 or __WIN32__
 #pragma comment( lib , "Mswsock.lib") 
 #pragma comment( lib , "IPHLPAPI.lib")
 
-namespace cx::io::ip::detail{
-    namespace {
-        struct win32_socket_initializer {
-            win32_socket_initializer(void){
-                WSADATA    wsaData;
-                WSAStartup(MAKEWORD(2,2), &wsaData);
-            }
-        };
-        static win32_socket_initializer initializer;
-    }
+namespace cx::io::ip::detail {
+	namespace {
+		struct win32_socket_initializer {
+			win32_socket_initializer(void) {
+				WSADATA    wsaData;
+				WSAStartup(MAKEWORD(2, 2), &wsaData);
+			}
+		};
+		static win32_socket_initializer initializer;
+	}
 }
 
 #else

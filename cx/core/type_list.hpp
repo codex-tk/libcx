@@ -1,6 +1,6 @@
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @file type_list.hpp
  * @author ghtak
  * @date 2018-05-12
@@ -11,39 +11,39 @@
 
 #include <cx/core/mp.hpp>
 
-namespace cx::core{
-    
-    template < typename ... Ts >
-    struct type_list{  
+namespace cx::core {
 
-        using self = type_list< Ts ... >;
+	template < typename ... Ts >
+	struct type_list {
 
-        template < std::size_t I > 
-        using at = cx::core::mp::at< I , self >;
+		using self = type_list< Ts ... >;
 
-        using front = cx::core::mp::front< self>;
+		template < std::size_t I >
+		using at = cx::core::mp::at< I, self >;
 
-        using back = cx::core::mp::back< self>;
-        
-        template < typename ... Us >
-        using push_back = cx::core::mp::push_back< self , Us ... >;
+		using front = cx::core::mp::front< self>;
 
-        template < typename ... Us >
-        using push_front = cx::core::mp::push_front< self , Us ... >;
+		using back = cx::core::mp::back< self>;
 
-        using pop_front = cx::core::mp::pop_front< self >;
+		template < typename ... Us >
+		using push_back = cx::core::mp::push_back< self, Us ... >;
 
-        using pop_back  = cx::core::mp::pop_back< cx::core::mp::make_sequence<sizeof...(Ts) - 1> , self >;
+		template < typename ... Us >
+		using push_front = cx::core::mp::push_front< self, Us ... >;
 
-        using size = cx::core::mp::size< Ts ... >;
+		using pop_front = cx::core::mp::pop_front< self >;
 
-        template < std::size_t I > 
-        using at_t = typename cx::core::mp::at< I , type_list< Ts ... >>::type;
-    
-        template < template < typename ... > class U >
-        struct rebind {
-            using other = U< Ts ... >;
-        };
-    };
+		using pop_back = cx::core::mp::pop_back< cx::core::mp::make_sequence<sizeof...(Ts)-1>, self >;
+
+		using size = cx::core::mp::size< Ts ... >;
+
+		template < std::size_t I >
+		using at_t = typename cx::core::mp::at< I, type_list< Ts ... >>::type;
+
+		template < template < typename ... > class U >
+		struct rebind {
+			using other = U< Ts ... >;
+		};
+	};
 }
 #endif

@@ -7,69 +7,70 @@
 
 namespace cx::io {
 
-    class base_op{
-    public:
-        base_op(void) 
-            : _next(nullptr) {
+	class base_op {
+	public:
+		base_op(void)
+			: _next(nullptr) {
 #if CX_PLATFORM == CX_P_WINDOWS
-            memset(overlapped(), 0x00, sizeof(_ov));
+			memset(overlapped(), 0x00, sizeof(_ov));
 #endif
-        }
-        
-        virtual ~base_op(void) = default;
+		}
 
-        int io_size( void ) {
+		virtual ~base_op(void) = default;
+
+		int io_size(void) {
 #if CX_PLATFORM == CX_P_WINDOWS
-            return _ov.Offset;
+			return _ov.Offset;
 #else
-            return _io_size;
+			return _io_size;
 #endif
-        }
-        int io_size( int sz ){
+		}
+		int io_size(int sz) {
 #if CX_PLATFORM == CX_P_WINDOWS
-            int t = _ov.Offset;
-            _ov.Offset = sz;
-            sz = t;
+			int t = _ov.Offset;
+			_ov.Offset = sz;
+			sz = t;
 #else
-            std::swap(sz, _io_size);
+			std::swap(sz, _io_size);
 #endif
-            return sz;
-        }
-        
-        std::error_code error( void ) { 
-            return _ec;
-        }
+			return sz;
+		}
 
-        std::error_code error( const std::error_code& ec ) { 
-            std::error_code old(_ec);
-            _ec = ec;
-            return old; 
-        }
+		std::error_code error(void) {
+			return _ec;
+		}
 
-        virtual void operator()(void) = 0;
+		std::error_code error(const std::error_code& ec) {
+			std::error_code old(_ec);
+			_ec = ec;
+			return old;
+		}
 
-        base_op* next( void ) { return _next; }
-        base_op* next( base_op* op ) { 
-            std::swap(_next,op);
-            return op; 
-        }
-    private:
-        std::error_code _ec;
-        base_op* _next;
+		virtual void operator()(void) = 0;
+
+		base_op* next(void) { return _next; }
+		base_op* next(base_op* op) {
+			std::swap(_next, op);
+			return op;
+		}
+	private:
+		std::error_code _ec;
+		base_op* _next;
 #if CX_PLATFORM == CX_P_WINDOWS
-    public:
-        OVERLAPPED _ov;
+	public:
+		OVERLAPPED _ov;
 #else
-        int _io_size;
+	private:
+		int _io_size;
 #endif
 
 #if CX_PLATFORM == CX_P_WINDOWS
-    public:
-        OVERLAPPED *overlapped(void) {
-            return &_ov;
-        }
+	public:
+		OVERLAPPED *overlapped(void) {
+			return &_ov;
+		}
 #endif
-    };
+	};
 
 }
 
