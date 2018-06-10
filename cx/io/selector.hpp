@@ -77,9 +77,9 @@ namespace cx::io{
 #if CX_PLATFORM != CX_P_WINDOWS
                 if ( fd > maxfd ) maxfd = std::get<context_id::handle>(_fds[i]);
 #endif
-                if ( ops & cx::io::ops::read )
+                if ( ops & cx::io::pollin )
                     FD_SET( fd , &rdfds );
-                if ( ops & cx::io::ops::write )
+                if ( ops & cx::io::pollout )
                     FD_SET( fd , &wrfds );
             }    
 
@@ -106,20 +106,20 @@ namespace cx::io{
                 bool pushed = false;
                 handle_type fd = std::get<context_id::handle>(_fds[i]);
                 int ops = std::get< context_id::ops >(_fds[i]);
-                if ( ops & cx::io::ops::read ) {
+                if ( ops & cx::io::pollin ) {
                     if ( FD_ISSET( fd , &rdfds )) {
                         std::get<context_id::handle>(_sigfds[_sigfds_length]) = fd;
-                        std::get<context_id::ops>(_sigfds[_sigfds_length]) = cx::io::ops::read;
+                        std::get<context_id::ops>(_sigfds[_sigfds_length]) = cx::io::pollin;
                         pushed = true;
                     }
                 }
-                if ( ops & cx::io::ops::write ) {
+                if ( ops & cx::io::pollout ) {
                     if ( FD_ISSET( fd , &wrfds )) {
                         if ( pushed ) {
-                            std::get<context_id::ops>(_sigfds[_sigfds_length]) |= cx::io::ops::read;
+                            std::get<context_id::ops>(_sigfds[_sigfds_length]) |= cx::io::pollin;
                         } else {
                             std::get<context_id::handle>(_sigfds[_sigfds_length]) = fd;
-                            std::get<context_id::ops>(_sigfds[_sigfds_length]) = cx::io::ops::write;
+                            std::get<context_id::ops>(_sigfds[_sigfds_length]) = cx::io::pollout;
                             pushed = true;
                         }                 
                     }

@@ -19,17 +19,11 @@ namespace cx::io::detail {
 
 	class completion_port {
 	public:
-		struct handle {
-			handle(completion_port& arg)
-				: implementation(arg) 
-			{
-				fd.s = INVALID_SOCKET;
-			}
+		struct basic_handle {
 			union {
 				SOCKET s;
 				HANDLE h;
 			} fd;
-			completion_port& implementation;
 		};
 		class operation : public OVERLAPPED {
 		public:
@@ -67,12 +61,8 @@ namespace cx::io::detail {
 			std::error_code _ec;
 			operation* _next;
 		};
-		using handle_type = std::shared_ptr<completion_port::handle>;
+		using handle_type = std::shared_ptr<completion_port::basic_handle>;
 		using operation_type = operation;
-
-		handle_type make_shared_handle(void) {
-			return std::make_shared< completion_port::handle >(*this);
-		}
 	public:
 		completion_port(void)
 			: _handle(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
@@ -85,7 +75,7 @@ namespace cx::io::detail {
 			_handle = INVALID_HANDLE_VALUE;
 		}
 
-		bool bind(handle_type& ptr, const int /*ops*/) {
+		bool bind(const handle_type& ptr, const int /*ops*/) {
 			if (!ptr)
 				return false;
 			if (CreateIoCompletionPort(
@@ -101,7 +91,7 @@ namespace cx::io::detail {
 			return false;
 		}
 
-		void unbind(handle_type& ptr) {
+		void unbind(const handle_type& ptr) {
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			_active_handles.erase(ptr);
 		}
