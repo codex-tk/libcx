@@ -42,20 +42,20 @@ namespace cx::io::ip {
 
 		bool connect(const address_type& addr, const std::chrono::milliseconds& ms) {
 			if (connect(addr)) {
-				if (cx::io::ops::write == service().poll(handle(), cx::io::ops::write, ms))
+				if (cx::io::pollout == service().poll(handle(), cx::io::pollout, ms))
 					return true;
 			}
 			return false;
 		}
 
 		int write(const buffer_type& buf, const std::chrono::milliseconds& ms) {
-			if (cx::io::ops::write == service().poll(handle(), cx::io::ops::write, ms))
+			if (cx::io::pollout == service().poll(handle(), cx::io::pollout, ms))
 				return this->write(buf);
 			return -1;
 		}
 
 		int read(buffer_type& buf, const std::chrono::milliseconds& ms) {
-			if (cx::io::ops::read == service().poll(handle(), cx::io::ops::read, ms))
+			if (cx::io::pollin == service().poll(handle(), cx::io::pollin, ms))
 				return this->read(buf);
 			return -1;
 		}

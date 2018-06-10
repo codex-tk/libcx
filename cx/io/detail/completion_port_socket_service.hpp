@@ -16,15 +16,28 @@
 
 namespace cx::io::ip::detail {
 
-	template < int Type, int Proto >
-	class basic_completion_port_socket_service {
+	template < typename ServiceType >
+	class basic_completion_port_socket_service;
+
+	template < template < int , int > class ServiceType , int Type , int Proto >
+	class basic_completion_port_socket_service< ServiceType<Type,Proto> >{
 	protected:
 		~basic_completion_port_socket_service(void) {}
 	public:
 		using implementation_type = cx::io::detail::completion_port;
-		using handle_type = cx::io::detail::completion_port::handle_type;
 		using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
 		using operation_type = typename implementation_type::operation_type;
+
+		struct _handle : public cx::io::detail::completion_port::basic_handle {
+			_handle(ServiceType<Type, Proto>& svc)
+				: service(svc)
+			{
+				this->fd.s = INVALID_SOCKET;
+			}
+			ServiceType<Type, Proto>& service;
+		};
+
+		using handle_type = std::shared_ptr<_handle>;
 
 		basic_completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl)
@@ -71,10 +84,10 @@ namespace cx::io::ip::detail {
 		{
 			WSAPOLLFD pollfd = { 0 };
 			pollfd.fd = handle->fd.s;
-			if (ops & cx::io::ops::read) {
+			if (ops & cx::io::pollin) {
 				pollfd.events = POLLRDNORM;
 			}
-			if (ops & cx::io::ops::write) {
+			if (ops & cx::io::pollout) {
 				pollfd.events |= POLLWRNORM;
 			}
 			if (SOCKET_ERROR == WSAPoll(&pollfd, 1, static_cast<int>(ms.count()))) {
@@ -84,10 +97,10 @@ namespace cx::io::ip::detail {
 			}
 			ops = 0;
 			if (pollfd.revents & POLLRDNORM) {
-				ops = cx::io::ops::read;
+				ops = cx::io::pollin;
 			}
 			if (pollfd.revents & POLLWRNORM) {
-				ops |= cx::io::ops::write;
+				ops |= cx::io::pollout;
 			}
 			return ops;
 		}
@@ -121,12 +134,6 @@ namespace cx::io::ip::detail {
 			return false;
 		}
 
-		handle_type make_shared_handle(void) {
-			handle_type handle = implementation().make_shared_handle();
-			handle->fd.s = INVALID_SOCKET;
-			return handle;
-		}
-
 		implementation_type& implementation(void) {
 			return _implementation;
 		}
@@ -138,15 +145,21 @@ namespace cx::io::ip::detail {
 	class completion_port_socket_service;
 
 	template <> class completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >
-		: public basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP > {
+		: public basic_completion_port_socket_service < 
+			completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >
+		> {
 	public:
 		using this_type = completion_port_socket_service< SOCK_STREAM, IPPROTO_TCP >;
 		using buffer_type = cx::io::buffer;
-		using basic_completion_port_socket_service < SOCK_STREAM, IPPROTO_TCP >::connect;
+		using basic_completion_port_socket_service < this_type >::connect;
 		template < typename HandlerType > using connect_op = basic_connect_op< this_type, HandlerType>;
 		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
 		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
 		template < typename HandlerType > using accept_op = basic_accept_op< this_type, HandlerType>;
+
+		handle_type make_shared_handle(void) {
+			return std::make_shared<_handle>(*this);
+		}
 
 		completion_port_socket_service(implementation_type& impl)
 			: basic_completion_port_socket_service(impl)
@@ -167,6 +180,7 @@ namespace cx::io::ip::detail {
 		int shutdown(handle_type handle, int how) {
 			return ::shutdown(handle->fd.s, how);
 		}
+
 
 		handle_type accept(handle_type handle, address_type& addr) {
 			handle_type accepted_handle = make_shared_handle();
@@ -286,7 +300,9 @@ namespace cx::io::ip::detail {
 	};
 
 	template <> class completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
-		: public basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP > {
+		: public basic_completion_port_socket_service < 
+			completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
+		> {
 	public:
 		struct _buffer {
 			_buffer(void* ptr, std::size_t len)
@@ -302,9 +318,13 @@ namespace cx::io::ip::detail {
 
 		using this_type = completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>;
 		using buffer_type = _buffer;
-		using basic_completion_port_socket_service < SOCK_DGRAM, IPPROTO_UDP >::connect;
+		using basic_completion_port_socket_service < this_type >::connect;
 		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
 		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
+
+		handle_type make_shared_handle(void) {
+			return std::make_shared<_handle>(*this);
+		}
 
 		completion_port_socket_service(implementation_type& impl)
 			: basic_completion_port_socket_service(impl)
