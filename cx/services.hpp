@@ -34,11 +34,11 @@ namespace cx::io {
 		using buffer = typename service::buffer_type;
 	}
 #elif CX_PLATFORM == CX_P_LINUX
-	using implementation_type = cx::io::detail::epoll;
+	using basic_implementation = cx::io::detail::epoll;
 #elif CX_PLATFORM == CX_P_MACOSX
-	using implementation_type = cx::io::detail::kqueue;
+	using basic_implementation = cx::io::detail::kqueue;
 #else
-	using implementation_type = cx::io::detail::poll;
+	using basic_implementation = cx::io::detail::poll;
 #endif
 
 }

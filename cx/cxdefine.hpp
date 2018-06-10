@@ -68,6 +68,7 @@ namespace cx::io::ip::detail {
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/epoll.h>
 
 #endif
 #include <cstdio>
