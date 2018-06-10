@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cx/cxdefine.hpp>
 #include <cx/service_repository.hpp>
 
 struct core_object {
@@ -42,7 +43,7 @@ TEST(service, t0) {
 	ASSERT_EQ(_s0.service( cx::tag<empty_service>()).svcid(), 0);
 	ASSERT_EQ(_s0.service( cx::tag<foo_service>()).svcid(), 1);
 }
-
+#if CX_PLATFORM == CX_P_LINUX
 #include <cx/io/detail/epoll.hpp>
 #include <cx/io/detail/reactor_socket_service.hpp>
 #include <cx/io/basic_engine.hpp>
@@ -52,4 +53,5 @@ TEST(epoll,to){
     cx::io::basic_engine< cx::io::detail::epoll , svc > engine; 
     engine.service( cx::tag<svc>());
 }
+#endif
 

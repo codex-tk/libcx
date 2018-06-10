@@ -60,7 +60,7 @@ namespace cx {
 		{}
 
 		template < typename T >
-		T& service( const cx::tag<T>& tag ) {
+		T& service( const cx::tag<T>& ) {
 			return _service_impl<T>(_services);
 		}
 	private:
