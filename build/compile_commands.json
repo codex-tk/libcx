@@ -1,117 +1,117 @@
 [
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/googletest/googlemock",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/gmock.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=0 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles\\gmock.dir\\src\\gmock-all.cc.obj -c F:\\tk\\works\\2018\\libcx\\googletest\\googlemock\\src\\gmock-all.cc",
-  "file": "F:/tk/works/2018/libcx/googletest/googlemock/src/gmock-all.cc"
+  "directory": "/home/codex/projects/libcx/build/googletest/googlemock",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -isystem /home/codex/projects/libcx/googletest/googlemock/include -I/home/codex/projects/libcx/googletest/googlemock -isystem /home/codex/projects/libcx/googletest/googletest/include -I/home/codex/projects/libcx/googletest/googletest    -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/codex/projects/libcx/googletest/googlemock/src/gmock_main.cc",
+  "file": "/home/codex/projects/libcx/googletest/googlemock/src/gmock_main.cc"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/googletest/googlemock",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/gmock_main.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=0 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles\\gmock_main.dir\\src\\gmock_main.cc.obj -c F:\\tk\\works\\2018\\libcx\\googletest\\googlemock\\src\\gmock_main.cc",
-  "file": "F:/tk/works/2018/libcx/googletest/googlemock/src/gmock_main.cc"
+  "directory": "/home/codex/projects/libcx/build/googletest/googlemock",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx/googletest/googlemock/include -I/home/codex/projects/libcx/googletest/googlemock -isystem /home/codex/projects/libcx/googletest/googletest/include -I/home/codex/projects/libcx/googletest/googletest    -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/codex/projects/libcx/googletest/googlemock/src/gmock-all.cc",
+  "file": "/home/codex/projects/libcx/googletest/googlemock/src/gmock-all.cc"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/googletest/googlemock/gtest",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/gtest.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=0 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles\\gtest.dir\\src\\gtest-all.cc.obj -c F:\\tk\\works\\2018\\libcx\\googletest\\googletest\\src\\gtest-all.cc",
-  "file": "F:/tk/works/2018/libcx/googletest/googletest/src/gtest-all.cc"
+  "directory": "/home/codex/projects/libcx/build/googletest/googlemock/gtest",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -isystem /home/codex/projects/libcx/googletest/googletest/include -I/home/codex/projects/libcx/googletest/googletest    -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/codex/projects/libcx/googletest/googletest/src/gtest_main.cc",
+  "file": "/home/codex/projects/libcx/googletest/googletest/src/gtest_main.cc"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/googletest/googlemock/gtest",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/gtest_main.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=0 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles\\gtest_main.dir\\src\\gtest_main.cc.obj -c F:\\tk\\works\\2018\\libcx\\googletest\\googletest\\src\\gtest_main.cc",
-  "file": "F:/tk/works/2018/libcx/googletest/googletest/src/gtest_main.cc"
+  "directory": "/home/codex/projects/libcx/build/googletest/googlemock/gtest",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx/googletest/googletest/include -I/home/codex/projects/libcx/googletest/googletest    -Wall -std=c++17 -o2 -g -ggdb -fconcepts  -Wall -Wshadow -Werror -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/codex/projects/libcx/googletest/googletest/src/gtest-all.cc",
+  "file": "/home/codex/projects/libcx/googletest/googletest/src/gtest-all.cc"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/cx",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/cx.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\cx.dir\\cx.cpp.obj -c F:\\tk\\works\\2018\\libcx\\cx\\cx.cpp",
-  "file": "F:/tk/works/2018/libcx/cx/cx.cpp"
+  "directory": "/home/codex/projects/libcx/build/cx",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/cx.dir/cx.cpp.o -c /home/codex/projects/libcx/cx/cx.cpp",
+  "file": "/home/codex/projects/libcx/cx/cx.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/cx",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/cx.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\cx.dir\\io\\basic_buffer.cpp.obj -c F:\\tk\\works\\2018\\libcx\\cx\\io\\basic_buffer.cpp",
-  "file": "F:/tk/works/2018/libcx/cx/io/basic_buffer.cpp"
+  "directory": "/home/codex/projects/libcx/build/cx",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/cx.dir/io/basic_buffer.cpp.o -c /home/codex/projects/libcx/cx/io/basic_buffer.cpp",
+  "file": "/home/codex/projects/libcx/cx/io/basic_buffer.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\buffer.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\buffer.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/buffer.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/buffer.cpp.o -c /home/codex/projects/libcx/tests/buffer.cpp",
+  "file": "/home/codex/projects/libcx/tests/buffer.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\function.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\core\\function.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/core/function.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/core/function.cpp.o -c /home/codex/projects/libcx/tests/core/function.cpp",
+  "file": "/home/codex/projects/libcx/tests/core/function.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\mp.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\core\\mp.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/core/mp.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/core/mp.cpp.o -c /home/codex/projects/libcx/tests/core/mp.cpp",
+  "file": "/home/codex/projects/libcx/tests/core/mp.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\sequence.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\core\\sequence.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/core/sequence.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/core/sequence.cpp.o -c /home/codex/projects/libcx/tests/core/sequence.cpp",
+  "file": "/home/codex/projects/libcx/tests/core/sequence.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\tmp.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\core\\tmp.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/core/tmp.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/core/tmp.cpp.o -c /home/codex/projects/libcx/tests/core/tmp.cpp",
+  "file": "/home/codex/projects/libcx/tests/core/tmp.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\core\\type_list.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\core\\type_list.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/core/type_list.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/core/type_list.cpp.o -c /home/codex/projects/libcx/tests/core/type_list.cpp",
+  "file": "/home/codex/projects/libcx/tests/core/type_list.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\cx.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\cx.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/cx.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/cx.cpp.o -c /home/codex/projects/libcx/tests/cx.cpp",
+  "file": "/home/codex/projects/libcx/tests/cx.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\io\\basic_engine.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\io\\basic_engine.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/io/basic_engine.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/io/basic_engine.cpp.o -c /home/codex/projects/libcx/tests/io/basic_engine.cpp",
+  "file": "/home/codex/projects/libcx/tests/io/basic_engine.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\io\\ip\\basic_acceptor.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\io\\ip\\basic_acceptor.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/io/ip/basic_acceptor.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/io/ip/basic_acceptor.cpp.o -c /home/codex/projects/libcx/tests/io/ip/basic_acceptor.cpp",
+  "file": "/home/codex/projects/libcx/tests/io/ip/basic_acceptor.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\io\\ip\\basic_address.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\io\\ip\\basic_address.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/io/ip/basic_address.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/io/ip/basic_address.cpp.o -c /home/codex/projects/libcx/tests/io/ip/basic_address.cpp",
+  "file": "/home/codex/projects/libcx/tests/io/ip/basic_address.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\io\\ip\\basic_socket.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\io\\ip\\basic_socket.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/io/ip/basic_socket.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/io/ip/basic_socket.cpp.o -c /home/codex/projects/libcx/tests/io/ip/basic_socket.cpp",
+  "file": "/home/codex/projects/libcx/tests/io/ip/basic_socket.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\io\\ip\\ifaddr.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\io\\ip\\ifaddr.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/io/ip/ifaddr.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/io/ip/ifaddr.cpp.o -c /home/codex/projects/libcx/tests/io/ip/ifaddr.cpp",
+  "file": "/home/codex/projects/libcx/tests/io/ip/ifaddr.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\io\\ip\\udp.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\io\\ip\\udp.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/io/ip/udp.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/io/ip/udp.cpp.o -c /home/codex/projects/libcx/tests/io/ip/udp.cpp",
+  "file": "/home/codex/projects/libcx/tests/io/ip/udp.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\main.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\main.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/main.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/main.cpp.o -c /home/codex/projects/libcx/tests/main.cpp",
+  "file": "/home/codex/projects/libcx/tests/main.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\services.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\services.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/services.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/services.cpp.o -c /home/codex/projects/libcx/tests/services.cpp",
+  "file": "/home/codex/projects/libcx/tests/services.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\time\\timer_service.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\time\\timer_service.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/time/timer_service.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/time/timer_service.cpp.o -c /home/codex/projects/libcx/tests/time/timer_service.cpp",
+  "file": "/home/codex/projects/libcx/tests/time/timer_service.cpp"
 },
 {
-  "directory": "F:/tk/works/2018/libcx/build/cc/tests",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  -DENABLE_LIB_Z @CMakeFiles/tests.dir/includes_CXX.rsp   -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles\\tests.dir\\vftable.cpp.obj -c F:\\tk\\works\\2018\\libcx\\tests\\vftable.cpp",
-  "file": "F:/tk/works/2018/libcx/tests/vftable.cpp"
+  "directory": "/home/codex/projects/libcx/build/tests",
+  "command": "/usr/bin/c++  -DENABLE_LIB_BOOST -I/home/codex/projects/libcx -isystem /home/codex/projects/libcx/googletest/googletest/include    -Wall -std=c++17 -o2 -g -ggdb -fconcepts -o CMakeFiles/tests.dir/vftable.cpp.o -c /home/codex/projects/libcx/tests/vftable.cpp",
+  "file": "/home/codex/projects/libcx/tests/vftable.cpp"
 }
 ]

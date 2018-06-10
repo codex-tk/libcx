@@ -3,6 +3,8 @@
 #ifndef __cx_io_detail_completion_port_socket_h__
 #define __cx_io_detail_completion_port_socket_h__
 
+#if CX_PLATFORM == CX_P_WINDOWS
+
 #include <cx/cxdefine.hpp>
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/basic_buffer.hpp>
@@ -12,7 +14,6 @@
 #include <cx/io/detail/basic_write_op.hpp>
 #include <cx/io/detail/basic_accept_op.hpp>
 
-#if CX_PLATFORM == CX_P_WINDOWS
 
 namespace cx::io::ip::detail {
 

@@ -56,7 +56,7 @@ namespace cx::io {
 #if CX_PLATFORM == CX_P_WINDOWS
 	using buffer = basic_buffer< WSABUF >;
 #else
-
+	using buffer = basic_buffer< struct iovec >;
 #endif
 }
 

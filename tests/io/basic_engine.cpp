@@ -20,7 +20,7 @@ public:
 
 TEST(basic_engine, t0) {
 	cx::io::basic_engine< cx::io::basic_implementation, foo_service > engine;
-	ASSERT_EQ(engine.service<foo_service>()._impl.run(std::chrono::milliseconds(1)), 0);
+	ASSERT_EQ(engine.service( cx::tag<foo_service>())._impl.run(std::chrono::milliseconds(1)), 0);
 	int value = 0;
 	engine.implementation().post_handler([&] {
 		++value;
@@ -28,7 +28,7 @@ TEST(basic_engine, t0) {
 	engine.implementation().post_handler([&] {
 		++value;
 	});
-	ASSERT_EQ(engine.service<foo_service>()._impl.run(std::chrono::milliseconds(1)), 2);
+	ASSERT_EQ(engine.service( cx::tag<foo_service>())._impl.run(std::chrono::milliseconds(1)), 2);
 	ASSERT_EQ(value, 2);
 }
 
@@ -39,17 +39,18 @@ TEST(basic_engine, socket_service) {
 		, cx::io::ip::udp::service > engine;
 	ASSERT_EQ(engine.implementation().run(std::chrono::milliseconds(1)), 0);
 	int value = 0;
-	engine.service<cx::io::ip::tcp::service>().implementation().post_handler([&] {
+	engine.service(cx::tag<cx::io::ip::tcp::service>()).implementation().post_handler([&] {
 		++value;
 	});
-	engine.service<cx::io::ip::udp::service>().implementation().post_handler([&] {
+	engine.service(cx::tag<cx::io::ip::udp::service>()).implementation().post_handler([&] {
 		++value;
 	});
-	ASSERT_EQ(engine.service<cx::io::ip::tcp::service>().implementation().run(std::chrono::milliseconds(1)), 2);
+	ASSERT_EQ(engine.service(cx::tag<cx::io::ip::udp::service>()).implementation().run(std::chrono::milliseconds(1)), 2);
 	ASSERT_EQ(value, 2);
 }
 
 
+#if CX_PLATFORM == CX_P_WINDOWS 
 TEST(union_test, to) {
 	struct handle {
 		union {
@@ -70,3 +71,5 @@ TEST(basic_engine, tcp) {
 	cx::io::ip::tcp::socket fd(engine);
 	ASSERT_TRUE(fd.handle().get() != nullptr);
 }
+
+#endif

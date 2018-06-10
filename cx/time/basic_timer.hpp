@@ -2,6 +2,7 @@
 */
 #ifndef _cx_time_basic_timer_h__
 #define _cx_time_basic_timer_h__
+#include <cx/core/tag.hpp>
 
 namespace cx::time {
 
@@ -12,8 +13,8 @@ namespace cx::time {
 
 		template < typename EngineType >
 		basic_timer(EngineType& e)
-			: _service(e.service<ServiceType>())
-			, _handle(_service.make_shared_handle())
+			: _service(e.service(cx::tag<ServiceType>()))
+			, _handle(e.service(cx::tag<ServiceType>()).make_shared_handle())
 		{
 		}
 

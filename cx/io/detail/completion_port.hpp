@@ -121,10 +121,10 @@ namespace cx::io::detail {
 				, static_cast<DWORD>(ms.count()));
 			if (ov == nullptr) {
 				cx::slist< operation_type > ops;
-				{
+				do {
 					std::lock_guard<std::recursive_mutex> lock(_mutex);
 					_ops.swap(ops);
-				}
+				} while(0);
 				int proc = 0;
 				while (operation_type* op = ops.head()) {
 					ops.remove_head();

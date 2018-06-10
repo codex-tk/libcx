@@ -4,6 +4,7 @@
 #define __cx_service_repository_h__
 
 #include <cx/core/type_list.hpp>
+#include <cx/core/tag.hpp>
 
 namespace cx::detail {
 
@@ -59,7 +60,7 @@ namespace cx {
 		{}
 
 		template < typename T >
-		T& service(void) {
+		T& service( const cx::tag<T>& tag ) {
 			return _service_impl<T>(_services);
 		}
 	private:

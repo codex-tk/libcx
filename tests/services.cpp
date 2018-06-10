@@ -39,6 +39,17 @@ private:
 TEST(service, t0) {
 	core_object cobj;
 	cx::service_repository< empty_service, foo_service > _s0(cobj);
-	ASSERT_EQ(_s0.service<empty_service>().svcid(), 0);
-	ASSERT_EQ(_s0.service<foo_service>().svcid(), 1);
+	ASSERT_EQ(_s0.service( cx::tag<empty_service>()).svcid(), 0);
+	ASSERT_EQ(_s0.service( cx::tag<foo_service>()).svcid(), 1);
 }
+
+#include <cx/io/detail/epoll.hpp>
+#include <cx/io/detail/reactor_socket_service.hpp>
+#include <cx/io/basic_engine.hpp>
+using svc = cx::io::ip::detail::reactor_socket_service<
+            cx::io::detail::epoll , SOCK_STREAM, IPPROTO_TCP>;
+TEST(epoll,to){
+    cx::io::basic_engine< cx::io::detail::epoll , svc > engine; 
+    engine.service( cx::tag<svc>());
+}
+

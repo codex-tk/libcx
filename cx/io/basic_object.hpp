@@ -3,6 +3,8 @@
 #ifndef __cx_io_basic_object_h__
 #define __cx_io_basic_object_h__
 
+#include <cx/core/tag.hpp>
+
 namespace cx::io {
 
 	template < typename ServiceType >
@@ -15,8 +17,8 @@ namespace cx::io {
 
 		template < typename EngineType >
 		basic_object(EngineType& engine)
-			: _service(engine.service<ServiceType>())
-			, _handle(engine.service<ServiceType>()
+			: _service(engine.service( cx::tag<ServiceType>()))
+			, _handle(engine.service( cx::tag<ServiceType>())
 				.make_shared_handle())
 		{
 		}

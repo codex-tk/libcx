@@ -115,6 +115,7 @@ TEST(cx_io_ip_sockets, async_connect ) {
 	ASSERT_TRUE(fd.handle().get() != nullptr);
 }
 
+#if CX_PLATFORM == CX_P_WINDOWS
 TEST(cx_io_ip_sockets, async_connect0_timer ) {
 	cx::io::engine<
 		cx::io::ip::tcp::service ,
@@ -169,3 +170,4 @@ TEST(cx_io_ip_sockets, async_connect0_timer ) {
 	ASSERT_TRUE(!fd);
 	ASSERT_TRUE(fd.handle().get() != nullptr);
 }
+#endif

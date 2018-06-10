@@ -40,7 +40,6 @@ EPOLLET = (1 << 31)
 #define EPOLLET EPOLLET
 };
 */
-
 	enum {
 		pollin = 0x01,
 		pollout = 0x04,

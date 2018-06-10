@@ -13,8 +13,6 @@
 
 namespace cx::io::ip {
 
-
-
 	template < typename SockAddrT, int Type, int Proto >
 	class basic_address {
 	public:
@@ -45,14 +43,16 @@ namespace cx::io::ip {
 				::inet_pton(family, dst,
 					&(reinterpret_cast<struct sockaddr_in6*>(sockaddr())->sin6_addr));
 				break;
+                /*
 #if CX_PLATFORM != CX_P_WINDOWS
-			case AF_UNIX:
+			//case AF_UNIX:
 			case PF_FILE:
 				_address.sun_family = family;
 				strcpy(_address.sun_path, dst);
 				_length = sizeof(struct sockaddr_un);
 				break;
 #endif
+*/
 			default:
 				assert(0);
 				_length = 0;
@@ -93,12 +93,14 @@ namespace cx::io::ip {
 					, &(reinterpret_cast<struct sockaddr_in6*>(psockaddr)->sin6_addr)
 					, out
 					, len) != nullptr;
+                /*
 #if CX_PLATFORM != CX_P_WINDOWS
 			case AF_UNIX:
 			case PF_FILE:
 				strncpy(out, _address.sun_path, len);
 				return true;
 #endif
+*/
 			default:
 				assert(0);
 				break;
@@ -128,12 +130,14 @@ namespace cx::io::ip {
 			case AF_INET6:
 				len += snprintf(buf + len, MAX_PATH - len, "AF_INET6 ");
 				break;
+                /*
 #if CX_PLATFORM != CX_P_WINDOWS
 			case AF_UNIX:
 			case PF_FILE:
 				len += snprintf(buf + len, MAX_PATH - len, "AF_UNIX ");
 				break;
 #endif
+*/
 			default:
 				len += snprintf(buf + len, MAX_PATH - len, "UNKNOWN ");
 				break;
@@ -162,7 +166,7 @@ namespace cx::io::ip {
 			case AF_INET:
 				reinterpret_cast<struct sockaddr_in*>(&addr)->sin_family = family;
 				reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port = htons(port);
-				reinterpret_cast<struct sockaddr_in*>(&addr)->sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+				reinterpret_cast<struct sockaddr_in*>(&addr)->sin_addr.s_addr = htonl(INADDR_ANY);
 				length = sizeof(struct sockaddr_in);
 				break;
 			case AF_INET6:

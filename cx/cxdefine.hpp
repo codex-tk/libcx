@@ -28,7 +28,6 @@ Windows	 _WIN32 or __WIN32__
 #endif
 
 
-
 #if CX_PLATFORM == CX_P_WINDOWS
 
 #include <WinSock2.h>
@@ -68,9 +67,17 @@ namespace cx::io::ip::detail {
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/epoll.h>
+#include <poll.h>
 
-#endif
+#if CX_PLATFORM == CX_P_LINUX
+
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+
+#endif // CX_P_LINUX
+
+#endif // CX_P_WINDOWS 
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -83,6 +90,8 @@ namespace cx::io::ip::detail {
 #include <queue>
 #include <array>
 #include <atomic>
+#include <memory>
+#include <functional>
 
 #ifndef MAX_PATH
 #define MAX_PATH 256

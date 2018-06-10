@@ -16,23 +16,31 @@ namespace cx::io::ip {
 
 	template < typename ServiceType >
 	class basic_socket : public cx::io::basic_object<ServiceType> {
-	public:
-		using cx::io::basic_object<ServiceType>::write;
-		using cx::io::basic_object<ServiceType>::read;
+    public:
+        using implementation_type = typename ServiceType::implementation_type;
+        using handle_type = typename ServiceType::handle_type;
+        using address_type = typename ServiceType::address_type;
+        using buffer_type = typename ServiceType::buffer_type;
 
-		template < typename EngineType >
-		basic_socket(EngineType& engine)
-			: basic_object(engine)
+        using base_type = cx::io::basic_object<ServiceType>; 
+        using base_type::write;
+        using base_type::read;
+        using base_type::handle;
+        using base_type::service;
+
+        template < typename EngineType >
+            basic_socket(EngineType& engine)
+            : base_type(engine)
 		{
 		}
 
 		basic_socket(ServiceType& service, handle_type handle)
-			: basic_object(service, handle)
+			: base_type(service, handle)
 		{
 		}
 
 		basic_socket(const basic_socket& rhs)
-			: basic_object(rhs.service(), rhs.handle())
+			: base_type(rhs.service(), rhs.handle())
 		{
 		}
 

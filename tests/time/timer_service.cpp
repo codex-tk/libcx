@@ -1,5 +1,6 @@
 #include "tests/gprintf.hpp"
 #include <cx/io/basic_engine.hpp>
+#if CX_PLATFORM == CX_P_WINDOWS
 
 TEST(ts, engine ) {
     cx::io::engine< cx::time::timer_service > engine;
@@ -75,3 +76,4 @@ TEST(ts, pq) {
 
 	ASSERT_EQ(queue.top()->expired_at, a->expired_at);
 }
+#endif

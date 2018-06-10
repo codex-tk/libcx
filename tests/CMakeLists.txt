@@ -5,6 +5,7 @@ include_directories( ${CMAKE_SOURCE_DIR} )
 file(GLOB_RECURSE SRCS RELATIVE "${CMAKE_SOURCE_DIR}/tests" "*.cpp" )
 
 add_executable( tests ${SRCS} )
+#add_executable( tests main.cpp services.cpp )
 
 find_package( ZLIB )
 if ( ZLIB_FOUND )

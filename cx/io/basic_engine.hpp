@@ -19,10 +19,10 @@ namespace cx::io {
 		~basic_engine(void) {
 		}
 
-		template < typename Service >
-		Service& service(void) {
-			return _services.service< Service >();
-		}
+        template < typename ServiceType >
+        ServiceType& service(const cx::tag<ServiceType>& tag ) {
+            return this->_services.service( tag );
+        }
 
 		implementation_type& implementation(void) {
 			return _implementation;
