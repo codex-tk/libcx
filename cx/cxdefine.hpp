@@ -81,6 +81,7 @@ namespace cx::io::ip::detail {
 #include <chrono>
 #include <queue>
 #include <array>
+#include <atomic>
 
 #ifndef MAX_PATH
 #define MAX_PATH 256

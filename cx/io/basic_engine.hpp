@@ -27,11 +27,14 @@ namespace cx::io {
 		implementation_type& implementation(void) {
 			return _implementation;
 		}
+
+		void run(void) {
+			_implementation.run();
+		}
 	private:
 		implementation_type _implementation;
 		cx::service_repository< Services ... > _services;
 	};
-
 
 	template < typename ... Services >
 	using engine = basic_engine< cx::io::basic_implementation, Services ... >;

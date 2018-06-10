@@ -5,7 +5,7 @@
 #define _cx_time_detail_win32_timer_queue_service_h__
 
 #include <cx/cxdefine.hpp>
-
+#include <cx/stdext/removable_priority_queue.hpp>
 
 namespace cx::time::detail {
 
@@ -18,17 +18,20 @@ namespace cx::time::detail {
 
 		struct handle {
 			std::chrono::system_clock::time_point expired_at;
-			//std::chrono::system_clock::time_point order;
+#if 0
+			std::chrono::system_clock::time_point order;
+#endif
 			std::function< void(const std::error_code&) > handler;
 		};
 		using handle_type = std::shared_ptr<handle>;
 
 		struct handle_type_cmp {
 			bool operator()(handle_type t, handle_type u) {
-				/*
+#if 0
 				if (t->expired_at == u->expired_at) {
 					return t->order > u->order;
-				}*/
+				}
+#endif
 				return t->expired_at > u->expired_at;
 			}
 		};
@@ -92,64 +95,55 @@ namespace cx::time::detail {
 
 		void fire(handle_type handle) {
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
-			//handle->order = std::chrono::system_clock::now();
+#if 0
+			handle->order = std::chrono::system_clock::now();
+#endif
+			if (_queue.empty())
+				_implementation.add_active_links();
 			_queue.push(handle);
+
 		}
 
 		int handle_timers(void) {
-			int index = 0;
-			constexpr int max_drain = 256;
-			std::array< handle_type, max_drain > timers;
+			std::vector< handle_type > handles;
 			do {
+				std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				for (index = 0; index < max_drain; ++index) {
-					if (_queue.empty())
-						break;
-					if (_queue.top()->expired_at < std::chrono::system_clock::now()) {
-						timers[index] = _queue.top();
+				while (!_queue.empty()) {
+					if (_queue.top()->expired_at < now ) {
+						handles.push_back(_queue.top());
 						_queue.pop();
-					}
-					else {
+					} else {
 						break;
 					}
 				}
+				if (_queue.empty())
+					_implementation.release_active_links();
 			} while (0);
-			for (int i = 0; i < index; ++i) {
-				timers[i]->handler(std::make_error_code(std::errc::timed_out));
+			for (auto handle : handles) {
+				handle->handler(std::make_error_code(std::errc::timed_out));
 			}
-			return index;
+			return handles.size();
 		}
 
-		void cancel(handle_type handle) {
+		bool cancel(handle_type handle) {
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			if (_queue.remove(handle)) {
 				_implementation.post_handler([handle] {
 					handle->handler(std::make_error_code(std::errc::operation_canceled));
 				});
+				return true;
 			}
+			return false;
 		}
 
-		template<typename T, typename Contaner, typename Cmp >
-		class removable_priority_queue
-			: public std::priority_queue<T, Contaner, Cmp > {
-		public:
-			bool remove(const T& value) {
-				auto it = std::find(this->c.begin(), this->c.end(), value);
-				if (it != this->c.end()) {
-					this->c.erase(it);
-					std::make_heap(this->c.begin(), this->c.end(), this->comp);
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
-		};
 	private:
 		implementation_type& _implementation;
 		timer_op _timer_op;
 		HANDLE _wakeup_timer;
-		removable_priority_queue< handle_type, std::vector<handle_type>, handle_type_cmp > _queue;
+		cx::stdext::removable_priority_queue< handle_type
+			, std::vector<handle_type>
+			, handle_type_cmp > _queue;
 		std::recursive_mutex _mutex;
 	};
 #endif

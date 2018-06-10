@@ -28,7 +28,8 @@ namespace cx::io {
 		}
 
 		~basic_object(void) {
-			_service.close(_handle);
+			if (_handle.use_count() == 1)
+				_service.close(_handle);
 		}
 
 		handle_type handle(void) const {
@@ -65,7 +66,7 @@ namespace cx::io {
 		}
 
 		template < typename HandlerType >
-		void async_read(buffer_type& buf, HandlerType&& handler) {
+		void async_read(const buffer_type& buf, HandlerType&& handler) {
 			service().async_read(handle(), buf, std::forward<HandlerType>(handler));
 		}
 	private:

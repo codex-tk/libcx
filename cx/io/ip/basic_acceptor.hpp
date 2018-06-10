@@ -19,10 +19,16 @@ namespace cx::io::ip {
 		}
 
 		bool open(const address_type& addr) {
+			_address = addr;
 			if (_fd.open(addr)) {
 				if (_fd.set_option(cx::io::ip::option::reuse_address())) {
 					if (_fd.bind(addr)) {
-						return _fd.service().listen(_fd.handle(), SOMAXCONN);
+						if (_fd.service().listen(_fd.handle(), SOMAXCONN)) {
+#if CX_PLATFORM == CX_P_WINDOWS
+							_fd.service().implementation().bind(_fd.handle(), 0);
+#endif
+							return true;
+						}
 					}
 				}
 			}
@@ -52,8 +58,18 @@ namespace cx::io::ip {
 			return cx::io::ip::basic_socket<ServiceType>(_fd.service()
 				, _fd.service().make_shared_handle());
 		}
+
+		template < typename HandlerType >
+		void async_accept(HandlerType&& handler) {
+			_fd.async_accept(_address,std::forward<HandlerType>(handler));
+		}
+
+		handle_type handle(void) {
+			return _fd.handle();
+		}
 	private:
 		cx::io::ip::basic_socket<ServiceType> _fd;
+		address_type _address;
 	};
 
 }

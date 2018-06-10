@@ -29,8 +29,8 @@ namespace cx::time {
 			_service.fire(_handle);
 		}
 
-		void cancel(void) {
-			_service.cancel(_handle);
+		bool cancel(void) {
+			return _service.cancel(_handle);
 		}
 	private:
 		ServiceType& _service;

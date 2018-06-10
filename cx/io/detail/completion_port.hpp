@@ -35,6 +35,7 @@ namespace cx::io::detail {
 		public:
 			operation(void)
 				: _next(nullptr) {
+				reset();
 			}
 
 			virtual ~operation(void) = default;
@@ -76,6 +77,7 @@ namespace cx::io::detail {
 		completion_port(void)
 			: _handle(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
 		{
+			_active_links.store(0);
 		}
 
 		~completion_port(void) {
@@ -92,6 +94,7 @@ namespace cx::io::detail {
 				, reinterpret_cast<ULONG_PTR>(ptr.get())
 				, 0) == _handle)
 			{
+				std::lock_guard<std::recursive_mutex> lock(_mutex);
 				_active_handles.insert(ptr);
 				return true;
 			}
@@ -99,7 +102,22 @@ namespace cx::io::detail {
 		}
 
 		void unbind(handle_type& ptr) {
+			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			_active_handles.erase(ptr);
+		}
+
+		void add_active_links(void) {
+			_active_links += 1;
+		}
+
+		void release_active_links(void) {
+			_active_links -= 1;
+		}
+
+		void run(void) {
+			while (_active_links.load() != 0 || _active_handles.size() != 0) {
+				run(std::chrono::milliseconds(0xffffffff));
+			}
 		}
 
 		int run(const std::chrono::milliseconds& ms) {
@@ -163,9 +181,10 @@ namespace cx::io::detail {
 		}
 	private:
 		HANDLE _handle;
-		std::set< handle_type > _active_handles;
 		std::recursive_mutex _mutex;
-		cx::slist< operation_type > _ops;
+		cx::slist<operation_type> _ops;
+		std::set<handle_type> _active_handles;
+		std::atomic<int> _active_links;
 	};
 
 }

@@ -34,7 +34,10 @@ TEST(ts, cancel) {
 		testValue = 1;
 	});
 	timer2.handler([&](const std::error_code& ec) {
-		testValue = 2;
+		if (ec == std::errc::operation_canceled)
+			testValue = 3;
+		else
+			testValue = 2;
 	});
 	timer.fire();
 	timer2.fire();
@@ -42,7 +45,7 @@ TEST(ts, cancel) {
 	ASSERT_EQ(testValue, 1);
 	timer2.cancel();
 	ASSERT_EQ(engine.implementation().run(std::chrono::seconds(10)), 1);
-	ASSERT_EQ(testValue, 2);
+	ASSERT_EQ(testValue, 3);
 }
 
 namespace cxtest {

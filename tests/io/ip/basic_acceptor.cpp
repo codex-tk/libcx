@@ -78,3 +78,37 @@ TEST(cx_io_ip_basic_acceptor, timeout ) {
 
 	acceptor.close();
 }
+
+TEST(cx_io_ip_basic_acceptor, async) {
+	cx::io::engine<
+		cx::io::ip::tcp::service
+	> engine;
+
+	cx::io::ip::tcp::acceptor acceptor(engine);
+
+	ASSERT_TRUE(acceptor.open(cx::io::ip::tcp::address::any(7543, AF_INET)));
+
+	cx::io::ip::tcp::socket client(engine);
+	ASSERT_TRUE(client.open(cx::io::ip::tcp::address::any(0, AF_INET)));
+	ASSERT_TRUE(client.connect(cx::io::ip::tcp::address("127.0.0.1", 7543, AF_INET)));
+
+	bool accepted = false;
+
+	acceptor.async_accept([&](const std::error_code& e
+		, const cx::io::ip::tcp::socket& fd
+		, const cx::io::ip::tcp::address& addr)
+	{
+		if (!e) {
+			accepted = true;
+		}
+		else {
+			std::string msg = e.message();
+		}
+		cx::io::ip::tcp::socket afd(fd);
+		afd.close();
+
+		acceptor.close();
+	});
+	engine.run();
+	ASSERT_TRUE(accepted);
+}

@@ -114,3 +114,58 @@ TEST(cx_io_ip_sockets, async_connect ) {
 	ASSERT_TRUE(!fd);
 	ASSERT_TRUE(fd.handle().get() != nullptr);
 }
+
+TEST(cx_io_ip_sockets, async_connect0_timer ) {
+	cx::io::engine<
+		cx::io::ip::tcp::service ,
+		cx::time::timer_service
+	> engine;
+	cx::io::ip::tcp::socket fd(engine);
+	auto addresses = cx::io::ip::tcp::address::resolve("naver.com", 80, AF_INET);
+	ASSERT_FALSE(addresses.empty());
+	ASSERT_TRUE(fd.open(addresses[0]));
+	ASSERT_TRUE(fd);
+	ASSERT_TRUE(fd.set_option(cx::io::ip::option::non_blocking()));
+
+	char read_buf[1024] = { 0 , };
+	cx::io::ip::tcp::buffer rdbuf(read_buf, 1024);
+
+	bool step[3] = { false,false,false };
+	fd.async_connect(addresses[0], [&](const std::error_code& ec) {
+		if (ec)
+			fd.close();
+		else {
+			step[0] = true;
+			cx::io::ip::tcp::buffer buf(get);
+			fd.async_write(buf, [&](const std::error_code& ec, const int ) {
+				if (ec)
+					fd.close();
+				else {
+					step[1] = true;
+					fd.async_read(rdbuf, [&](const std::error_code& ec, const int ) {
+						if (!ec) {
+							step[2] = true;
+						}
+						fd.close();
+					});
+				}
+			});
+		}
+	});
+	bool calltimer = false;
+	cx::time::timer timer(engine);
+	timer.expired_at(std::chrono::system_clock::now() + std::chrono::seconds(2));
+	timer.handler([&calltimer](const std::error_code&) {
+		calltimer = true;
+	});
+	timer.fire();
+
+	engine.run();
+
+	ASSERT_TRUE(step[0] && step[1] && step[2]);
+	ASSERT_TRUE(calltimer);
+	gprintf("%s", rdbuf.base());
+	fd.close();
+	ASSERT_TRUE(!fd);
+	ASSERT_TRUE(fd.handle().get() != nullptr);
+}

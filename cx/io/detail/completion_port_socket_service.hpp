@@ -10,6 +10,7 @@
 #include <cx/io/detail/basic_connect_op.hpp>
 #include <cx/io/detail/basic_read_op.hpp>
 #include <cx/io/detail/basic_write_op.hpp>
+#include <cx/io/detail/basic_accept_op.hpp>
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
@@ -145,6 +146,7 @@ namespace cx::io::ip::detail {
 		template < typename HandlerType > using connect_op = basic_connect_op< this_type, HandlerType>;
 		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
 		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
+		template < typename HandlerType > using accept_op = basic_accept_op< this_type, HandlerType>;
 
 		completion_port_socket_service(implementation_type& impl)
 			: basic_completion_port_socket_service(impl)
@@ -190,7 +192,6 @@ namespace cx::io::ip::detail {
 					address_type bindaddr = address_type::any(0, addr.family());
 					if (bind(handle, bindaddr)) {
 						if (implementation().bind(handle, 0)) {
-							op->reset();
 							bytes_returned = 0;
 							if (_connect_ex(handle->fd.s
 								, op->address().sockaddr()
@@ -212,7 +213,6 @@ namespace cx::io::ip::detail {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			write_op<HandlerType>* op =
 				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
-			op->reset();
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASend(handle->fd.s
@@ -231,10 +231,9 @@ namespace cx::io::ip::detail {
 		}
 
 		template < typename HandlerType >
-		void async_read(handle_type handle, buffer_type& buf, HandlerType&& handler) {
+		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			read_op<HandlerType>* op =
 				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
-			op->reset();
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecv(handle->fd.s
@@ -250,6 +249,37 @@ namespace cx::io::ip::detail {
 					implementation().post(op);
 				}
 			}
+		}
+
+		template < typename HandlerType >
+		void async_accept(handle_type handle, const address_type& addr , HandlerType&& handler) {
+			cx::io::ip::basic_socket<this_type> socket(*this, make_shared_handle());
+			accept_op<HandlerType>* op = 
+				new accept_op<HandlerType>(socket, std::forward<HandlerType>(handler));
+			
+			if (!handle || handle->fd.s == INVALID_SOCKET) {
+				op->error(std::make_error_code(std::errc::invalid_argument));
+				implementation().post(op);
+				return;
+			}
+
+			if (open(op->socket().handle(), addr)) {
+				DWORD bytes_returned = 0;
+				if (AcceptEx(handle->fd.s
+					, op->socket().handle()->fd.s
+					, op->address().sockaddr()
+					, 0
+					, 0
+					, op->address().length()
+					, &bytes_returned
+					, op->overlapped()) == TRUE) {
+					return;
+				}
+				if (WSAGetLastError() == WSA_IO_PENDING)
+					return;
+			}
+			op->error(cx::get_last_error());
+			implementation().post(op);
 		}
 	private:
 		
@@ -306,7 +336,6 @@ namespace cx::io::ip::detail {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			write_op<HandlerType>* op =
 				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
-			op->reset();
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASendTo(handle->fd.s
@@ -327,10 +356,9 @@ namespace cx::io::ip::detail {
 		}
 
 		template < typename HandlerType >
-		void async_read(handle_type handle, buffer_type& buf, HandlerType&& handler) {
+		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			read_op<HandlerType>* op =
 				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
-			op->reset();
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecvFrom(handle->fd.s
