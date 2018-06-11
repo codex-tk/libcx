@@ -12,7 +12,7 @@
 
 #include <mutex>
 #include <set>
-#include <cx/io/detail/basic_reactor.hpp>
+#include <cx/io/detail/reactor/basic_reactor.hpp>
 
 #if CX_PLATFORM == CX_P_LINUX
 

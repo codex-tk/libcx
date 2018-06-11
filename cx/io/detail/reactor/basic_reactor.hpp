@@ -13,6 +13,7 @@ namespace cx::io::detail {
 
 	class basic_reactor {
 	public:
+		struct handle;
 		class operation {
 		public:
 			operation(void)
@@ -34,7 +35,7 @@ namespace cx::io::detail {
 			}
 
 			virtual int operator()(void) = 0;
-			virtual bool before(void){
+			virtual bool before(handle*){
                 return true;
             };
 
@@ -64,7 +65,7 @@ namespace cx::io::detail {
 				for (int i = 0; i < 2; ++i) {
 					if (ops_filter[i] & revt) {
 						operation* op = ops[i].head();
-						if (op && op->before()) {
+						if (op && op->before(this)) {
 							ops[i].remove_head();
 							proc += (*op)();
 						}

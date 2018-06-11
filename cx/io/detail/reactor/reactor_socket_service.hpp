@@ -6,7 +6,7 @@
 #include <cx/cxdefine.hpp>
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/basic_buffer.hpp>
-#include <cx/io/detail/basic_reactor.hpp>
+#include <cx/io/detail/reactor/basic_reactor.hpp>
 /*
 #include <cx/io/detail/basic_connect_op.hpp>
 #include <cx/io/detail/basic_read_op.hpp>
@@ -66,7 +66,6 @@ namespace cx::io::ip::detail {
 		int shutdown(handle_type handle, int how) {
 			return ::shutdown(handle->fd, how);
 		}
-
 
 		handle_type accept(handle_type handle, address_type& addr) {
 			handle_type accepted_handle = make_shared_handle();

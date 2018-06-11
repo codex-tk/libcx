@@ -6,11 +6,11 @@
 namespace cx::io {
 
 	template < typename ServiceType >
-	class base_read_op : public ServiceType::operation_type {
+	class basic_read_op : public ServiceType::operation_type {
 	public:
 		using buffer_type = typename ServiceType::buffer_type;
 
-		base_read_op(const buffer_type& buf)
+		basic_read_op(const buffer_type& buf)
 			: _buffer(buf)
 		{}
 
@@ -20,28 +20,6 @@ namespace cx::io {
 	private:
 		buffer_type _buffer;
 	};
-
-	template < typename ServiceType, typename HandlerType >
-	class basic_read_op : public base_read_op< ServiceType > {
-	public:
-		basic_read_op(const buffer_type& buf, HandlerType&& handler)
-			: base_read_op(buf)
-			, _handler(std::forward<HandlerType>(handler))
-		{
-		}
-
-		virtual ~basic_read_op(void) {
-		}
-
-		virtual int operator()(void) override {
-			_handler(error(), io_size());
-			delete this;
-			return 1;
-		}
-	private:
-		HandlerType _handler;
-	};
-
 }
 
 #endif

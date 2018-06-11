@@ -12,11 +12,11 @@
 #include <cx/io/ip/basic_socket.hpp>
 #include <cx/io/ip/basic_acceptor.hpp>
 
-#include <cx/io/detail/completion_port.hpp>
-#include <cx/io/detail/completion_port_socket_service.hpp>
+#include <cx/io/detail/win32/completion_port.hpp>
+#include <cx/io/detail/win32/completion_port_socket_service.hpp>
 
-#include <cx/io/detail/epoll.hpp>
-#include <cx/io/detail/reactor_socket_service.hpp>
+#include <cx/io/detail/linux/epoll.hpp>
+#include <cx/io/detail/reactor/reactor_socket_service.hpp>
 
 namespace cx::io {
 
