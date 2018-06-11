@@ -1,9 +1,9 @@
 /**
  */
-#ifndef __cx_io_detail_handler_op_h__
-#define __cx_io_detail_handler_op_h__
+#ifndef __cx_io_handler_op_h__
+#define __cx_io_handler_op_h__
 
-namespace cx::io::detail {
+namespace cx::io {
 
     template < typename BaseOpType , typename HandlerType >
     class handler_op : public BaseOpType {

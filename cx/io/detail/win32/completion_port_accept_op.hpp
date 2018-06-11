@@ -1,11 +1,11 @@
 /**
  * */
-#ifndef __cx_io_detail_completion_port_accept_op_h__
-#define __cx_io_detail_completion_port_accept_op_h__
+#ifndef __cx_io_ip_completion_port_accept_op_h__
+#define __cx_io_ip_completion_port_accept_op_h__
 
-#include <cx/io/detail/basic_accept_op.hpp>
+#include <cx/io/ip/basic_accept_op.hpp>
 
-namespace cx::io::ip::detail {
+namespace cx::io::ip {
     
 	template < typename ServiceType, typename HandlerType >
     class completion_port_accept_op : public basic_accept_op< ServiceType > {

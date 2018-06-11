@@ -8,9 +8,9 @@
 #include <cx/cxdefine.hpp>
 
 #include <cx/io/basic_buffer.hpp>
-#include <cx/io/detail/basic_read_op.hpp>
-#include <cx/io/detail/basic_write_op.hpp>
-#include <cx/io/detail/handler_op.hpp>
+#include <cx/io/basic_read_op.hpp>
+#include <cx/io/basic_write_op.hpp>
+#include <cx/io/handler_op.hpp>
 #include <cx/io/detail/win32/completion_port.hpp>
 #include <cx/io/detail/win32/completion_port_connect_op.hpp>
 #include <cx/io/detail/win32/completion_port_accept_op.hpp>
@@ -157,14 +157,14 @@ namespace cx::io::ip::detail {
 		using basic_completion_port_socket_service < this_type >::connect;
 		
 		template < typename HandlerType > using connect_op 
-			= cx::io::ip::detail::completion_port_connect_op< this_type, HandlerType>;
+			= cx::io::ip::completion_port_connect_op< this_type, HandlerType>;
 		template < typename HandlerType > using accept_op
-			= cx::io::ip::detail::completion_port_accept_op< this_type, HandlerType>;
+			= cx::io::ip::completion_port_accept_op< this_type, HandlerType>;
 
 		template < typename HandlerType > using read_op 
-			= cx::io::detail::handler_op< basic_read_op<this_type> , HandlerType>;
+			= cx::io::handler_op< basic_read_op<this_type> , HandlerType>;
 		template < typename HandlerType > using write_op 
-			= cx::io::detail::handler_op< basic_write_op<this_type> , HandlerType>;
+			= cx::io::handler_op< basic_write_op<this_type> , HandlerType>;
 
 
 		handle_type make_shared_handle(void) {
@@ -329,8 +329,12 @@ namespace cx::io::ip::detail {
 		using this_type = completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>;
 		using buffer_type = _buffer;
 		using basic_completion_port_socket_service < this_type >::connect;
-		template < typename HandlerType > using read_op = cx::io::detail::handler_op< basic_read_op<this_type> , HandlerType>;
-		template < typename HandlerType > using write_op = cx::io::detail::handler_op< basic_write_op<this_type> , HandlerType>;
+
+		template < typename HandlerType > using read_op
+			= cx::io::handler_op< basic_read_op<this_type>, HandlerType>;
+		template < typename HandlerType > using write_op
+			= cx::io::handler_op< basic_write_op<this_type>, HandlerType>;
+
 
 		handle_type make_shared_handle(void) {
 			return std::make_shared<_handle>(*this);
