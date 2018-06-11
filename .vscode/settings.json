@@ -65,7 +65,12 @@
         "clocale": "cpp",
         "cwctype": "cpp",
         "xthread": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "atomic": "cpp",
+        "condition_variable": "cpp",
+        "cstdarg": "cpp",
+        "optional": "cpp",
+        "string_view": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true ,

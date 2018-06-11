@@ -14,6 +14,7 @@ namespace cx::io {
 	class basic_reactor {
 	public:
 		struct handle;
+		using handle_type = std::shared_ptr<handle>;
 		class operation {
 		public:
 			operation(void)
@@ -35,7 +36,7 @@ namespace cx::io {
 			}
 
 			virtual int operator()(void) = 0;
-			virtual bool before(handle*){
+			virtual bool complete(const handle_type& /*handle*/){
                 return true;
             };
 
@@ -50,7 +51,7 @@ namespace cx::io {
 			operation* _next;
 		};
 		using operation_type = operation;
-		struct handle {
+		struct handle : public std::enable_shared_from_this<handle> {
 			handle()
 			{
 				fd = -1;
@@ -65,7 +66,7 @@ namespace cx::io {
 				for (int i = 0; i < 2; ++i) {
 					if (ops_filter[i] & revt) {
 						operation* op = ops[i].head();
-						if (op && op->before(this)) {
+						if (op && op->complete( shared_from_this())) {
 							ops[i].remove_head();
 							proc += (*op)();
 						}
@@ -74,10 +75,7 @@ namespace cx::io {
 				return proc;
 			}
 		};
-
-		using handle_type = std::shared_ptr<handle>;
-
-    };
+	};
 
 	template < typename ImplementationType, typename ServiceType >
 	class basic_reactor_socket_service;
@@ -184,7 +182,6 @@ namespace cx::io {
 		}
 	private:
 		implementation_type& _implementation;
-	
 	};
 
 }

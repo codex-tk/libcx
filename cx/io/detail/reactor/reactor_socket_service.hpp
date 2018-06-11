@@ -7,44 +7,42 @@
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/basic_buffer.hpp>
 #include <cx/io/detail/reactor/basic_reactor.hpp>
-/*
-#include <cx/io/detail/basic_connect_op.hpp>
-#include <cx/io/detail/basic_read_op.hpp>
-#include <cx/io/detail/basic_write_op.hpp>
-#include <cx/io/detail/basic_accept_op.hpp>
-*/
+#include <cx/io/detail/reactor/reactor_connect_op.hpp>
+#include <cx/io/detail/reactor/reactor_accept_op.hpp>
+#include <cx/io/detail/reactor/reactor_read_op.hpp>
+#include <cx/io/detail/reactor/reactor_write_op.hpp>
+
 #if CX_PLATFORM != CX_P_WINDOWS
 
-namespace cx::io::ip  {
+namespace cx::io::ip {
 
-	template < typename ImplementationType ,  int Type, int Proto >
+	template < typename ImplementationType, int Type, int Proto >
 	class reactor_socket_service;
 
-	template <typename ImplementationType> 
-    class reactor_socket_service< ImplementationType , SOCK_STREAM, IPPROTO_TCP >
-		: public cx::io::basic_reactor_socket_service < 
-            ImplementationType ,
-			reactor_socket_service< ImplementationType , SOCK_STREAM, IPPROTO_TCP >
+	template <typename ImplementationType>
+	class reactor_socket_service< ImplementationType, SOCK_STREAM, IPPROTO_TCP >
+		: public cx::io::basic_reactor_socket_service <
+		ImplementationType,
+		reactor_socket_service< ImplementationType, SOCK_STREAM, IPPROTO_TCP >
 		> {
 	public:
-        using implementation_type = ImplementationType;
-		using this_type = reactor_socket_service< ImplementationType ,  SOCK_STREAM, IPPROTO_TCP >;
+		using implementation_type = ImplementationType;
+		using this_type = reactor_socket_service< ImplementationType, SOCK_STREAM, IPPROTO_TCP >;
 		using buffer_type = cx::io::buffer;
-        using base_type = cx::io::basic_reactor_socket_service < ImplementationType , this_type >;
+		using base_type = cx::io::basic_reactor_socket_service < ImplementationType, this_type >;
 		using base_type::connect;
-        using base_type::make_shared_handle;
-        using address_type = typename base_type::address_type;
-        using handle_type = typename base_type::handle_type;
+		using base_type::make_shared_handle;
+		using address_type = typename base_type::address_type;
+		using handle_type = typename base_type::handle_type;
+		using handle_ptr = typename base_type::handle_ptr;
 
-        /*
-		template < typename HandlerType > using connect_op = basic_connect_op< this_type, HandlerType>;
-		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
-		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
-		template < typename HandlerType > using accept_op = basic_accept_op< this_type, HandlerType>;
+		template < typename HandlerType > using connect_op = cx::io::ip::reactor_connect_op< this_type, HandlerType>;
+		template < typename HandlerType > using accept_op = cx::io::ip::reactor_accept_op< this_type, HandlerType>;
+		template < typename HandlerType > using read_op = cx::io::reactor_read_op< this_type, HandlerType>;
+		template < typename HandlerType > using write_op = cx::io::reactor_write_op< this_type, HandlerType>;
 
-        */
-        handle_type make_shared_handle(void) {
-            return this->make_shared_handle(*this);
+		handle_type make_shared_handle(void) {
+			return this->make_shared_handle(*this);
 		}
 
 		reactor_socket_service(implementation_type& impl)
@@ -81,34 +79,51 @@ namespace cx::io::ip  {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 		}
 
+
 		template < typename HandlerType >
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 		}
 
 		template < typename HandlerType >
-		void async_accept(handle_type handle, const address_type& addr , HandlerType&& handler) {
+		void async_accept(handle_type handle, const address_type& addr, HandlerType&& handler) {
+		}
+
+		bool connect_complete(handle_type handle, cx::io::ip::basic_connect_op* op) {
+			return true;
+		}
+
+		bool accept_complete(handle_type handle, cx::io::ip::basic_accept_op* op) {
+			return true;
+		}
+
+		bool write_complete(handle_type handle, cx::io::basic_connect_op* op) {
+			return true;
+		}
+
+		bool read_complete(handle_type handle, cx::io::basic_connect_op* op) {
+			return true;
 		}
 	private:
-		
+
 	};
 
-	template <typename ImplementationType> 
-    class reactor_socket_service< ImplementationType , SOCK_DGRAM , IPPROTO_UDP >
-		: public cx::io::basic_reactor_socket_service < 
-            ImplementationType ,
-			reactor_socket_service< ImplementationType , SOCK_DGRAM , IPPROTO_UDP >
-		> 
-    {
+	template <typename ImplementationType>
+	class reactor_socket_service< ImplementationType, SOCK_DGRAM, IPPROTO_UDP >
+		: public cx::io::basic_reactor_socket_service <
+		ImplementationType,
+		reactor_socket_service< ImplementationType, SOCK_DGRAM, IPPROTO_UDP >
+		>
+	{
 	public:
-        using implementation_type = ImplementationType;
-		using this_type = reactor_socket_service< ImplementationType ,  SOCK_DGRAM, IPPROTO_UDP>;
-        using base_type = cx::io::basic_reactor_socket_service < ImplementationType , this_type >;
+		using implementation_type = ImplementationType;
+		using this_type = reactor_socket_service< ImplementationType, SOCK_DGRAM, IPPROTO_UDP>;
+		using base_type = cx::io::basic_reactor_socket_service < ImplementationType, this_type >;
 		using base_type::connect;
-        using base_type::make_shared_handle;
-        using address_type = typename base_type::address_type;
-        using handle_type = typename base_type::handle_type;
+		using base_type::make_shared_handle;
+		using address_type = typename base_type::address_type;
+		using handle_type = typename base_type::handle_type;
 
-        struct _buffer {
+		struct _buffer {
 			_buffer(void* ptr, std::size_t len)
 				: buffer(ptr, len)
 			{}
@@ -120,13 +135,12 @@ namespace cx::io::ip  {
 			cx::io::buffer buffer;
 		};
 		using buffer_type = _buffer;
-        /*
-		template < typename HandlerType > using read_op = basic_read_op< this_type, HandlerType>;
-		template < typename HandlerType > using write_op = basic_write_op< this_type, HandlerType>;
 
-        */
+		template < typename HandlerType > using read_op = cx::io::reactor_read_op< this_type, HandlerType>;
+		template < typename HandlerType > using write_op = cx::io::reactor_write_op< this_type, HandlerType>;
+
 		handle_type make_shared_handle(void) {
-            return this->make_shared_handle(*this);
+			return this->make_shared_handle(*this);
 		}
 
 		reactor_socket_service(implementation_type& impl)
