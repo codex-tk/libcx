@@ -10,8 +10,10 @@ namespace cx::io  {
     template < typename ServiceType , typename HandlerType >
     class reactor_read_op : public cx::io::basic_read_op< ServiceType > {
     public:
-		reactor_read_op(const address_type& addr, HandlerType&& handler)
-			: basic_read_op(addr)
+        using buffer_type = typename ServiceType::buffer_type; 
+        using handle_type = typename ServiceType::handle_type;
+		reactor_read_op(const buffer_type& buf, HandlerType&& handler)
+			: basic_read_op<ServiceType>(buf)
 			, _handler(std::forward<HandlerType>(handler))
 		{
 		}
@@ -26,7 +28,7 @@ namespace cx::io  {
 
 
         virtual int operator()(void) override {
-            _handler(error());
+            _handler(this->error());
 			delete this;
 			return 1;
         }

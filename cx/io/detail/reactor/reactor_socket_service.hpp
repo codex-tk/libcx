@@ -34,12 +34,18 @@ namespace cx::io::ip {
 		using base_type::make_shared_handle;
 		using address_type = typename base_type::address_type;
 		using handle_type = typename base_type::handle_type;
-		using handle_ptr = typename base_type::handle_ptr;
+        using operation_type = typename basic_reactor::operation_type;
 
-		template < typename HandlerType > using connect_op = cx::io::ip::reactor_connect_op< this_type, HandlerType>;
-		template < typename HandlerType > using accept_op = cx::io::ip::reactor_accept_op< this_type, HandlerType>;
-		template < typename HandlerType > using read_op = cx::io::reactor_read_op< this_type, HandlerType>;
-		template < typename HandlerType > using write_op = cx::io::reactor_write_op< this_type, HandlerType>;
+        /*
+		template < typename HandlerType > using connect_op 
+            = cx::io::ip::reactor_connect_op< this_type, HandlerType>;
+		template < typename HandlerType > using accept_op 
+            = cx::io::ip::reactor_accept_op< this_type, HandlerType>;
+		template < typename HandlerType > using read_op 
+            = cx::io::reactor_read_op< this_type, HandlerType>;
+		template < typename HandlerType > using write_op 
+            = cx::io::reactor_write_op< this_type, HandlerType>;
+            */
 
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
@@ -88,19 +94,19 @@ namespace cx::io::ip {
 		void async_accept(handle_type handle, const address_type& addr, HandlerType&& handler) {
 		}
 
-		bool connect_complete(handle_type handle, cx::io::ip::basic_connect_op* op) {
+		bool connect_complete(handle_type handle, cx::io::ip::basic_connect_op<this_type>* op) {
 			return true;
 		}
 
-		bool accept_complete(handle_type handle, cx::io::ip::basic_accept_op* op) {
+		bool accept_complete(handle_type handle, cx::io::ip::basic_accept_op<this_type>* op) {
 			return true;
 		}
 
-		bool write_complete(handle_type handle, cx::io::basic_connect_op* op) {
+		bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {
 			return true;
 		}
 
-		bool read_complete(handle_type handle, cx::io::basic_connect_op* op) {
+		bool read_complete(handle_type handle, cx::io::basic_read_op<this_type>* op) {
 			return true;
 		}
 	private:
@@ -122,6 +128,7 @@ namespace cx::io::ip {
 		using base_type::make_shared_handle;
 		using address_type = typename base_type::address_type;
 		using handle_type = typename base_type::handle_type;
+        using operation_type = typename basic_reactor::operation_type;
 
 		struct _buffer {
 			_buffer(void* ptr, std::size_t len)
@@ -136,9 +143,11 @@ namespace cx::io::ip {
 		};
 		using buffer_type = _buffer;
 
+        /*
 		template < typename HandlerType > using read_op = cx::io::reactor_read_op< this_type, HandlerType>;
 		template < typename HandlerType > using write_op = cx::io::reactor_write_op< this_type, HandlerType>;
 
+        */
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
 		}
@@ -175,6 +184,14 @@ namespace cx::io::ip {
 
 		template < typename HandlerType >
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
+		}
+
+        bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {
+			return true;
+		}
+
+		bool read_complete(handle_type handle, cx::io::basic_read_op<this_type>* op) {
+			return true;
 		}
 	};
 

@@ -8,11 +8,13 @@
 namespace cx::io::ip {
 
     template < typename ServiceType , typename HandlerType >
-    class reactor_connect_op : public basic_connect_op< ServiceType > {
+    class reactor_connect_op : public cx::io::ip::basic_connect_op< ServiceType > {
     public:
         using handle_type = typename ServiceType::handle_type;
+        using address_type = typename ServiceType::address_type;
+
 		reactor_connect_op(const address_type& addr, HandlerType&& handler)
-			: basic_connect_op(addr)
+			: basic_connect_op< ServiceType >(addr)
 			, _handler(std::forward<HandlerType>(handler))
 		{
 		}
@@ -26,7 +28,7 @@ namespace cx::io::ip {
         }
 
         virtual int operator()(void) override {
-            _handler(error());
+            _handler(this->error());
 			delete this;
 			return 1;
         }

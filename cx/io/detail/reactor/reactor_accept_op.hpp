@@ -11,8 +11,9 @@ namespace cx::io::ip {
 	template < typename ServiceType, typename HandlerType >
     class reactor_accept_op : public basic_accept_op< ServiceType > {
     public:
+        using handle_type = typename ServiceType::handle_type;
 		reactor_accept_op(const cx::io::ip::basic_socket<ServiceType>& fd, HandlerType&& handler)
-			: basic_accept_op(fd)
+			: basic_accept_op< ServiceType >(fd)
 			, _handler(std::forward<HandlerType>(handler))
 		{
 		}
@@ -27,7 +28,7 @@ namespace cx::io::ip {
 
 
         virtual int operator()(void) override {
-            _handler(error() , socket() , address());
+            _handler(this->error() , this->socket() , this->address());
 			delete this;
 			return 1;
         }
