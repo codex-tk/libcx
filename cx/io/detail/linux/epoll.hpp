@@ -16,7 +16,7 @@
 
 #if CX_PLATFORM == CX_P_LINUX
 
-namespace cx::io::detail {
+namespace cx::io {
 
 	class epoll {
     public:

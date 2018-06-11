@@ -15,14 +15,14 @@
 */
 #if CX_PLATFORM != CX_P_WINDOWS
 
-namespace cx::io::ip::detail {
+namespace cx::io::ip  {
 
 	template < typename ImplementationType ,  int Type, int Proto >
 	class reactor_socket_service;
 
 	template <typename ImplementationType> 
     class reactor_socket_service< ImplementationType , SOCK_STREAM, IPPROTO_TCP >
-		: public cx::io::detail::basic_reactor_socket_service < 
+		: public cx::io::basic_reactor_socket_service < 
             ImplementationType ,
 			reactor_socket_service< ImplementationType , SOCK_STREAM, IPPROTO_TCP >
 		> {
@@ -30,7 +30,7 @@ namespace cx::io::ip::detail {
         using implementation_type = ImplementationType;
 		using this_type = reactor_socket_service< ImplementationType ,  SOCK_STREAM, IPPROTO_TCP >;
 		using buffer_type = cx::io::buffer;
-        using base_type = cx::io::detail::basic_reactor_socket_service < ImplementationType , this_type >;
+        using base_type = cx::io::basic_reactor_socket_service < ImplementationType , this_type >;
 		using base_type::connect;
         using base_type::make_shared_handle;
         using address_type = typename base_type::address_type;
@@ -94,7 +94,7 @@ namespace cx::io::ip::detail {
 
 	template <typename ImplementationType> 
     class reactor_socket_service< ImplementationType , SOCK_DGRAM , IPPROTO_UDP >
-		: public cx::io::detail::basic_reactor_socket_service < 
+		: public cx::io::basic_reactor_socket_service < 
             ImplementationType ,
 			reactor_socket_service< ImplementationType , SOCK_DGRAM , IPPROTO_UDP >
 		> 
@@ -102,7 +102,7 @@ namespace cx::io::ip::detail {
 	public:
         using implementation_type = ImplementationType;
 		using this_type = reactor_socket_service< ImplementationType ,  SOCK_DGRAM, IPPROTO_UDP>;
-        using base_type = cx::io::detail::basic_reactor_socket_service < ImplementationType , this_type >;
+        using base_type = cx::io::basic_reactor_socket_service < ImplementationType , this_type >;
 		using base_type::connect;
         using base_type::make_shared_handle;
         using address_type = typename base_type::address_type;

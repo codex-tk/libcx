@@ -15,7 +15,7 @@
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
-namespace cx::io::detail {
+namespace cx::io {
 
 	class completion_port {
 	public:

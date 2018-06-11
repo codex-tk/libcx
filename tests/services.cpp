@@ -47,10 +47,10 @@ TEST(service, t0) {
 #include <cx/io/detail/epoll.hpp>
 #include <cx/io/detail/reactor_socket_service.hpp>
 #include <cx/io/basic_engine.hpp>
-using svc = cx::io::ip::detail::reactor_socket_service<
-            cx::io::detail::epoll , SOCK_STREAM, IPPROTO_TCP>;
+using svc = cx::io::ip::reactor_socket_service<
+            cx::io::epoll , SOCK_STREAM, IPPROTO_TCP>;
 TEST(epoll,to){
-    cx::io::basic_engine< cx::io::detail::epoll , svc > engine; 
+    cx::io::basic_engine< cx::io::epoll , svc > engine; 
     engine.service( cx::tag<svc>());
 }
 #endif

@@ -7,7 +7,7 @@
 #include <cx/cxdefine.hpp>
 #include <cx/stdext/removable_priority_queue.hpp>
 
-namespace cx::time::detail {
+namespace cx::time {
 
 #if CX_PLATFORM == CX_P_WINDOWS
 

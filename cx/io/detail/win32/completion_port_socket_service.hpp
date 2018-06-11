@@ -17,7 +17,7 @@
 
 #include <cx/io/ip/basic_address.hpp>
 
-namespace cx::io::ip::detail {
+namespace cx::io::ip {
 
 	template < typename ServiceType >
 	class basic_completion_port_socket_service;
@@ -27,11 +27,11 @@ namespace cx::io::ip::detail {
 	protected:
 		~basic_completion_port_socket_service(void) {}
 	public:
-		using implementation_type = cx::io::detail::completion_port;
+		using implementation_type = cx::io::completion_port;
 		using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
 		using operation_type = typename implementation_type::operation_type;
 
-		struct _handle : public cx::io::detail::completion_port::basic_handle {
+		struct _handle : public cx::io::completion_port::basic_handle {
 			_handle(ServiceType<Type, Proto>& svc)
 				: service(svc)
 			{

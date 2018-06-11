@@ -9,7 +9,7 @@
 #include <cx/io/io.hpp>
 #include <cx/io/ip/basic_address.hpp>
 
-namespace cx::io::detail {
+namespace cx::io {
 
 	class basic_reactor {
 	public:
