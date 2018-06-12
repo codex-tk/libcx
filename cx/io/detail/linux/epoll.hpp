@@ -117,7 +117,7 @@ namespace cx::io {
                 std::lock_guard<std::recursive_mutex> lock(_mutex);
                 _ops.add_tail(op);
             } while (0);
-            uint64_t v = 0;
+            uint64_t v = 1;
             write(_eventfd,&v,sizeof(v));
         }
 
@@ -140,7 +140,7 @@ namespace cx::io {
             };
             post(new handler_op(std::forward<HandlerT>(handler)));
         }
-    private:
+    public:
         int _handle;
         int _eventfd;
         std::recursive_mutex _mutex;

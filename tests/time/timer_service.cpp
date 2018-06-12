@@ -49,6 +49,7 @@ TEST(ts, cancel) {
 	ASSERT_EQ(testValue, 3);
 }
 
+#endif
 namespace cxtest {
 	struct handle {
 		std::chrono::system_clock::time_point expired_at;
@@ -76,4 +77,3 @@ TEST(ts, pq) {
 
 	ASSERT_EQ(queue.top()->expired_at, a->expired_at);
 }
-#endif

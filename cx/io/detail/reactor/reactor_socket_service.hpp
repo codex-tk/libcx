@@ -148,6 +148,7 @@ namespace cx::io::ip {
 		using handle_type = typename base_type::handle_type;
 		using native_handle_type = typename base_type::native_handle_type;
 		using operation_type = typename reactor_base<ImplementationType>::operation_type;
+        using base_type::invalid_native_handle;
 
 		template < typename HandlerType > using connect_op
 			= cx::io::ip::reactor_connect_op< this_type, HandlerType>;
@@ -213,16 +214,17 @@ namespace cx::io::ip {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
             write_op<HandlerType>* op 
                 = new write_op<HandlerType>(buf,std::forward<HandlerType>(handler));
-            if ( handle->ops[1].head() == nullptr ) {
-                int ops = cx::io::pollout | ( handle->ops[0].head() ? cx::io::pollin : 0 );
-                if ( this->implementation().bind( handle , ops )) {
-                    handle->ops[1].add_tail(op);
-                    return;
-                }
-                op->error( std::error_code( errno , std::generic_category()));
-                this->implementation().post(op);
+            if ( handle->ops[1].head() != nullptr ) {
+                handle->ops[1].add_tail(op);
+                return;
             }
-            handle->ops[1].add_tail(op);
+            int ops = cx::io::pollout | ( handle->ops[0].head() ? cx::io::pollin : 0 );
+            if ( this->implementation().bind( handle , ops )) {
+                handle->ops[1].add_tail(op);
+                return;
+            }
+            op->error( std::error_code( errno , std::generic_category()));
+            this->implementation().post(op);
 		}
 
 
@@ -230,20 +232,37 @@ namespace cx::io::ip {
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
             read_op<HandlerType>* op 
                 = new read_op<HandlerType>(buf,std::forward<HandlerType>(handler));
-            if ( handle->ops[0].head() == nullptr ) {
-                int ops = cx::io::pollin | ( handle->ops[1].head() ? cx::io::pollout : 0 );
-                if ( this->implementation().bind( handle , ops )) {
-                    handle->ops[0].add_tail(op);
-                    return;
-                }
-                op->error( std::error_code( errno , std::generic_category()));
-                this->implementation().post(op);
+            if ( handle->ops[0].head() != nullptr ) {
+                handle->ops[0].add_tail(op);
+                return;
             }
-            handle->ops[1].add_tail(op);
+            int ops = cx::io::pollin | ( handle->ops[1].head() ? cx::io::pollout : 0 );
+            if ( this->implementation().bind( handle , ops )) {
+                handle->ops[0].add_tail(op);
+                return;
+            }
+            op->error( std::error_code( errno , std::generic_category()));
+            this->implementation().post(op);
 		}
 
 		template < typename HandlerType >
-		void async_accept(handle_type handle, HandlerType&& handler) {
+        void async_accept(handle_type handle, HandlerType&& handler) {
+            accept_op<HandlerType>* op =
+                new accept_op<HandlerType>(
+                        cx::io::ip::basic_accept_context<this_type>(*this, invalid_native_handle)
+                        , std::forward<HandlerType>(handler));
+
+            if ( handle->ops[0].head() != nullptr ) {
+                handle->ops[0].add_tail(op);
+                return;
+            }
+            int ops = cx::io::pollin | ( handle->ops[1].head() ? cx::io::pollout : 0 );
+            if ( this->implementation().bind( handle , ops )) {
+                handle->ops[0].add_tail(op);
+                return;
+            }
+            op->error( std::error_code( errno , std::generic_category()));
+            this->implementation().post(op);
 		}
 
 		bool connect_complete(handle_type handle, cx::io::ip::basic_connect_op<this_type>* op) {
@@ -251,7 +270,12 @@ namespace cx::io::ip {
 		}
 
 		bool accept_complete(handle_type handle, cx::io::ip::basic_accept_op<this_type>* op) {
-			return true;
+			native_handle_type fd = ::accept(handle->fd, op->address().sockaddr(), op->address().length_ptr());
+            op->accept_context().handle(fd);
+            if ( fd == invalid_native_handle ) {
+                op->error( std::error_code(errno , std::generic_category()));
+            }
+            return true;
 		}
 
 		bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {
