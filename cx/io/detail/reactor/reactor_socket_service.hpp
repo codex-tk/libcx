@@ -141,14 +141,16 @@ namespace cx::io::ip {
 		using implementation_type = ImplementationType;
 		using this_type = reactor_socket_service< ImplementationType, SOCK_STREAM, IPPROTO_TCP >;
 		using buffer_type = cx::io::buffer;
+		using operation_type = typename reactor_base<ImplementationType>::operation_type;
+
 		using base_type = basic_reactor_socket_service < ImplementationType, this_type >;
-		using base_type::connect;
-		using base_type::make_shared_handle;
 		using address_type = typename base_type::address_type;
 		using handle_type = typename base_type::handle_type;
 		using native_handle_type = typename base_type::native_handle_type;
-		using operation_type = typename reactor_base<ImplementationType>::operation_type;
+
         using base_type::invalid_native_handle;
+		using base_type::connect;
+		using base_type::make_shared_handle;
 
 		template < typename HandlerType > using connect_op
 			= cx::io::ip::reactor_connect_op< this_type, HandlerType>;
@@ -294,8 +296,6 @@ namespace cx::io::ip {
             }
             op->io_size(ret);
 			return true;
-
-			return true;
 		}
 	private:
 
@@ -307,14 +307,17 @@ namespace cx::io::ip {
 		reactor_socket_service< ImplementationType, SOCK_DGRAM, IPPROTO_UDP >>{
 	public:
 		using implementation_type = ImplementationType;
-		using this_type = reactor_socket_service< ImplementationType, SOCK_DGRAM, IPPROTO_UDP>;
+		using this_type = reactor_socket_service< ImplementationType, SOCK_DGRAM, IPPROTO_UDP >;
+		using operation_type = typename reactor_base<ImplementationType>::operation_type;
+
 		using base_type = basic_reactor_socket_service < ImplementationType, this_type >;
-		using base_type::connect;
-		using base_type::make_shared_handle;
 		using address_type = typename base_type::address_type;
 		using handle_type = typename base_type::handle_type;
 		using native_handle_type = typename base_type::native_handle_type;
-		using operation_type = typename reactor_base<ImplementationType>::operation_type;
+
+		using base_type::invalid_native_handle;
+		using base_type::connect;
+		using base_type::make_shared_handle;
 
 		struct _buffer {
 			_buffer(void* ptr, std::size_t len)
@@ -329,11 +332,11 @@ namespace cx::io::ip {
 		};
 		using buffer_type = _buffer;
 
-		/*
-		template < typename HandlerType > using read_op = cx::io::reactor_read_op< this_type, HandlerType>;
-		template < typename HandlerType > using write_op = cx::io::reactor_write_op< this_type, HandlerType>;
+		template < typename HandlerType > using read_op
+			= cx::io::reactor_read_op< this_type, HandlerType>;
+		template < typename HandlerType > using write_op
+			= cx::io::reactor_write_op< this_type, HandlerType>;
 
-		*/
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
 		}
@@ -369,20 +372,56 @@ namespace cx::io::ip {
 		int shutdown(handle_type, int) {
 			return 0;
 		}
-
 		template < typename HandlerType >
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
+			write_op<HandlerType>* op
+				= new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			if (handle->ops[1].head() != nullptr) {
+				handle->ops[1].add_tail(op);
+				return;
+			}
+			int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
+			if (this->implementation().bind(handle, ops)) {
+				handle->ops[1].add_tail(op);
+				return;
+			}
+			op->error(std::error_code(errno, std::generic_category()));
+			this->implementation().post(op);
 		}
+
 
 		template < typename HandlerType >
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
+			read_op<HandlerType>* op
+				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			if (handle->ops[0].head() != nullptr) {
+				handle->ops[0].add_tail(op);
+				return;
+			}
+			int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
+			if (this->implementation().bind(handle, ops)) {
+				handle->ops[0].add_tail(op);
+				return;
+			}
+			op->error(std::error_code(errno, std::generic_category()));
+			this->implementation().post(op);
 		}
 
 		bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {
+			int ret = this->write(handle, op->buffer());
+			if (ret < 0) {
+				op->error(std::error_code(errno, std::generic_category()));
+			}
+			op->io_size(ret);
 			return true;
 		}
 
 		bool read_complete(handle_type handle, cx::io::basic_read_op<this_type>* op) {
+			int ret = this->read(handle, op->buffer());
+			if (ret < 0) {
+				op->error(std::error_code(errno, std::generic_category()));
+			}
+			op->io_size(ret);
 			return true;
 		}
 	};
