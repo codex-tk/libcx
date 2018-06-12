@@ -10,7 +10,8 @@ namespace cx::io::ip {
 	template < typename ServiceType, typename HandlerType >
     class completion_port_accept_op : public basic_accept_op< ServiceType > {
     public:
-		completion_port_accept_op(const cx::io::ip::basic_socket<ServiceType>& fd, HandlerType&& handler)
+		completion_port_accept_op(const cx::io::ip::basic_socket<ServiceType>& fd
+            , HandlerType&& handler)
 			: basic_accept_op(fd)
 			, _handler(std::forward<HandlerType>(handler))
 		{

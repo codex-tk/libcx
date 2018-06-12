@@ -12,7 +12,7 @@
 
 #include <mutex>
 #include <set>
-#include <cx/io/detail/reactor/basic_reactor.hpp>
+#include <cx/io/detail/reactor/reactor.hpp>
 
 #if CX_PLATFORM == CX_P_LINUX
 
@@ -20,9 +20,9 @@ namespace cx::io {
 
 	class epoll {
     public:
-        using handle = basic_reactor::handle;
-        using handle_type = basic_reactor::handle_type;
-        using operation_type = basic_reactor::operation_type;
+        using handle = reactor_base::handle;
+        using handle_type = reactor_base::handle_type;
+        using operation_type = reactor_base::operation_type;
 
 		epoll(void)
 			: _handle(epoll_create(256))

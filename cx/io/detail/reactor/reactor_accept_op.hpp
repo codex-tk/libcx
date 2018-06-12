@@ -21,7 +21,7 @@ namespace cx::io::ip {
         virtual ~reactor_accept_op( void ) {
         }
 
-        virtual bool complete( const basic_reactor::handle_type& handle ) override {
+        virtual bool complete( const reactor_base::handle_type& handle ) override {
             handle_type ptr = std::static_pointer_cast< typename handle_type::element_type >(handle);
             return ptr->service.accept_complete( ptr , this );
         }

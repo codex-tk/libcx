@@ -21,11 +21,10 @@ namespace cx::io  {
         virtual ~reactor_read_op( void ) {
         }
 
-        virtual bool complete( const basic_reactor::handle_type& handle ) override {
+        virtual bool complete( const reactor_base::handle_type& handle ) override {
              handle_type ptr = std::static_pointer_cast< typename handle_type::element_type >(handle);
              return ptr->service.read_complete( ptr , this );
         }
-
 
         virtual int operator()(void) override {
             _handler(this->error());
