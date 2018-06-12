@@ -20,9 +20,9 @@ namespace cx::io {
 
 	class epoll {
     public:
-        using handle = reactor_base::handle;
-        using handle_type = reactor_base::handle_type;
-        using operation_type = reactor_base::operation_type;
+        using handle = reactor_base<epoll>::handle;
+        using handle_type = reactor_base<epoll>::handle_type;
+        using operation_type = reactor_base<epoll>::operation_type;
 
 		epoll(void)
 			: _handle(epoll_create(256))
@@ -94,7 +94,7 @@ namespace cx::io {
             for ( int i = 0; i < nbfd ; ++i ) {
                 epoll::handle* raw_handle = static_cast<epoll::handle*>(events[i].data.ptr );
                 if ( raw_handle ) {
-                    proc += raw_handle->handle_events( events[i].events );
+                    proc += raw_handle->handle_events( *this ,  events[i].events );
                 } else {
                     uint64_t v;
                     read( _eventfd , &v , sizeof(v));
@@ -122,24 +122,24 @@ namespace cx::io {
         }
 
         template < typename HandlerT >
-            void post_handler(HandlerT&& handler) {
-                class handler_op : public operation_type {
-                    public:
-                        handler_op(HandlerT&& handler)
-                            : _handler(std::forward<HandlerT>(handler))
-                        {}
-                        virtual ~handler_op(void) override {
-                        }
-                        virtual int operator()(void) override {
-                            _handler();
-                            delete this;
-                            return 1;
-                        }
-                    private:
-                        HandlerT _handler;
-                };
-                post(new handler_op(std::forward<HandlerT>(handler)));
-            }
+        void post_handler(HandlerT&& handler) {
+            class handler_op : public operation_type {
+                public:
+                    handler_op(HandlerT&& handler)
+                        : _handler(std::forward<HandlerT>(handler))
+                    {}
+                    virtual ~handler_op(void) override {
+                    }
+                    virtual int operator()(void) override {
+                        _handler();
+                        delete this;
+                        return 1;
+                    }
+                private:
+                    HandlerT _handler;
+            };
+            post(new handler_op(std::forward<HandlerT>(handler)));
+        }
     private:
         int _handle;
         int _eventfd;

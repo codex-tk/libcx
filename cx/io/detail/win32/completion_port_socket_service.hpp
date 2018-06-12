@@ -200,7 +200,6 @@ namespace cx::io::ip {
 			return ::shutdown(handle->fd.s, how);
 		}
 
-
 		basic_accept_context<this_type> accept(handle_type handle, address_type& addr) {
 			native_handle_type fd = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
 			return basic_accept_context<this_type>(*this, fd);
