@@ -30,7 +30,7 @@ namespace cx::io::ip {
 		using implementation_type = cx::io::completion_port;
 		using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
 		using operation_type = typename implementation_type::operation_type;
-
+		
 		struct _handle : public cx::io::completion_port::basic_handle {
 			_handle(ServiceType<Type, Proto>& svc)
 				: service(svc)
@@ -41,6 +41,9 @@ namespace cx::io::ip {
 		};
 
 		using handle_type = std::shared_ptr<_handle>;
+
+		using native_handle_type = SOCKET;
+		static const native_handle_type invalid_native_handle = INVALID_SOCKET;
 
 		basic_completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl)
@@ -171,6 +174,12 @@ namespace cx::io::ip {
 			return std::make_shared<_handle>(*this);
 		}
 
+		handle_type make_shared_handle(native_handle_type handle) {
+			auto h = make_shared_handle();
+			h->fd.s = handle;
+			return h;
+		}
+
 		completion_port_socket_service(implementation_type& impl)
 			: basic_completion_port_socket_service(impl)
 		{}
@@ -192,10 +201,9 @@ namespace cx::io::ip {
 		}
 
 
-		handle_type accept(handle_type handle, address_type& addr) {
-			handle_type accepted_handle = make_shared_handle();
-			accepted_handle->fd.s = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
-			return accepted_handle;
+		basic_accept_context<this_type> accept(handle_type handle, address_type& addr) {
+			native_handle_type fd = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
+			return basic_accept_context<this_type>(*this, fd);
 		}
 
 		template < typename HandlerType >
@@ -276,10 +284,11 @@ namespace cx::io::ip {
 		}
 
 		template < typename HandlerType >
-		void async_accept(handle_type handle, const address_type& addr , HandlerType&& handler) {
-			cx::io::ip::basic_socket<this_type> socket(*this, make_shared_handle());
-			accept_op<HandlerType>* op = 
-				new accept_op<HandlerType>(socket, std::forward<HandlerType>(handler));
+		void async_accept(handle_type handle, HandlerType&& handler) {
+			accept_op<HandlerType>* op =
+				new accept_op<HandlerType>(
+					cx::io::ip::basic_accept_context<this_type>(*this, INVALID_SOCKET)
+					, std::forward<HandlerType>(handler));
 			
 			if (!handle || handle->fd.s == INVALID_SOCKET) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
@@ -287,10 +296,20 @@ namespace cx::io::ip {
 				return;
 			}
 
-			if (open(op->socket().handle(), addr)) {
+			address_type addr = this->local_address(handle);
+
+			native_handle_type fd = ::WSASocketW(addr.family()
+				, addr.type()
+				, addr.proto()
+				, nullptr
+				, 0
+				, WSA_FLAG_OVERLAPPED);
+
+			if (fd != invalid_native_handle ) {
+				op->accept_context().handle(fd);
 				DWORD bytes_returned = 0;
 				if (AcceptEx(handle->fd.s
-					, op->socket().handle()->fd.s
+					, fd
 					, op->address().sockaddr()
 					, 0
 					, 0
@@ -338,6 +357,12 @@ namespace cx::io::ip {
 
 		handle_type make_shared_handle(void) {
 			return std::make_shared<_handle>(*this);
+		}
+
+		handle_type make_shared_handle(native_handle_type handle) {
+			auto h = make_shared_handle();
+			h->fd.s = handle;
+			return h;
 		}
 
 		completion_port_socket_service(implementation_type& impl)

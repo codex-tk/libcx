@@ -51,6 +51,7 @@ namespace cx::io {
 		using socket = cx::io::ip::basic_socket<service>;
 		using buffer = typename service::buffer_type;
 		using acceptor = cx::io::ip::basic_acceptor<service>;
+		using accept_context = cx::io::ip::basic_accept_context<service>;
 	}
 	namespace ip::udp {
 		using address = typename service::address_type;

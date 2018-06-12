@@ -38,6 +38,9 @@ namespace cx::io::ip {
 			using handle_type = std::shared_ptr<_handle>;
 			using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
 
+			using native_handle_type = int;
+			static const native_handle_type invalid_native_handle = -1;
+
 			handle_type make_shared_handle(service_type& svc) {
 				return std::make_shared<_handle>(svc);
 			}
@@ -141,6 +144,7 @@ namespace cx::io::ip {
 		using base_type::make_shared_handle;
 		using address_type = typename base_type::address_type;
 		using handle_type = typename base_type::handle_type;
+		using native_handle_type = typename base_type::native_handle_type;
 		using operation_type = typename reactor_base::operation_type;
 
 		/*
@@ -156,6 +160,12 @@ namespace cx::io::ip {
 
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
+		}
+
+		handle_type make_shared_handle(native_handle_type handle) {
+			auto h = make_shared_handle();
+			h->fd.s = handle;
+			return h;
 		}
 
 		reactor_socket_service(implementation_type& impl)
@@ -232,6 +242,7 @@ namespace cx::io::ip {
 		using base_type::make_shared_handle;
 		using address_type = typename base_type::address_type;
 		using handle_type = typename base_type::handle_type;
+		using native_handle_type = typename base_type::native_handle_type;
 		using operation_type = typename reactor_base::operation_type;
 
 		struct _buffer {
@@ -254,6 +265,12 @@ namespace cx::io::ip {
 		*/
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
+		}
+
+		handle_type make_shared_handle(native_handle_type handle) {
+			auto h = make_shared_handle();
+			h->fd.s = handle;
+			return h;
 		}
 
 		reactor_socket_service(implementation_type& impl)

@@ -99,8 +99,8 @@ namespace cx::io::ip {
 			service().async_connect(handle(), addr, std::forward<HandlerType>(handler));
 		}
 		template < typename HandlerType >
-		void async_accept(const address_type& addr, HandlerType&& handler) {
-			service().async_accept(handle(), addr, std::forward<HandlerType>(handler));
+		void async_accept( HandlerType&& handler) {
+			service().async_accept(handle(), std::forward<HandlerType>(handler));
 		}
 	};
 

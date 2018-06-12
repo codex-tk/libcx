@@ -4,6 +4,7 @@
 #define __cx_io_ip_basic_acceptor_h__
 
 #include <cx/io/ip/basic_socket.hpp>
+#include <cx/io/ip/basic_accept_context.hpp>
 
 namespace cx::io::ip {
 
@@ -19,7 +20,6 @@ namespace cx::io::ip {
 		}
 
 		bool open(const address_type& addr) {
-			_address = addr;
 			if (_fd.open(addr)) {
 				if (_fd.set_option(cx::io::ip::option::reuse_address())) {
 					if (_fd.bind(addr)) {
@@ -44,24 +44,21 @@ namespace cx::io::ip {
 			_fd.close();
 		}
 
-		cx::io::ip::basic_socket<ServiceType> accept(address_type& addr) {
-			handle_type handle = _fd.service().accept(_fd.handle(), addr);
-			return cx::io::ip::basic_socket<ServiceType>(_fd.service(), handle);
+		basic_accept_context<ServiceType> accept(address_type& addr) {
+			return _fd.service().accept(_fd.handle(), addr);
 		}
 
-		cx::io::ip::basic_socket<ServiceType> accept(address_type& addr
+		basic_accept_context<ServiceType> accept(address_type& addr
 			, const std::chrono::milliseconds& ms) {
 			if (cx::io::pollin == _fd.service().poll(_fd.handle(), cx::io::pollin, ms)) {
-				handle_type handle = _fd.service().accept(_fd.handle(), addr);
-				return cx::io::ip::basic_socket<ServiceType>(_fd.service(), handle);
+				return _fd.service().accept(_fd.handle(), addr);
 			}
-			return cx::io::ip::basic_socket<ServiceType>(_fd.service()
-				, _fd.service().make_shared_handle());
+			return basic_accept_context<ServiceType>(_fd.service(), ServiceType::invalid_native_handle);
 		}
 
 		template < typename HandlerType >
 		void async_accept(HandlerType&& handler) {
-			_fd.async_accept(_address,std::forward<HandlerType>(handler));
+			_fd.async_accept(std::forward<HandlerType>(handler));
 		}
 
 		handle_type handle(void) {
@@ -69,7 +66,6 @@ namespace cx::io::ip {
 		}
 	private:
 		cx::io::ip::basic_socket<ServiceType> _fd;
-		address_type _address;
 	};
 
 }

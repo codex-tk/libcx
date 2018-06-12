@@ -19,9 +19,9 @@ TEST(cx_io_ip_basic_acceptor, t0) {
 	cx::io::ip::tcp::address addr;
 	auto accepted = acceptor.accept(addr);
 	ASSERT_TRUE(accepted);
-
-	accepted.close();
-
+	cx::io::ip::tcp::socket fd(accepted.service(), accepted.make_shared_handle());
+	fd.close();
+	client.close();
 	acceptor.close();
 }
 
@@ -43,7 +43,8 @@ TEST(cx_io_ip_basic_acceptor, sample_echo) {
 	ASSERT_TRUE(client.connect(addr, std::chrono::milliseconds(1000)));
 
 	cx::io::ip::tcp::address aaddr;
-	auto accepted = acceptor.accept(aaddr, std::chrono::milliseconds(1000));
+	auto ac = acceptor.accept(aaddr, std::chrono::milliseconds(1000));
+	auto accepted = cx::io::ip::tcp::socket(ac.service(), ac.make_shared_handle());
 	ASSERT_TRUE(accepted);
 
 	char buf[1024] = { 0 , };
@@ -73,7 +74,8 @@ TEST(cx_io_ip_basic_acceptor, timeout ) {
 	ASSERT_TRUE(acceptor.open(cx::io::ip::tcp::address::any(7543, AF_INET)));
 
 	cx::io::ip::tcp::address addr;
-	auto accepted = acceptor.accept(addr,std::chrono::milliseconds(100));
+	auto ac = acceptor.accept(addr, std::chrono::milliseconds(100));
+	auto accepted = cx::io::ip::tcp::socket(ac.service(), ac.make_shared_handle());
 	ASSERT_FALSE(accepted);
 
 	acceptor.close();
@@ -95,7 +97,7 @@ TEST(cx_io_ip_basic_acceptor, async) {
 	bool accepted = false;
 
 	acceptor.async_accept([&](const std::error_code& e
-		, const cx::io::ip::tcp::socket& fd
+		, cx::io::ip::tcp::accept_context& ac
 		, const cx::io::ip::tcp::address& addr)
 	{
 		if (!e) {
@@ -104,7 +106,7 @@ TEST(cx_io_ip_basic_acceptor, async) {
 		else {
 			std::string msg = e.message();
 		}
-		cx::io::ip::tcp::socket afd(fd);
+		cx::io::ip::tcp::socket afd(ac.service() , ac.make_shared_handle() );
 		afd.close();
 
 		acceptor.close();

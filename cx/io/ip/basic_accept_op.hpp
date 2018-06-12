@@ -3,7 +3,7 @@
 #ifndef __cx_io_ip_detail_basic_accept_op_h__
 #define __cx_io_ip_detail_basic_accept_op_h__
 
-#include <cx/io/ip/basic_socket.hpp>
+#include <cx/io/ip/basic_accept_context.hpp>
 
 namespace cx::io::ip{
 
@@ -12,19 +12,19 @@ namespace cx::io::ip{
 	public:
 		using address_type = typename ServiceType::address_type;
 
-		basic_accept_op(const cx::io::ip::basic_socket<ServiceType>& fd)
-			: _socket(fd)
+		basic_accept_op(const cx::io::ip::basic_accept_context<ServiceType>& ac)
+			: _accept_context(ac)
 		{}
 
-		cx::io::ip::basic_socket<ServiceType>& socket(void) {
-			return _socket;
+		cx::io::ip::basic_accept_context<ServiceType>& accept_context(void) {
+			return _accept_context;
 		}
 		address_type& address(void) {
 			return _address;
 		}
 	private:
 		address_type _address;
-		cx::io::ip::basic_socket<ServiceType> _socket;
+		cx::io::ip::basic_accept_context<ServiceType> _accept_context;
 	};
 
 }
