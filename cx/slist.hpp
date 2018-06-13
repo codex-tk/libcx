@@ -14,7 +14,15 @@ namespace cx {
 
 		template <class U> void swap(slist<U> &rhs);
 
-		void add_tail(T *node);
+		/**
+		@return if empty list 0 else 1
+		*/
+		int add_tail(T *node);
+		
+		/**
+		@return if empty list 0 else 1
+		*/
+		int add_tail(slist<T>&& rhs);
 
 		T *head(void);
 
@@ -42,14 +50,31 @@ namespace cx {
 	}
 
 	template <typename T>
-	void slist<T>::add_tail(T *node) {
+	int slist<T>::add_tail(T *node) {
+		int ret = 0;
 		if (_head == nullptr) {
 			_head = _tail = node;
 		} else {
 			_tail->next(node);
 			_tail = node;
+			ret = 1;
 		}
 		node->next(nullptr);
+		return ret;
+	}
+
+	template <typename T>
+	int slist<T>::add_tail(slist<T>&& rhs) {
+		int ret = 0;
+		if (_head == nullptr) {
+			_head = rhs._head;
+		} else {
+			_tail->next(rhs._head);		ret = 1;
+			ret = 1;
+		}
+		_tail = rhs._tail;
+		rhs._head = rhs._tail = nullptr;
+		return ret;
 	}
 
 	template <typename T>

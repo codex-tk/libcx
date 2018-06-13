@@ -214,37 +214,29 @@ namespace cx::io::ip {
 
 		template < typename HandlerType >
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
-            write_op<HandlerType>* op 
-                = new write_op<HandlerType>(buf,std::forward<HandlerType>(handler));
-            if ( handle->ops[1].head() != nullptr ) {
-                handle->ops[1].add_tail(op);
-                return;
-            }
-            int ops = cx::io::pollout | ( handle->ops[0].head() ? cx::io::pollin : 0 );
-            if ( this->implementation().bind( handle , ops )) {
-                handle->ops[1].add_tail(op);
-                return;
-            }
-            op->error( std::error_code( errno , std::generic_category()));
-            this->implementation().post(op);
+			write_op<HandlerType>* op
+				= new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			if (handle->ops[1].add_tail(op) == 0) {
+				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
+				if (!this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
+					return;
+				}
+			}
 		}
 
 
 		template < typename HandlerType >
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
-            read_op<HandlerType>* op 
-                = new read_op<HandlerType>(buf,std::forward<HandlerType>(handler));
-            if ( handle->ops[0].head() != nullptr ) {
-                handle->ops[0].add_tail(op);
-                return;
-            }
-            int ops = cx::io::pollin | ( handle->ops[1].head() ? cx::io::pollout : 0 );
-            if ( this->implementation().bind( handle , ops )) {
-                handle->ops[0].add_tail(op);
-                return;
-            }
-            op->error( std::error_code( errno , std::generic_category()));
-            this->implementation().post(op);
+			read_op<HandlerType>* op
+				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			if (handle->ops[0].add_tail(op) == 0) {
+				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
+				if (this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
+					return;
+				}
+			}
 		}
 
 		template < typename HandlerType >
@@ -254,17 +246,13 @@ namespace cx::io::ip {
                         cx::io::ip::basic_accept_context<this_type>(*this, invalid_native_handle)
                         , std::forward<HandlerType>(handler));
 
-            if ( handle->ops[0].head() != nullptr ) {
-                handle->ops[0].add_tail(op);
-                return;
-            }
-            int ops = cx::io::pollin | ( handle->ops[1].head() ? cx::io::pollout : 0 );
-            if ( this->implementation().bind( handle , ops )) {
-                handle->ops[0].add_tail(op);
-                return;
-            }
-            op->error( std::error_code( errno , std::generic_category()));
-            this->implementation().post(op);
+			if (handle->ops[0].add_tail(op) == 0) {
+				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
+				if (this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
+					return;
+				}
+			}
 		}
 
 		bool connect_complete(handle_type handle, cx::io::ip::basic_connect_op<this_type>* op) {
@@ -372,21 +360,18 @@ namespace cx::io::ip {
 		int shutdown(handle_type, int) {
 			return 0;
 		}
+		
 		template < typename HandlerType >
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			write_op<HandlerType>* op
 				= new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
-			if (handle->ops[1].head() != nullptr) {
-				handle->ops[1].add_tail(op);
-				return;
+			if (handle->ops[1].add_tail(op) == 0 ) {
+				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
+				if (!this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
+					return;
+				}
 			}
-			int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
-			if (this->implementation().bind(handle, ops)) {
-				handle->ops[1].add_tail(op);
-				return;
-			}
-			op->error(std::error_code(errno, std::generic_category()));
-			this->implementation().post(op);
 		}
 
 
@@ -394,17 +379,13 @@ namespace cx::io::ip {
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			read_op<HandlerType>* op
 				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
-			if (handle->ops[0].head() != nullptr) {
-				handle->ops[0].add_tail(op);
-				return;
+			if (handle->ops[0].add_tail(op) == 0) {
+				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
+				if (this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
+					return;
+				}
 			}
-			int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-			if (this->implementation().bind(handle, ops)) {
-				handle->ops[0].add_tail(op);
-				return;
-			}
-			op->error(std::error_code(errno, std::generic_category()));
-			this->implementation().post(op);
 		}
 
 		bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {

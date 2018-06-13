@@ -123,6 +123,15 @@ namespace cx::io {
             write(_eventfd,&v,sizeof(v));
         }
 
+		void post(cx::slist<operation_type>&& ops) {
+			do {
+				std::lock_guard<std::recursive_mutex> lock(_mutex);
+				_ops.add_tail(std::forward<cx::slist<operation_type>>(ops));
+			} while (0);
+			uint64_t v = 1;
+			write(_eventfd, &v, sizeof(v));
+		}
+
         template < typename HandlerT >
         void post_handler(HandlerT&& handler) {
             class handler_op : public operation_type {

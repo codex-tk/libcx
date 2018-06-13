@@ -154,6 +154,14 @@ namespace cx::io {
 			PostQueuedCompletionStatus(_handle, 0, 0, nullptr);
 		}
 
+		void post(cx::slist<operation_type>&& ops) {
+			do {
+				std::lock_guard<std::recursive_mutex> lock(_mutex);
+				_ops.add_tail(std::forward<cx::slist<operation_type>>(ops));
+			} while (0);
+			PostQueuedCompletionStatus(_handle, 0, 0, nullptr);
+		}
+
 		template < typename HandlerT >
 		void post_handler(HandlerT&& handler) {
 			class handler_op : public operation_type {
