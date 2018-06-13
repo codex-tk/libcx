@@ -85,7 +85,7 @@ namespace cx::io {
 				if (changed) {
 					int interest = (ops[0].head() ? cx::io::pollin : 0)
 						| (ops[1].head() ? cx::io::pollout : 0);
-					if (false== impl.bind(this->shared_from_this(), interest)) {
+					if (false == impl.bind(this->shared_from_this(), interest)) {
 						this->post_all_ops(impl, std::error_code(errno, std::generic_category()));
 					}
 				}
@@ -105,7 +105,7 @@ namespace cx::io {
 					virtual int operator()(void) {
 						int proc = 0;
 						while (operation_type* op = _ops.head()) {
-							ops.remove_head();
+							_ops.remove_head();
 							op->error(_error_code);
 							proc += (*op)();
 						}
@@ -113,7 +113,7 @@ namespace cx::io {
 						return proc;
 					}
 				private:
-					std::error_code& _error_code;
+					std::error_code _error_code;
 					cx::slist<operation> _ops;
 				};
 				cx::slist<operation> o;

@@ -52,6 +52,7 @@ namespace cx::io {
             }
             if ( errno == ENOENT ){
                 if ( epoll_ctl( _handle , EPOLL_CTL_ADD , ptr->fd , &evt ) == 0 ) {
+                    std::lock_guard<std::recursive_mutex> lock(_mutex);
                     _active_handles.insert(ptr);
                     return true;
                 }

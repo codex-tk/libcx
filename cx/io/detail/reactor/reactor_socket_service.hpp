@@ -66,6 +66,7 @@ namespace cx::io::ip {
                 implementation().unbind(handle);
                 ::close(handle->fd);
                 handle->fd = -1;
+                handle->post_all_ops(implementation() , std::make_error_code( std::errc::operation_canceled ));
             }
         }
 
@@ -219,8 +220,7 @@ namespace cx::io::ip {
 			if (handle->ops[1].add_tail(op) == 0) {
 				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
 				if (!this->implementation().bind(handle, ops)) {
-					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
-					return;
+					handle->post_all_ops(this->implementation(), std::error_code(errno, std::generic_category()));
 				}
 			}
 		}
@@ -232,9 +232,8 @@ namespace cx::io::ip {
 				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 			if (handle->ops[0].add_tail(op) == 0) {
 				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-				if (this->implementation().bind(handle, ops)) {
-					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
-					return;
+				if (!this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(this->implementation(), std::error_code(errno, std::generic_category()));
 				}
 			}
 		}
@@ -248,9 +247,8 @@ namespace cx::io::ip {
 
 			if (handle->ops[0].add_tail(op) == 0) {
 				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-				if (this->implementation().bind(handle, ops)) {
-					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
-					return;
+				if (!this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(this->implementation(), std::error_code(errno, std::generic_category()));
 				}
 			}
 		}
@@ -368,8 +366,7 @@ namespace cx::io::ip {
 			if (handle->ops[1].add_tail(op) == 0 ) {
 				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
 				if (!this->implementation().bind(handle, ops)) {
-					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
-					return;
+					handle->post_all_ops(this->implementation(), std::error_code(errno, std::generic_category()));
 				}
 			}
 		}
@@ -381,9 +378,8 @@ namespace cx::io::ip {
 				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 			if (handle->ops[0].add_tail(op) == 0) {
 				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-				if (this->implementation().bind(handle, ops)) {
-					handle->post_all_ops(implementation(), std::error_code(errno, std::generic_category()));
-					return;
+				if (!this->implementation().bind(handle, ops)) {
+					handle->post_all_ops(this->implementation(), std::error_code(errno, std::generic_category()));
 				}
 			}
 		}
