@@ -181,7 +181,7 @@ namespace cx::io {
 			};
 			post(new handler_op(std::forward<HandlerT>(handler)));
 		}
-	private:
+	public:
 		HANDLE _handle;
 		std::recursive_mutex _mutex;
 		cx::slist<operation_type> _ops;

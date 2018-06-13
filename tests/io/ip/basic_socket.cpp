@@ -133,7 +133,6 @@ TEST(cx_io_ip_sockets, async_connect ) {
 	ASSERT_FALSE(in_loop);
 }
 
-#if CX_PLATFORM == CX_P_WINDOWS
 TEST(cx_io_ip_sockets, async_connect0_timer ) {
 	cx::io::engine<
 		cx::io::ip::tcp::service ,
@@ -178,9 +177,8 @@ TEST(cx_io_ip_sockets, async_connect0_timer ) {
 		calltimer = true;
 	});
 	timer.fire();
-
 	engine.run();
-
+	
 	ASSERT_TRUE(step[0] && step[1] && step[2]);
 	ASSERT_TRUE(calltimer);
 	gprintf("%s", rdbuf.base());
@@ -188,4 +186,3 @@ TEST(cx_io_ip_sockets, async_connect0_timer ) {
 	ASSERT_TRUE(!fd);
 	ASSERT_TRUE(fd.handle().get() != nullptr);
 }
-#endif

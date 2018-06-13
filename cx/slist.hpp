@@ -10,6 +10,8 @@ namespace cx {
 	public:
 		slist(void);
 
+		slist( slist&& rhs );
+
 		~slist(void);
 
 		template <class U> void swap(slist<U> &rhs);
@@ -37,6 +39,14 @@ namespace cx {
 	slist<T>::slist(void)
 		: _head(nullptr), _tail(nullptr) {
 	}
+
+	template <typename T>
+	slist<T>::slist(slist<T>&& rhs)
+		: _head(rhs._head), _tail(rhs._tail)
+	{
+		rhs._head = rhs._tail = nullptr;
+	}
+	
 
 	template <typename T>
 	slist<T>::~slist(void) {

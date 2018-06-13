@@ -64,10 +64,10 @@ namespace cx::io {
 
 			std::recursive_mutex mutex;
 			int fd;
-			int interest_events;
 			cx::slist<operation> ops[2];
 
 			int handle_events(ImplementationType& impl, int revt) {
+				auto scope = this->shared_from_this();
 				int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 				int proc = 0;
 				bool changed = false;
@@ -86,42 +86,42 @@ namespace cx::io {
 					int interest = (ops[0].head() ? cx::io::pollin : 0)
 						| (ops[1].head() ? cx::io::pollout : 0);
 					if (false == impl.bind(this->shared_from_this(), interest)) {
-						this->post_all_ops(impl, std::error_code(errno, std::generic_category()));
+						this->drain_all_ops(impl, std::error_code(errno, std::generic_category()));
 					}
 				}
 				return proc;
 			}
 
-			void post_all_ops(ImplementationType& impl , const std::error_code& ec ) {
-				class _all_ops : public operation {
-				public:
-					_all_ops(const std::error_code& ec , cx::slist<operation>& ops )
-						: _error_code(ec) {
-						_ops.swap(ops);
-					}
-
-					virtual ~_all_ops(void) {}
-
-					virtual int operator()(void) {
-						int proc = 0;
-						while (operation_type* op = _ops.head()) {
-							_ops.remove_head();
-							op->error(_error_code);
-							proc += (*op)();
-						}
-						delete this;
-						return proc;
-					}
-				private:
-					std::error_code _error_code;
-					cx::slist<operation> _ops;
-				};
-				cx::slist<operation> o;
-				o.add_tail(std::move(this->ops[0]));
-				o.add_tail(std::move(this->ops[1]));
-				_all_ops* pop = new _all_ops(ec, o);
-				impl.post(pop);
+			void drain_all_ops(ImplementationType& impl , const std::error_code& ec ) {
+				if (this->ops[0].head() || this->ops[1].head()) {
+					cx::slist<operation> o(std::move(this->ops[0]));
+					o.add_tail(std::move(this->ops[1]));
+					drain_operation *dop = new drain_operation(ec, std::move(o));
+					impl.post(dop);
+				}
 			}
+		private:
+			class drain_operation : public operation {
+			public:
+				drain_operation(const std::error_code& ec , cx::slist<operation>&& ops )
+					: _error_code(ec) 
+					, _drain_ops(std::forward<cx::slist<operation>>(ops))
+				{}
+				virtual ~drain_operation(void) {}
+				virtual int operator()(void) {
+					int proc = 0;
+					while (operation_type* op = _drain_ops.head()) {
+						_drain_ops.remove_head();
+						op->error(_error_code);
+						proc += (*op)();
+					}
+					delete this;
+					return proc;
+				}
+			private:
+				std::error_code _error_code;
+				cx::slist<operation> _drain_ops;
+			};
 		};
 	};
 

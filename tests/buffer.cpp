@@ -10,4 +10,5 @@
 
 TEST( cx_core_buffer , generate ) {
     cx::core::basic_buffer< int , int > buf;
+	(void*)&buf;
 }

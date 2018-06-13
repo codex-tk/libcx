@@ -51,12 +51,12 @@ TEST(cx_io_ip_basic_acceptor, sample_echo) {
 	cx::io::ip::tcp::buffer rdbuf(buf, 1024);
 
 	ASSERT_TRUE(client.write(cx::io::ip::tcp::buffer("Hello"), std::chrono::milliseconds(1000))
-		== strlen("Hello"));
-	ASSERT_TRUE(accepted.read(rdbuf, std::chrono::milliseconds(1000))== strlen("Hello"));
+		== static_cast<int>(strlen("Hello")));
+	ASSERT_TRUE(accepted.read(rdbuf, std::chrono::milliseconds(1000))== static_cast<int>(strlen("Hello")));
 	ASSERT_STREQ("Hello", buf);
 
 	accepted.write(cx::io::ip::tcp::buffer("World"));
-	ASSERT_TRUE(client.read(rdbuf, std::chrono::milliseconds(1000)) == strlen("World"));
+	ASSERT_TRUE(client.read(rdbuf, std::chrono::milliseconds(1000)) == static_cast<int>(strlen("World")));
 	ASSERT_STREQ("World", buf);
 
 	acceptor.close();
@@ -98,12 +98,11 @@ TEST(cx_io_ip_basic_acceptor, async) {
 
 	acceptor.async_accept([&](const std::error_code& e
 		, cx::io::ip::tcp::accept_context& ac
-		, const cx::io::ip::tcp::address& addr)
+		, const cx::io::ip::tcp::address& /*addr*/)
 	{
 		if (!e) {
 			accepted = true;
-		}
-		else {
+		} else {
 			std::string msg = e.message();
 		}
 		cx::io::ip::tcp::socket afd(ac.service() , ac.make_shared_handle() );

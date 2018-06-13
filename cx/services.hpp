@@ -62,20 +62,19 @@ namespace cx::io {
 
 #include <cx/time/basic_timer.hpp>
 #include <cx/time/detail/win32_timer_queue_service.hpp>
-
+#include <cx/time/detail/reactor_timer_fd_service.hpp>
 namespace cx::time {
 
 #if CX_PLATFORM == CX_P_WINDOWS
 	using timer_service = cx::time::win32_timer_queue_service< cx::io::implementation, 100 >;
-	using timer = cx::time::basic_timer< timer_service >;
 #elif CX_PLATFORM == CX_P_LINUX
-
+	using timer_service = cx::time::reactor_timer_fd_service< cx::io::implementation >;
 #elif CX_PLATFORM == CX_P_MACOSX 
 
 #else 
 
 #endif
-
+	using timer = cx::time::basic_timer< timer_service >;
 }
 
 #endif

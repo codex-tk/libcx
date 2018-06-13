@@ -1,6 +1,5 @@
 #include "tests/gprintf.hpp"
 #include <cx/io/basic_engine.hpp>
-#if CX_PLATFORM == CX_P_WINDOWS
 
 TEST(ts, engine ) {
     cx::io::engine< cx::time::timer_service > engine;
@@ -10,10 +9,10 @@ TEST(ts, engine ) {
 	timer.expired_at(at);
 	timer2.expired_at(at);
 	int testValue = 0;
-	timer.handler([&](const std::error_code& ec) {
+	timer.handler([&](const std::error_code&) {
 		testValue = 1;
 	});
-	timer2.handler([&](const std::error_code& ec) {
+	timer2.handler([&](const std::error_code& ) {
 		testValue = 2;
 	});
 	timer.fire();
@@ -48,8 +47,51 @@ TEST(ts, cancel) {
 	ASSERT_EQ(engine.implementation().run(std::chrono::seconds(10)), 1);
 	ASSERT_EQ(testValue, 3);
 }
+/*
+#if CX_PLATFORM == CX_P_LINUX 
+
+TEST( epoll , timer_fd ){
+	int epoll = epoll_create(1);
+	epoll_event evt;
+	evt.events = cx::io::pollin;
+	evt.data.ptr = nullptr;
+	int timer_fd = timerfd_create(CLOCK_REALTIME, 0);
+	epoll_ctl( epoll , EPOLL_CTL_ADD , timer_fd , &evt );
+
+	auto at = std::chrono::system_clock::now();
+
+	struct itimerspec its;
+	its.it_interval.tv_sec = 0;
+	its.it_interval.tv_nsec = 0;
+	auto millisecs = std::chrono::duration_cast<std::chrono::milliseconds>(
+		(at).time_since_epoch());
+	;
+	its.it_value.tv_sec = (millisecs.count()/1000) + 1;
+	its.it_value.tv_nsec = (millisecs.count() % 1000) * 1000;
+	its.it_value.tv_sec = 0;
+	timerfd_settime(timer_fd, TFD_TIMER_ABSTIME, &its, NULL);
+
+	struct epoll_event events[256];
+	int nbfd = epoll_wait( epoll 
+			, events
+			, 256
+			, std::chrono::milliseconds(10000).count());
+	
+	ASSERT_TRUE(nbfd == 1 );
+	nbfd = epoll_wait( epoll 
+			, events
+			, 256
+			, std::chrono::milliseconds(10000).count());
+	
+	ASSERT_TRUE(nbfd == 1 );
+	close(timer_fd);
+	close(epoll);
+}
+
 
 #endif
+
+*/
 namespace cxtest {
 	struct handle {
 		std::chrono::system_clock::time_point expired_at;
