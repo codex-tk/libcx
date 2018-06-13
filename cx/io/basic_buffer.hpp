@@ -5,8 +5,12 @@
 
 namespace cx::io {
 
+	class buffer 
 #if CX_PLATFORM == CX_P_WINDOWS
-	class buffer : public WSABUF {
+		: public WSABUF {
+#else
+		: public iovec{
+#endif
 	public:
 		buffer(void) {
 			this->base(nullptr);
@@ -23,6 +27,7 @@ namespace cx::io {
 			this->length(msg.size());
 		}
 
+#if CX_PLATFORM == CX_P_WINDOWS
 		void* base(void) const { return buf; }
 
 		std::size_t length(void) const { return len; }
@@ -42,25 +47,7 @@ namespace cx::io {
 		WSABUF* raw_buffer(void) const {
 			return static_cast<WSABUF*>(const_cast<buffer*>(this));
 		}
-	};
 #else
-	class buffer : public iovec {
-	public:
-		buffer(void) {
-			this->base(nullptr);
-			this->length(0);
-		}
-
-		buffer(void* ptr, std::size_t len) {
-			this->base(ptr);
-			this->length(len);
-		}
-
-		buffer(const std::string_view& msg) {
-			this->base(const_cast<char*>(msg.data()));
-			this->length(msg.size());
-		}
-
 		void* base(void) const { return iov_base;; }
 
 		std::size_t length(void) const { return iov_len; }
@@ -80,8 +67,8 @@ namespace cx::io {
 		struct iovec* raw_buffer(void) const {
 			return static_cast<struct iovec*>(const_cast<buffer*>(this));
 		}
-	};
 #endif
+	};
 }
 
 #endif

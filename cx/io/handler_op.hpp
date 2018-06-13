@@ -9,14 +9,11 @@ namespace cx::io {
     class handler_op : public BaseOpType {
     public:
         template < typename T >
-	    handler_op(const T& t, HandlerType&& handler)
+		handler_op(const T& t, HandlerType&& handler)
 			: BaseOpType(t)
-			, _handler(std::forward<HandlerType>(handler))
-		{
-		}
+			, _handler(std::forward<HandlerType>(handler)) {}
 
-		virtual ~handler_op(void) {
-		}
+		virtual ~handler_op(void) {}
 
 		virtual int operator()(void) override {
 			_handler(error(), io_size());

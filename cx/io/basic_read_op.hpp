@@ -11,8 +11,7 @@ namespace cx::io {
 		using buffer_type = typename ServiceType::buffer_type;
 
 		basic_read_op(const buffer_type& buf)
-			: _buffer(buf)
-		{}
+			: _buffer(buf) {}
 
 		buffer_type& buffer(void) {
 			return _buffer;

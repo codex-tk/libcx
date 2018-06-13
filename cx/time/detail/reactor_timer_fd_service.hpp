@@ -44,13 +44,17 @@ namespace cx::time {
 		class timer_op
 			: public implementation_type::operation_type {
 		public:
-			timer_op(reactor_timer_fd_service& svc) : _service(svc) {}
+			timer_op(reactor_timer_fd_service& svc) 
+				: _service(svc) {}
+
 			virtual ~timer_op(void) {}
+
 			virtual bool complete(const typename implementation_type::handle_type& handle) {
 				uint64_t num_expirations = 0;
 				read(handle->fd, &num_expirations, sizeof(num_expirations));
 				return true;
 			};
+
 			virtual int operator()(void) override {
 				return _service.handle_timers();
 			}

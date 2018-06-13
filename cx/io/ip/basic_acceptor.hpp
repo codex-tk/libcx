@@ -15,9 +15,7 @@ namespace cx::io::ip {
 		using handle_type = typename ServiceType::handle_type;
 		template < typename EngineType >
 		basic_acceptor(EngineType& engine)
-			: _fd(engine)
-		{
-		}
+			: _fd(engine) {}
 
 		bool open(const address_type& addr) {
 			if (_fd.open(addr)) {

@@ -105,7 +105,7 @@ TEST(cx_io_ip_sockets, async_connect ) {
 
 	engine.implementation().run(std::chrono::milliseconds(1000));
 
-	ASSERT_TRUE(wrsize==buf.length());
+	ASSERT_TRUE(wrsize==static_cast<int>(buf.length()));
 
 	ASSERT_TRUE(in_loop);
 	in_loop = engine.implementation().in_loop();

@@ -113,6 +113,7 @@ namespace cx::io {
 					do {
 						std::lock_guard<std::recursive_mutex> lock(_mutex);
 						_ops.swap(ops);
+						release_active_links();
 					} while (0);
 					while (operation_type* op = ops.head()) {
 						ops.remove_head();
@@ -126,7 +127,9 @@ namespace cx::io {
 		void post(operation_type* op) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				_ops.add_tail(op);
+				if (_ops.add_tail(op) == 0) {
+					add_active_links();
+				}
 			} while (0);
 			uint64_t v = 1;
 			write(_eventfd, &v, sizeof(v));
@@ -135,7 +138,9 @@ namespace cx::io {
 		void post(cx::slist<operation_type>&& ops) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				_ops.add_tail(std::forward<cx::slist<operation_type>>(ops));
+				if (_ops.add_tail(std::forward<cx::slist<operation_type>>(ops)) == 0) {
+					add_active_links();
+				}
 			} while (0);
 			uint64_t v = 1;
 			write(_eventfd, &v, sizeof(v));

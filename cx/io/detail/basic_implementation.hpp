@@ -11,19 +11,19 @@ namespace cx::io::detail{
     protected:
         ~basic_implementation(void){}
     public:
-        basic_implementation(void)
-            : _thread_id(std::this_thread::get_id())
-            , _in_loop(false)
-        {
-        }
+		basic_implementation(void)
+			: _thread_id(std::this_thread::get_id())
+			, _in_loop(false) {}
 
         void begin_loop(void){
             _thread_id = std::this_thread::get_id();
             _in_loop = true;
         }
+
         void end_loop(void){
             _in_loop = false;
         }
+
         bool in_loop(void){
             if ( _thread_id == std::this_thread::get_id() )
                 return _in_loop;

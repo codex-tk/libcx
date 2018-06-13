@@ -69,9 +69,7 @@ namespace cx::io {
 	public:
 		completion_port(void)
 			: _handle(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
-		{
-			_active_links.store(0);
-		}
+			, _active_links(0) {}
 
 		~completion_port(void) {
 			CloseHandle(_handle);
@@ -128,6 +126,7 @@ namespace cx::io {
 				do {
 					std::lock_guard<std::recursive_mutex> lock(_mutex);
 					_ops.swap(ops);
+					release_active_links();
 				} while(0);
 				int proc = 0;
 				while (operation_type* op = ops.head()) {
@@ -149,7 +148,9 @@ namespace cx::io {
 		void post(operation_type* op) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				_ops.add_tail(op);
+				if (_ops.add_tail(op) == 0) {
+					add_active_links();
+				}
 			} while (0);
 			PostQueuedCompletionStatus(_handle, 0, 0, nullptr);
 		}
@@ -157,7 +158,9 @@ namespace cx::io {
 		void post(cx::slist<operation_type>&& ops) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				_ops.add_tail(std::forward<cx::slist<operation_type>>(ops));
+				if (_ops.add_tail(std::forward<cx::slist<operation_type>>(ops)) == 0) {
+					add_active_links();
+				}
 			} while (0);
 			PostQueuedCompletionStatus(_handle, 0, 0, nullptr);
 		}

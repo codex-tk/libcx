@@ -13,11 +13,9 @@ namespace cx::io {
 	public:
 		using implementation_type = ImplementationType;
 		basic_engine(void)
-			: _services(_implementation)
-		{}
+			: _services(_implementation) {}
 
-		~basic_engine(void) {
-		}
+		~basic_engine(void) {}
 
         template < typename ServiceType >
         ServiceType& service(const cx::tag<ServiceType>& tag ) {

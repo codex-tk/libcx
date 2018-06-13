@@ -12,12 +12,9 @@ namespace cx::io::ip {
     public:
 		completion_port_connect_op(const address_type& addr, HandlerType&& handler)
 			: basic_connect_op(addr)
-			, _handler(std::forward<HandlerType>(handler))
-		{
-		}
+			, _handler(std::forward<HandlerType>(handler)) {}
 
-        virtual ~completion_port_connect_op( void ) {
-        }
+		virtual ~completion_port_connect_op(void) {}
 
         virtual int operator()(void) override {
             _handler(error());

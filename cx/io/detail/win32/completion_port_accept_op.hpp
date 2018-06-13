@@ -10,15 +10,11 @@ namespace cx::io::ip {
 	template < typename ServiceType, typename HandlerType >
     class completion_port_accept_op : public basic_accept_op< ServiceType > {
     public:
-		completion_port_accept_op(const cx::io::ip::basic_accept_context<ServiceType>& ac
-            , HandlerType&& handler)
-			: basic_accept_op(ac)
-			, _handler(std::forward<HandlerType>(handler))
-		{
-		}
+		completion_port_accept_op(ServiceType& svc, HandlerType&& handler)
+			: basic_accept_op(svc)
+			, _handler(std::forward<HandlerType>(handler)) {}
 
-        virtual ~completion_port_accept_op( void ) {
-        }
+		virtual ~completion_port_accept_op(void) {}
 
         virtual int operator()(void) override {
             _handler(error() , accept_context() , address());

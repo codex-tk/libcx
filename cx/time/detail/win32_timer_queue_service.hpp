@@ -45,11 +45,10 @@ namespace cx::time {
 			: public implementation_type::operation_type {
 		public:
 			timer_op(win32_timer_queue_service& service)
-				: _service(service)
-			{
-			}
+				: _service(service) {}
 
 			virtual ~timer_op(void) {}
+
 			virtual int operator()(void) override {
 				return _service.handle_timers();
 			}
@@ -73,7 +72,6 @@ namespace cx::time {
 				, Resolution
 				, Resolution
 				, WT_EXECUTEDEFAULT);
-
 		}
 
 		~win32_timer_queue_service(void) {

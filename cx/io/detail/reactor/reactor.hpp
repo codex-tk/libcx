@@ -20,8 +20,7 @@ namespace cx::io {
 		class operation {
 		public:
 			operation(void)
-				: _next(nullptr) {
-			}
+				: _next(nullptr) {}
 
 			virtual ~operation(void) = default;
 
@@ -58,13 +57,11 @@ namespace cx::io {
 		using operation_type = operation;
 		
 		struct handle : public std::enable_shared_from_this<handle> {
-			handle( void ){
-				fd = -1;
-			}
-
 			std::recursive_mutex mutex;
 			int fd;
 			cx::slist<operation> ops[2];
+
+			handle(void) : fd(-1) {}
 
 			int handle_events(ImplementationType& impl, int revt) {
 				auto scope = this->shared_from_this();
@@ -86,7 +83,7 @@ namespace cx::io {
 					int interest = (ops[0].head() ? cx::io::pollin : 0)
 						| (ops[1].head() ? cx::io::pollout : 0);
 					if (false == impl.bind(this->shared_from_this(), interest)) {
-						this->drain_all_ops(impl, std::error_code(errno, std::generic_category()));
+						this->drain_all_ops(impl,  cx::get_last_error());
 					}
 				}
 				return proc;
@@ -103,11 +100,12 @@ namespace cx::io {
 		private:
 			class drain_operation : public operation {
 			public:
-				drain_operation(const std::error_code& ec , cx::slist<operation>&& ops )
-					: _error_code(ec) 
-					, _drain_ops(std::forward<cx::slist<operation>>(ops))
-				{}
+				drain_operation(const std::error_code& ec, cx::slist<operation>&& ops)
+					: _error_code(ec)
+					, _drain_ops(std::forward<cx::slist<operation>>(ops)) {}
+
 				virtual ~drain_operation(void) {}
+
 				virtual int operator()(void) {
 					int proc = 0;
 					while (operation_type* op = _drain_ops.head()) {

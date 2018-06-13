@@ -17,17 +17,13 @@ namespace cx::io {
 
 		template < typename EngineType >
 		basic_object(EngineType& engine)
-			: _service(engine.service( cx::tag<ServiceType>()))
-			, _handle(engine.service( cx::tag<ServiceType>())
-				.make_shared_handle())
-		{
-		}
+			: _service(engine.service(cx::tag<ServiceType>()))
+			, _handle(engine.service(cx::tag<ServiceType>())
+				.make_shared_handle()) {}
 
 		basic_object(ServiceType& service, handle_type handle)
 			: _service(service)
-			, _handle(handle)
-		{
-		}
+			, _handle(handle) {}
 
 		~basic_object(void) {
 			if (_handle.use_count() == 1)

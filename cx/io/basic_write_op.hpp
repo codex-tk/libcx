@@ -10,9 +10,8 @@ namespace cx::io {
     public:
         using buffer_type = typename ServiceType::buffer_type;
 
-        basic_write_op( const buffer_type& buf )
-            : _buffer(buf)
-        {}
+		basic_write_op(const buffer_type& buf)
+			: _buffer(buf) {}
 
         buffer_type& buffer( void ) {
             return _buffer;

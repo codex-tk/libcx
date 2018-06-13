@@ -29,20 +29,14 @@ namespace cx::io::ip {
         using base_type::service;
 
         template < typename EngineType >
-            basic_socket(EngineType& engine)
-            : base_type(engine)
-		{
-		}
+		basic_socket(EngineType& engine)
+			: base_type(engine) {}
 
 		basic_socket(ServiceType& service, handle_type handle)
-			: base_type(service, handle)
-		{
-		}
+			: base_type(service, handle) {}
 
 		basic_socket(const basic_socket& rhs)
-			: base_type(rhs.service(), rhs.handle())
-		{
-		}
+			: base_type(rhs.service(), rhs.handle()) {}
 
 		bool connect(const address_type& addr) {
 			return service().connect(handle(), addr);

@@ -30,14 +30,15 @@ namespace cx::io::ip {
 		using implementation_type = cx::io::completion_port;
 		using address_type = cx::io::ip::basic_address< struct sockaddr_storage, Type, Proto >;
 		using operation_type = typename implementation_type::operation_type;
-		
+		using service_type = ServiceType<Type, Proto>;
+
 		struct _handle : public cx::io::completion_port::basic_handle {
-			_handle(ServiceType<Type, Proto>& svc)
+			_handle(service_type& svc)
 				: service(svc)
 			{
 				this->fd.s = INVALID_SOCKET;
 			}
-			ServiceType<Type, Proto>& service;
+			service_type& service;
 		};
 
 		using handle_type = std::shared_ptr<_handle>;
@@ -46,8 +47,7 @@ namespace cx::io::ip {
 		static const native_handle_type invalid_native_handle = INVALID_SOCKET;
 
 		basic_completion_port_socket_service(implementation_type& impl)
-			: _implementation(impl)
-		{}
+			: _implementation(impl) {}
 
 		bool open(handle_type handle, const address_type& address) {
 			close(handle);
@@ -75,8 +75,6 @@ namespace cx::io::ip {
 				return true;
 			if (WSAGetLastError() == WSAEWOULDBLOCK)
 				return true;
-			//if ( errno == EINPROGRESS )
-			//    return true;
 			return false;
 		}
 
@@ -90,24 +88,16 @@ namespace cx::io::ip {
 		{
 			WSAPOLLFD pollfd = { 0 };
 			pollfd.fd = handle->fd.s;
-			if (ops & cx::io::pollin) {
-				pollfd.events = POLLRDNORM;
-			}
-			if (ops & cx::io::pollout) {
-				pollfd.events |= POLLWRNORM;
-			}
+			pollfd.events = ((ops & cx::io::pollin) ? POLLRDNORM : 0)
+				| ((ops & cx::io::pollout) ? POLLWRNORM : 0);
 			if (SOCKET_ERROR == WSAPoll(&pollfd, 1, static_cast<int>(ms.count()))) {
 				std::error_code ec(WSAGetLastError(), cx::windows_category());
 				std::string msg = ec.message();
 				return -1;
 			}
-			ops = 0;
-			if (pollfd.revents & POLLRDNORM) {
-				ops = cx::io::pollin;
-			}
-			if (pollfd.revents & POLLWRNORM) {
-				ops |= cx::io::pollout;
-			}
+			ops = ((pollfd.revents & POLLRDNORM) ? cx::io::pollin : 0)
+				| ((pollfd.revents & POLLWRNORM) ? cx::io::pollout : 0);
+
 			return ops;
 		}
 
@@ -181,8 +171,7 @@ namespace cx::io::ip {
 		}
 
 		completion_port_socket_service(implementation_type& impl)
-			: basic_completion_port_socket_service(impl)
-		{}
+			: basic_completion_port_socket_service(impl) {}
 
 		int write(handle_type handle, const buffer_type& buf) {
 			return send(handle->fd.s, static_cast<const char*>(buf.base()), buf.length(), 0);
@@ -247,7 +236,7 @@ namespace cx::io::ip {
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASend(handle->fd.s
-				, &(op->buffer())
+				, op->buffer().raw_buffer()
 				, 1
 				, &bytes_transferred
 				, flag
@@ -268,7 +257,7 @@ namespace cx::io::ip {
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecv(handle->fd.s
-				, &(op->buffer())
+				, op->buffer().raw_buffer()
 				, 1
 				, &bytes_transferred
 				, &flag
@@ -285,9 +274,7 @@ namespace cx::io::ip {
 		template < typename HandlerType >
 		void async_accept(handle_type handle, HandlerType&& handler) {
 			accept_op<HandlerType>* op =
-				new accept_op<HandlerType>(
-					cx::io::ip::basic_accept_context<this_type>(*this, INVALID_SOCKET)
-					, std::forward<HandlerType>(handler));
+				new accept_op<HandlerType>( *this , std::forward<HandlerType>(handler));
 			
 			if (!handle || handle->fd.s == INVALID_SOCKET) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
@@ -323,8 +310,6 @@ namespace cx::io::ip {
 			op->error(cx::get_last_error());
 			implementation().post(op);
 		}
-	private:
-		
 	};
 
 	template <> class completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
@@ -365,8 +350,7 @@ namespace cx::io::ip {
 		}
 
 		completion_port_socket_service(implementation_type& impl)
-			: basic_completion_port_socket_service(impl)
-		{}
+			: basic_completion_port_socket_service(impl) {}
 
 		int write(handle_type handle, const buffer_type& buf) {
 			return sendto(handle->fd.s
@@ -397,7 +381,7 @@ namespace cx::io::ip {
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASendTo(handle->fd.s
-				, &(op->buffer())
+				, op->buffer().buffer.raw_buffer()
 				, 1
 				, &bytes_transferred
 				, flag
@@ -420,7 +404,7 @@ namespace cx::io::ip {
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecvFrom(handle->fd.s
-				, &(op->buffer())
+				, op->buffer().buffer.raw_buffer()
 				, 1
 				, &bytes_transferred
 				, &flag

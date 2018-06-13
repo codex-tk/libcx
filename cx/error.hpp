@@ -11,12 +11,10 @@ namespace cx {
 	class windows_category_impl : public std::error_category {
 	public:
 		//! construct
-		windows_category_impl() {
-		}
+		windows_category_impl(void) {}
 
 		//! destruct
-		virtual ~windows_category_impl() noexcept {
-		}
+		virtual ~windows_category_impl() noexcept {}
 
 		//! \return "tcode_category"
 		virtual const char *name() const noexcept
@@ -53,13 +51,17 @@ namespace cx {
 		}
 	};
 
-	static std::error_category& windows_category() {
+	static std::error_category& windows_category(void) {
 		static windows_category_impl impl;
 		return impl;
 	}
 
 	static std::error_code get_last_error(void) {
 		return std::error_code(WSAGetLastError(), windows_category());
+	}
+#else
+	static std::error_code get_last_error(void) {
+		return std::error_code(errno, std::generic_category());
 	}
 #endif
 }

@@ -10,9 +10,8 @@ namespace cx::io::ip{
     public:
         using address_type = typename ServiceType::address_type;
 
-        basic_connect_op( const address_type& addr )
-            : _address(addr)
-        {}
+		basic_connect_op(const address_type& addr)
+			: _address(addr) {}
 
         address_type& address( void ) {
             return _address;

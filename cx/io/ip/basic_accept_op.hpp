@@ -12,13 +12,13 @@ namespace cx::io::ip{
 	public:
 		using address_type = typename ServiceType::address_type;
 
-		basic_accept_op(const cx::io::ip::basic_accept_context<ServiceType>& ac)
-			: _accept_context(ac)
-		{}
+		basic_accept_op(ServiceType& svc)
+			: _accept_context(svc) {}
 
 		cx::io::ip::basic_accept_context<ServiceType>& accept_context(void) {
 			return _accept_context;
 		}
+
 		address_type& address(void) {
 			return _address;
 		}

@@ -26,20 +26,15 @@ namespace cx::detail {
 		values(Args&& ... args)
 			: value< Is,
 			typename cx::core::mp::at< Is, cx::core::type_list< Ts ... > >::type
-			>(std::forward<Ts>(args)) ...
-		{
-		}
+			>(std::forward<Ts>(args)) ... {}
 
 		template < typename T >
 		values(T&& t)
 			: value< Is,
 			typename cx::core::mp::at< Is, cx::core::type_list< Ts ... > >::type
-			>(std::forward<T>(t)) ...
-		{}
+			>(std::forward<T>(t)) ... {}
 
-		~values(void) {
-
-		}
+		~values(void) {}
 	};
 
 }
@@ -51,13 +46,11 @@ namespace cx {
 	public:
 		template < typename ... Args >
 		service_repository(Args&& ... args)
-			: _services(std::forward< Args >(args)...)
-		{}
+			: _services(std::forward< Args >(args)...) {}
 
 		template < typename T >
 		service_repository(T&& t)
-			: _services(std::forward<T>(t))
-		{}
+			: _services(std::forward<T>(t)) {}
 
 		template < typename T >
 		T& service( const cx::tag<T>& ) {
