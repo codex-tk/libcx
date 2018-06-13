@@ -9,17 +9,17 @@ public:
 
 class foo_service {
 public:
-	foo_service(cx::io::basic_implementation& impl)
+	foo_service(cx::io::implementation& impl)
 		: _impl(impl)
 	{
 
 	}
-	cx::io::basic_implementation& _impl;
+	cx::io::implementation& _impl;
 };
 
 
 TEST(basic_engine, t0) {
-	cx::io::basic_engine< cx::io::basic_implementation, foo_service > engine;
+	cx::io::basic_engine< cx::io::implementation, foo_service > engine;
 	ASSERT_EQ(engine.service( cx::tag<foo_service>())._impl.run(std::chrono::milliseconds(1)), 0);
 	int value = 0;
 	engine.implementation().post_handler([&] {
@@ -34,7 +34,7 @@ TEST(basic_engine, t0) {
 
 TEST(basic_engine, socket_service) {
 	cx::io::basic_engine<
-		cx::io::basic_implementation
+		cx::io::implementation
 		, cx::io::ip::tcp::service
 		, cx::io::ip::udp::service > engine;
 	ASSERT_EQ(engine.implementation().run(std::chrono::milliseconds(1)), 0);
@@ -65,7 +65,7 @@ TEST(union_test, to) {
 
 TEST(basic_engine, tcp) {
 	cx::io::basic_engine<
-		cx::io::basic_implementation
+		cx::io::implementation
 		, cx::io::ip::tcp::service
 		, cx::io::ip::udp::service > engine;
 	cx::io::ip::tcp::socket fd(engine);

@@ -77,18 +77,27 @@ TEST(cx_io_ip_sockets, async_connect ) {
 	ASSERT_TRUE(fd);
 	ASSERT_TRUE(fd.set_option(cx::io::ip::option::non_blocking()));
 
+	bool in_loop = engine.implementation().in_loop();
+	ASSERT_FALSE(in_loop);
+
 	bool connected = false;
 	fd.async_connect(addresses[0], [&](const std::error_code& ec) {
+		in_loop = engine.implementation().in_loop();
 		if (!ec) connected = true;
 	});
-
+	
 	engine.implementation().run(std::chrono::milliseconds(1000));
 
 	ASSERT_TRUE(connected);
 
+	ASSERT_TRUE(in_loop);
+	in_loop = engine.implementation().in_loop();
+	ASSERT_FALSE(in_loop);
+
 	int wrsize = 0;
 	cx::io::ip::tcp::buffer buf(get);
 	fd.async_write(buf, [&](const std::error_code& ec, const int size) {
+		in_loop = engine.implementation().in_loop();
 		if (!ec) {
 			wrsize = size;
 		}
@@ -98,11 +107,16 @@ TEST(cx_io_ip_sockets, async_connect ) {
 
 	ASSERT_TRUE(wrsize==buf.length());
 
+	ASSERT_TRUE(in_loop);
+	in_loop = engine.implementation().in_loop();
+	ASSERT_FALSE(in_loop);
+
 	int rdsize = 0;
 	char read_buf[1024] = { 0 , };
 	cx::io::ip::tcp::buffer rdbuf(read_buf, 1024);
 
 	fd.async_read(rdbuf, [&](const std::error_code& ec, const int size) {
+		in_loop = engine.implementation().in_loop();
 		if (!ec) {
 			rdsize = size;
 		}
@@ -113,6 +127,10 @@ TEST(cx_io_ip_sockets, async_connect ) {
 	fd.close();
 	ASSERT_TRUE(!fd);
 	ASSERT_TRUE(fd.handle().get() != nullptr);
+
+	ASSERT_TRUE(in_loop);
+	in_loop = engine.implementation().in_loop();
+	ASSERT_FALSE(in_loop);
 }
 
 #if CX_PLATFORM == CX_P_WINDOWS

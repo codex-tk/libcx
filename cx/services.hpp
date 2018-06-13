@@ -21,7 +21,7 @@
 namespace cx::io {
 
 #if CX_PLATFORM == CX_P_WINDOWS
-	using basic_implementation = cx::io::completion_port;
+	using implementation = cx::io::completion_port;
 
 	namespace ip::tcp {
 		using service = cx::io::ip::completion_port_socket_service<SOCK_STREAM, IPPROTO_TCP>;
@@ -30,21 +30,21 @@ namespace cx::io {
 		using service = cx::io::ip::completion_port_socket_service<SOCK_DGRAM, IPPROTO_UDP>;
 	}
 #elif CX_PLATFORM == CX_P_LINUX
-	using basic_implementation = cx::io::epoll;
+	using implementation = cx::io::epoll;
 
     namespace ip::tcp {
 		using service = cx::io::ip::reactor_socket_service<
-            basic_implementation , SOCK_STREAM, IPPROTO_TCP>;
+            implementation , SOCK_STREAM, IPPROTO_TCP>;
     }
 	namespace ip::udp {
 		using service = cx::io::ip::reactor_socket_service<
-            basic_implementation , SOCK_DGRAM, IPPROTO_UDP>;
+            implementation , SOCK_DGRAM, IPPROTO_UDP>;
 	}
 
 #elif CX_PLATFORM == CX_P_MACOSX
-	using basic_implementation = cx::io::kqueue;
+	using implementation = cx::io::kqueue;
 #else
-	using basic_implementation = cx::io::poll;
+	using implementation = cx::io::poll;
 #endif
 	namespace ip::tcp {
 		using address = typename service::address_type;
@@ -66,7 +66,7 @@ namespace cx::io {
 namespace cx::time {
 
 #if CX_PLATFORM == CX_P_WINDOWS
-	using timer_service = cx::time::win32_timer_queue_service< cx::io::basic_implementation, 100 >;
+	using timer_service = cx::time::win32_timer_queue_service< cx::io::implementation, 100 >;
 	using timer = cx::time::basic_timer< timer_service >;
 #elif CX_PLATFORM == CX_P_LINUX
 

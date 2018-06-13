@@ -37,7 +37,7 @@ namespace cx::io {
 	};
 
 	template < typename ... Services >
-	using engine = basic_engine< cx::io::basic_implementation, Services ... >;
+	using engine = basic_engine< cx::io::implementation, Services ... >;
 }
 
 #endif
