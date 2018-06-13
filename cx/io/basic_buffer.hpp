@@ -5,58 +5,82 @@
 
 namespace cx::io {
 
-	namespace detail {
 #if CX_PLATFORM == CX_P_WINDOWS
-		void* buffer_base(const WSABUF* buf);
-		void* buffer_base(WSABUF* buf, void* ptr);
-		std::size_t buffer_length(const WSABUF* buf);
-		std::size_t buffer_length(WSABUF* buf, std::size_t len);
-#else
-		void* buffer_base(const iovec* buf);
-		void* buffer_base(iovec* buf, void* ptr);
-		std::size_t buffer_length(const iovec* buf);
-		std::size_t buffer_length(iovec* buf, std::size_t len);
-#endif
-	}
-
-	template < typename T > class basic_buffer : public T {
+	class buffer : public WSABUF {
 	public:
-		basic_buffer(void) {
-			detail::buffer_base(raw_buffer(), nullptr);
-			detail::buffer_length(raw_buffer(), 0);
+		buffer(void) {
+			this->base(nullptr);
+			this->length(0);
 		}
 
-		basic_buffer(void* ptr, std::size_t len) {
-			detail::buffer_base(raw_buffer(), ptr);
-			detail::buffer_length(raw_buffer(), len);
+		buffer(void* ptr, std::size_t len) {
+			this->base(ptr);
+			this->length(len);
 		}
 
-		basic_buffer(const std::string_view& msg) {
-			detail::buffer_base(raw_buffer(), const_cast<char*>(msg.data()));
-			detail::buffer_length(raw_buffer(), msg.size());
+		buffer(const std::string_view& msg) {
+			this->base(const_cast<char*>(msg.data()));
+			this->length(msg.size());
 		}
 
-		void* base(void) const { return detail::buffer_base(raw_buffer()); }
+		void* base(void) const { return buf; }
 
-		std::size_t length(void) const { return detail::buffer_length(raw_buffer()); }
+		std::size_t length(void) const { return len; }
 
 		void* base(void* new_ptr) {
-			return detail::buffer_base(raw_buffer(), new_ptr);
+			void* old = buf;
+			buf = static_cast< decltype(buf) >(new_ptr);
+			return old;
 		}
 
 		std::size_t length(const std::size_t new_size) {
-			return detail::buffer_length(raw_buffer(), new_size);
+			std::size_t old = len;
+			len = static_cast< decltype(len) >(new_size);
+			return old;
 		}
 
-		T* raw_buffer(void) const {
-			return static_cast<T*>(const_cast<basic_buffer*>(this));
+		WSABUF* raw_buffer(void) const {
+			return static_cast<WSABUF*>(const_cast<buffer*>(this));
 		}
 	};
-
-#if CX_PLATFORM == CX_P_WINDOWS
-	using buffer = basic_buffer< WSABUF >;
 #else
-	using buffer = basic_buffer< struct iovec >;
+	class buffer : public iovec {
+	public:
+		buffer(void) {
+			this->base(nullptr);
+			this->length(0);
+		}
+
+		buffer(void* ptr, std::size_t len) {
+			this->base(ptr);
+			this->length(len);
+		}
+
+		buffer(const std::string_view& msg) {
+			this->base(const_cast<char*>(msg.data()));
+			this->length(msg.size());
+		}
+
+		void* base(void) const { return iov_base;; }
+
+		std::size_t length(void) const { return iov_len; }
+
+		void* base(void* new_ptr) {
+			void* old = iov_base;
+			iov_base = static_cast< decltype(iov_base) >(new_ptr);
+			return old;
+		}
+
+		std::size_t length(const std::size_t new_size) {
+			std::size_t old = iov_len;
+			iov_len = static_cast< decltype(iov_len) >(new_size);
+			return old;
+		}
+
+		struct iovec* raw_buffer(void) const {
+			return static_cast<struct iovec*>(const_cast<buffer*>(this));
+		}
+	};
 #endif
 }
 
