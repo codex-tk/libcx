@@ -12,11 +12,11 @@
 #include <cx/io/ip/basic_socket.hpp>
 #include <cx/io/ip/basic_acceptor.hpp>
 
-#include <cx/io/detail/win32/completion_port.hpp>
-#include <cx/io/detail/win32/completion_port_socket_service.hpp>
+#include <cx/io/internal/win32/completion_port.hpp>
+#include <cx/io/internal/win32/completion_port_socket_service.hpp>
 
-#include <cx/io/detail/linux/epoll.hpp>
-#include <cx/io/detail/reactor/reactor_socket_service.hpp>
+#include <cx/io/internal/linux/epoll.hpp>
+#include <cx/io/internal/reactor/reactor_socket_service.hpp>
 
 namespace cx::io {
 
@@ -61,8 +61,9 @@ namespace cx::io {
 }
 
 #include <cx/time/basic_timer.hpp>
-#include <cx/time/detail/win32_timer_queue_service.hpp>
-#include <cx/time/detail/reactor_timer_fd_service.hpp>
+#include <cx/time/internal/win32_timer_queue_service.hpp>
+#include <cx/time/internal/reactor_timer_fd_service.hpp>
+
 namespace cx::time {
 
 #if CX_PLATFORM == CX_P_WINDOWS

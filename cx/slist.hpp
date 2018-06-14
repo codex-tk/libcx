@@ -4,6 +4,8 @@
 #ifndef __cx_slist_h__
 #define __cx_slist_h__
 
+#include <cx/cxdefine.hpp>
+
 namespace cx {
 
 	template < typename T > class slist {
@@ -55,6 +57,10 @@ namespace cx {
 
 	template <typename T>
 	int slist<T>::add_tail(T *node) {
+		assert( node != nullptr );
+		if ( node == nullptr )
+			return -1;
+
 		int ret = 0;
 		if (_head == nullptr) {
 			_head = _tail = node;
@@ -73,7 +79,7 @@ namespace cx {
 		if (_head == nullptr) {
 			_head = rhs._head;
 		} else {
-			_tail->next(rhs._head);		ret = 1;
+			_tail->next(rhs._head);
 			ret = 1;
 		}
 		_tail = rhs._tail;
@@ -88,6 +94,10 @@ namespace cx {
 
 	template <typename T>
 	T *slist<T>::remove_head(void) {
+		assert( _head != nullptr );
+		if ( _head == nullptr )
+			return nullptr;
+
 		T *head = _head;
 		if (_head == _tail) {
 			_head = _tail = nullptr;

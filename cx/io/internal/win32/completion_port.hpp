@@ -10,7 +10,7 @@
 #include <cx/container_of.hpp>
 #include <cx/error.hpp>
 
-#include <cx/io/detail/basic_implementation.hpp>
+#include <cx/io/internal/basic_implementation.hpp>
 
 #include <mutex>
 #include <set>
@@ -20,7 +20,7 @@
 
 namespace cx::io {
 
-	class completion_port : public cx::io::detail::basic_implementation {
+	class completion_port : public cx::io::internal::basic_implementation {
 	public:
 		struct basic_handle {
 			union {
@@ -120,7 +120,7 @@ namespace cx::io {
 				, &key
 				, &ov
 				, static_cast<DWORD>(ms.count()));
-			cx::io::detail::basic_implementation::scoped_loop sl(*this);
+			cx::io::internal::basic_implementation::scoped_loop sl(*this);
 			if (ov == nullptr) {
 				cx::slist< operation_type > ops;
 				do {

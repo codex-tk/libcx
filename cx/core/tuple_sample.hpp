@@ -10,7 +10,7 @@
 
 #include <cx/core/type_list.hpp>
 
-namespace cx::core::mp::detail {
+namespace cx::core::mp::internal {
 	template < std::size_t N, typename T > struct value {
 		T data;
 		value(void) {}

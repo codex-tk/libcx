@@ -6,7 +6,7 @@
 #include <cx/core/type_list.hpp>
 #include <cx/core/tag.hpp>
 
-namespace cx::detail {
+namespace cx::internal {
 
 	template < std::size_t I, typename T >
 	struct value {
@@ -20,8 +20,7 @@ namespace cx::detail {
 
 	template < std::size_t ... Is, typename ... Ts >
 	struct values< cx::core::mp::sequence< Is ... >, Ts ... >
-		: value< Is, Ts >...
-	{
+		: value< Is, Ts >... {
 		template < typename ... Args >
 		values(Args&& ... args)
 			: value< Is,
@@ -58,11 +57,11 @@ namespace cx {
 		}
 	private:
 		template < typename T, std::size_t I >
-		T& _service_impl(detail::value< I, T >& t) {
+		T& _service_impl(internal::value< I, T >& t) {
 			return t.data;
 		}
 	private:
-		detail::values< cx::core::mp::make_sequence<sizeof...(Services)>
+		internal::values< cx::core::mp::make_sequence<sizeof...(Services)>
 			, Services ... > _services;
 	};
 

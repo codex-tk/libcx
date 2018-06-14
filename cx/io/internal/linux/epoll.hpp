@@ -12,14 +12,14 @@
 
 #include <mutex>
 #include <set>
-#include <cx/io/detail/reactor/reactor.hpp>
-#include <cx/io/detail/basic_implementation.hpp>
+#include <cx/io/internal/reactor/reactor.hpp>
+#include <cx/io/internal/basic_implementation.hpp>
 
 #if CX_PLATFORM == CX_P_LINUX
 
 namespace cx::io {
 
-	class epoll : public cx::io::detail::basic_implementation {
+	class epoll : public cx::io::internal::basic_implementation {
 	public:
 		using handle = reactor_base<epoll>::handle;
 		using handle_type = reactor_base<epoll>::handle_type;
@@ -100,7 +100,7 @@ namespace cx::io {
 				, 256
 				, ms.count());
 			if (nbfd <= 0) { return 0; }
-			cx::io::detail::basic_implementation::scoped_loop sl(*this);
+			cx::io::internal::basic_implementation::scoped_loop sl(*this);
 			int proc = 0;
 			for (int i = 0; i < nbfd; ++i) {
 				epoll::handle* raw_handle = static_cast<epoll::handle*>(events[i].data.ptr);

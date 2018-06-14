@@ -11,9 +11,9 @@
 #include <cx/io/basic_read_op.hpp>
 #include <cx/io/basic_write_op.hpp>
 #include <cx/io/handler_op.hpp>
-#include <cx/io/detail/win32/completion_port.hpp>
-#include <cx/io/detail/win32/completion_port_connect_op.hpp>
-#include <cx/io/detail/win32/completion_port_accept_op.hpp>
+#include <cx/io/internal/win32/completion_port.hpp>
+#include <cx/io/internal/win32/completion_port_connect_op.hpp>
+#include <cx/io/internal/win32/completion_port_accept_op.hpp>
 
 #include <cx/io/ip/basic_address.hpp>
 

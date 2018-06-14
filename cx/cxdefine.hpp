@@ -41,7 +41,7 @@ Windows	 _WIN32 or __WIN32__
 #pragma comment( lib , "Mswsock.lib") 
 #pragma comment( lib , "IPHLPAPI.lib")
 
-namespace cx::io::ip::detail {
+namespace cx::io::ip::internal {
 	namespace {
 		struct win32_socket_initializer {
 			win32_socket_initializer(void) {
@@ -92,6 +92,8 @@ namespace cx::io::ip::detail {
 #include <atomic>
 #include <memory>
 #include <functional>
+#include <cassert>
+#include <sstream>
 
 #ifndef MAX_PATH
 #define MAX_PATH 256

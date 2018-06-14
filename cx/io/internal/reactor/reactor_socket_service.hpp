@@ -8,11 +8,11 @@
 
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/ip/option.hpp>
-#include <cx/io/detail/reactor/reactor.hpp>
-#include <cx/io/detail/reactor/reactor_connect_op.hpp>
-#include <cx/io/detail/reactor/reactor_accept_op.hpp>
-#include <cx/io/detail/reactor/reactor_read_op.hpp>
-#include <cx/io/detail/reactor/reactor_write_op.hpp>
+#include <cx/io/internal/reactor/reactor.hpp>
+#include <cx/io/internal/reactor/reactor_connect_op.hpp>
+#include <cx/io/internal/reactor/reactor_accept_op.hpp>
+#include <cx/io/internal/reactor/reactor_read_op.hpp>
+#include <cx/io/internal/reactor/reactor_write_op.hpp>
 
 namespace cx::io::ip {
 

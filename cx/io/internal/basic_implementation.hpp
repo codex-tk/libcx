@@ -5,7 +5,7 @@
 
 #include <thread>
 
-namespace cx::io::detail{
+namespace cx::io::internal{
 
     class basic_implementation {
     protected:

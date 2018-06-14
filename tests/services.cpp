@@ -44,8 +44,8 @@ TEST(service, t0) {
 	ASSERT_EQ(_s0.service( cx::tag<foo_service>()).svcid(), 1);
 }
 #if CX_PLATFORM == CX_P_LINUX
-#include <cx/io/detail/linux/epoll.hpp>
-#include <cx/io/detail/reactor/reactor_socket_service.hpp>
+#include <cx/io/internal/linux/epoll.hpp>
+#include <cx/io/internal/reactor/reactor_socket_service.hpp>
 #include <cx/io/basic_engine.hpp>
 using svc = cx::io::ip::reactor_socket_service<
             cx::io::epoll , SOCK_STREAM, IPPROTO_TCP>;
