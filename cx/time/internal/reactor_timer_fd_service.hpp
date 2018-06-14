@@ -77,9 +77,9 @@ namespace cx::time {
 		void set_wakeup_time(void) {
 			struct itimerspec its;
 			memset(&its, 0x00, sizeof(its));
-			auto now = std::chrono::duration_cast<std::chrono::seconds>(
+			auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
 				std::chrono::system_clock::now().time_since_epoch());
-			auto wakeup = std::chrono::duration_cast<std::chrono::seconds>(
+			auto wakeup = std::chrono::duration_cast<std::chrono::milliseconds>(
 				_queue.top()->expired_at.time_since_epoch());
 			auto diff = wakeup - now;
 			if (diff.count() > 0) {

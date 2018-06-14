@@ -150,18 +150,23 @@ TEST(cx_io_ip_sockets, async_connect0_timer ) {
 
 	bool step[3] = { false,false,false };
 	fd.async_connect(addresses[0], [&](const std::error_code& ec) {
-		if (ec)
+		if (ec) {
+			gprintf("Error 0 %s", ec.message().c_str());
 			fd.close();
-		else {
+		} else {
+			gprintf("Run 0 %s", ec.message().c_str());
 			step[0] = true;
 			cx::io::ip::tcp::buffer buf(get);
 			fd.async_write(buf, [&](const std::error_code& ec, const int ) {
-				if (ec)
+				if (ec) {
+					gprintf("Error 1 %s", ec.message().c_str());
 					fd.close();
-				else {
+				} else {
+					gprintf("Run 1 %s", ec.message().c_str());
 					step[1] = true;
 					fd.async_read(rdbuf, [&](const std::error_code& ec, const int ) {
 						if (!ec) {
+							gprintf("Run 2 %s", ec.message().c_str());
 							step[2] = true;
 						}
 						fd.close();
@@ -178,6 +183,12 @@ TEST(cx_io_ip_sockets, async_connect0_timer ) {
 	});
 	timer.fire();
 	engine.run();
+	/*
+	for (int i = 0; i < 10; ++i) {
+		engine.implementation().run(std::chrono::seconds(1));
+		gprintf("%d %d", engine.implementation()._active_handles.size()
+			, engine.implementation()._active_links.load());
+	}*/
 	
 	ASSERT_TRUE(step[0] && step[1] && step[2]);
 	ASSERT_TRUE(calltimer);
