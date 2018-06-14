@@ -73,6 +73,7 @@ namespace cx::io::ip::internal {
 
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
+#include <netinet/tcp.h>
 
 #endif // CX_P_LINUX
 

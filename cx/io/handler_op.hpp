@@ -5,12 +5,12 @@
 
 namespace cx::io {
 
-    template < typename BaseOpType , typename HandlerType >
-    class handler_op : public BaseOpType {
+    template < typename BaseType , typename HandlerType >
+    class handler_op : public BaseType {
     public:
         template < typename T >
 		handler_op(const T& t, HandlerType&& handler)
-			: BaseOpType(t)
+			: BaseType(t)
 			, _handler(std::forward<HandlerType>(handler)) {}
 
 		virtual ~handler_op(void) {}

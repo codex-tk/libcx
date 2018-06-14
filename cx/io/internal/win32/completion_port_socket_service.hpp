@@ -91,8 +91,6 @@ namespace cx::io::ip {
 			pollfd.events = ((ops & cx::io::pollin) ? POLLRDNORM : 0)
 				| ((ops & cx::io::pollout) ? POLLWRNORM : 0);
 			if (SOCKET_ERROR == WSAPoll(&pollfd, 1, static_cast<int>(ms.count()))) {
-				std::error_code ec(WSAGetLastError(), cx::windows_category());
-				std::string msg = ec.message();
 				return -1;
 			}
 			ops = ((pollfd.revents & POLLRDNORM) ? cx::io::pollin : 0)

@@ -14,8 +14,9 @@ namespace cx::io {
     template < typename ImplementationType >
 	class reactor_base {
 	public:
-		struct handle;
-		using handle_type = std::shared_ptr<handle>;
+		struct basic_handle;
+		using handle_type = std::shared_ptr<basic_handle>;
+		using native_handle_type = int;
 
 		class operation {
 		public:
@@ -56,22 +57,22 @@ namespace cx::io {
 
 		using operation_type = operation;
 		
-		struct handle : public std::enable_shared_from_this<handle> {
+		struct basic_handle : public std::enable_shared_from_this<basic_handle> {
 			std::recursive_mutex mutex;
-			int fd;
+			native_handle_type fd;
 			cx::slist<operation> ops[2];
 
-			handle(void) : fd(-1) {}
+			basic_handle(void) : fd(-1) {}
 
 			int handle_events(ImplementationType& impl, int revt) {
-				auto scope = this->shared_from_this();
+				auto pthis = this->shared_from_this();
 				int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 				int proc = 0;
 				bool changed = false;
 				for (int i = 0; i < 2; ++i) {
 					if (ops_filter[i] & revt) {
 						operation* op = ops[i].head();
-						if (op && op->complete(this->shared_from_this())) {
+						if (op && op->complete(pthis)) {
 							ops[i].remove_head();
 							proc += (*op)();
 							if (ops[i].head() == nullptr)
@@ -82,8 +83,8 @@ namespace cx::io {
 				if (changed) {
 					int interest = (ops[0].head() ? cx::io::pollin : 0)
 						| (ops[1].head() ? cx::io::pollout : 0);
-					if (false == impl.bind(this->shared_from_this(), interest)) {
-						this->drain_all_ops(impl,  cx::get_last_error());
+					if (impl.bind(pthis, interest) == false) {
+						this->drain_all_ops(impl, cx::get_last_error());
 					}
 				}
 				return proc;

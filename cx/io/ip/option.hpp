@@ -78,9 +78,9 @@ namespace cx::io::ip::option {
 		unsigned long _option;
 	};
 
-
-	using reuse_address = value_option< int, SOL_SOCKET, SO_REUSEADDR	>;
+	using reuse_address = value_option< int, SOL_SOCKET, SO_REUSEADDR >;
 	using bind_ipv6only = value_option< int, IPPROTO_IPV6, IPV6_V6ONLY >;
+	using tcp_no_delay = value_option< int, IPPROTO_TCP, TCP_NODELAY >;
 	/*
 	typedef value_option< int       , SOL_SOCKET	, SO_BROADCAST			> broad_cast;
 	typedef value_option< int		, SOL_SOCKET	, SO_RCVBUF				> recv_buffer;
@@ -105,7 +105,6 @@ namespace cx::io::ip::option {
 	typedef value_option< ipv6_mreq	, IPPROTO_IPV6	, IPV6_ADD_MEMBERSHIP	> multi_cast_join_ipv6;
 	typedef value_option< ipv6_mreq	, IPPROTO_IPV6	, IPV6_DROP_MEMBERSHIP	> multi_cast_drop_ipv6;
 
-	typedef value_option< int       , IPPROTO_TCP	, TCP_NODELAY		> tcp_no_delay;
 
 #if defined(_WIN32) || defined(_WIN64)
 	typedef value_option< BOOL		, SOL_SOCKET	, SO_CONDITIONAL_ACCEPT		> conditional_accept;

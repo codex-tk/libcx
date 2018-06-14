@@ -7,13 +7,15 @@ namespace cx {
         return std::string( "hello cx" );
     }
 #if CX_PLATFORM ==  CX_P_WINDOWS
-	std::error_category& windows_category(void) {
-		static windows_category_impl impl;
-		return impl;
+	namespace internal {
+		std::error_category& windows_category(void) {
+			static internal::windows_category_impl impl;
+			return impl;
+		}
 	}
 
 	std::error_code get_last_error(void) {
-		return std::error_code(WSAGetLastError(), windows_category());
+		return std::error_code(WSAGetLastError(), internal::windows_category());
 	}
 #else
 	std::error_code get_last_error(void) {

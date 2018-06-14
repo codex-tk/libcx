@@ -40,7 +40,6 @@ namespace cx::time {
 			return std::make_shared< handle>();
 		}
 
-
 		class timer_op
 			: public implementation_type::operation_type {
 		public:
@@ -72,10 +71,13 @@ namespace cx::time {
 				, Resolution
 				, Resolution
 				, WT_EXECUTEDEFAULT);
+			assert(_wakeup_timer != INVALID_HANDLE_VALUE);
 		}
 
 		~win32_timer_queue_service(void) {
-			DeleteTimerQueueTimer(nullptr, _wakeup_timer, nullptr);
+			if (_wakeup_timer != INVALID_HANDLE_VALUE )
+				::DeleteTimerQueueTimer(nullptr, _wakeup_timer, nullptr);
+			_wakeup_timer = INVALID_HANDLE_VALUE;
 		}
 
 		void handle_timer_callback(void) {

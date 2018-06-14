@@ -6,6 +6,8 @@ TEST(error, t0) {
 	std::error_code ec;
 	ASSERT_FALSE(ec == cx::errc::success);
 
+    ASSERT_FALSE(cx::make_error_code(cx::errc::success));
+
 	ec = cx::make_error_code(cx::errc::success);
 	ASSERT_FALSE(ec == std::errc::operation_canceled);
 

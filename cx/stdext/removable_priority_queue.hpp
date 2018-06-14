@@ -23,6 +23,7 @@ namespace cx::stdext {
 			}
 		}
 	};
+
 } // namespace cx::stdext
 
 #endif

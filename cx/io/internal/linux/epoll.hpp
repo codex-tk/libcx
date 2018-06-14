@@ -21,14 +21,17 @@ namespace cx::io {
 
 	class epoll : public cx::io::internal::basic_implementation {
 	public:
-		using handle = reactor_base<epoll>::handle;
+		using basic_handle = reactor_base<epoll>::basic_handle;
 		using handle_type = reactor_base<epoll>::handle_type;
 		using operation_type = reactor_base<epoll>::operation_type;
-		using native_handle_type = int;
+		using native_handle_type = reactor_base<epoll>::native_handle_type;
+
 		epoll(void)
 			: _handle(epoll_create(256))
 			, _eventfd(eventfd(0, 0))
 		{
+			assert(_handle != -1);
+			assert(_eventfd != -1);
 			_active_links.store(0);
 			epoll_event evt;
 			evt.events = EPOLLIN;
@@ -44,6 +47,7 @@ namespace cx::io {
 		}
 
 		bool bind(const handle_type& ptr, const int ops) {
+			assert(ptr.get() != nullptr);
 			if (!ptr)
 				return false;
 			epoll_event evt;
@@ -103,9 +107,9 @@ namespace cx::io {
 			cx::io::internal::basic_implementation::scoped_loop sl(*this);
 			int proc = 0;
 			for (int i = 0; i < nbfd; ++i) {
-				epoll::handle* raw_handle = static_cast<epoll::handle*>(events[i].data.ptr);
-				if (raw_handle) {
-					proc += raw_handle->handle_events(*this, events[i].events);
+				epoll::basic_handle* pbasic_handle = static_cast<epoll::basic_handle*>(events[i].data.ptr);
+				if (pbasic_handle) {
+					proc += pbasic_handle->handle_events(*this, events[i].events);
 				} else {
 					uint64_t v;
 					read(_eventfd, &v, sizeof(v));

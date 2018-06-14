@@ -27,7 +27,7 @@ namespace cx::io::ip {
 	public:
 		using implementation_type = ImplementationType;
 		using service_type = ServiceType<ImplementationType, Type, Proto>;
-		struct _handle : public implementation_type::handle {
+		struct _handle : public implementation_type::basic_handle {
 			service_type& service;
 
 			_handle(service_type& svc)
@@ -116,7 +116,7 @@ namespace cx::io::ip {
 
 		bool good(handle_type handle) {
 			if (handle) {
-				return handle->fd != -1;
+				return handle->fd != invalid_native_handle;
 			}
 			return false;
 		}
@@ -261,7 +261,7 @@ namespace cx::io::ip {
 
 		bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {
 			int ret = this->write(handle, op->buffer());
-			if (ret < 0) {
+			if (ret <= 0) {
 				op->error(cx::get_last_error());
 			}
 			op->io_size(ret);
@@ -270,7 +270,7 @@ namespace cx::io::ip {
 
 		bool read_complete(handle_type handle, cx::io::basic_read_op<this_type>* op) {
 			int ret = this->read(handle, op->buffer());
-			if (ret < 0) {
+			if (ret <= 0) {
 				op->error(cx::get_last_error());
 			}
 			op->io_size(ret);
@@ -373,7 +373,7 @@ namespace cx::io::ip {
 
 		bool write_complete(handle_type handle, cx::io::basic_write_op<this_type>* op) {
 			int ret = this->write(handle, op->buffer());
-			if (ret < 0) {
+			if (ret <= 0) {
 				op->error(cx::get_last_error());
 			}
 			op->io_size(ret);
@@ -382,7 +382,7 @@ namespace cx::io::ip {
 
 		bool read_complete(handle_type handle, cx::io::basic_read_op<this_type>* op) {
 			int ret = this->read(handle, op->buffer());
-			if (ret < 0) {
+			if (ret <= 0) {
 				op->error(cx::get_last_error());
 			}
 			op->io_size(ret);

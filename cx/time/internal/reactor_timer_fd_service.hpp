@@ -65,7 +65,7 @@ namespace cx::time {
 		explicit reactor_timer_fd_service(implementation_type& impl)
 			: _implementation(impl)
 			, _timer_op(*this)
-			, _timer_fd(std::make_shared< typename implementation_type::handle >())
+			, _timer_fd(std::make_shared< typename implementation_type::basic_handle >())
 		{
 			_timer_fd->fd = timerfd_create(CLOCK_REALTIME, 0);
 		}
