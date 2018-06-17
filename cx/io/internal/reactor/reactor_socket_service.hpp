@@ -5,9 +5,11 @@
 
 #include <cx/cxdefine.hpp>
 #include <cx/io/basic_buffer.hpp>
+#include <cx/io/handler_op.hpp>
 
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/ip/option.hpp>
+
 #include <cx/io/internal/reactor/reactor.hpp>
 #include <cx/io/internal/reactor/reactor_connect_op.hpp>
 #include <cx/io/internal/reactor/reactor_accept_op.hpp>
@@ -201,9 +203,9 @@ namespace cx::io::ip {
 		template < typename HandlerType > using accept_op
 			= cx::io::ip::reactor_accept_op< this_type, HandlerType>;
 		template < typename HandlerType > using read_op
-			= cx::io::reactor_read_op< this_type, HandlerType>;
+			= cx::io::handler_op< cx::io::reactor_read_op<this_type> , HandlerType>;
 		template < typename HandlerType > using write_op
-			= cx::io::reactor_write_op< this_type, HandlerType>;
+			= cx::io::handler_op< cx::io::reactor_write_op<this_type>, HandlerType>;
 
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
@@ -294,6 +296,10 @@ namespace cx::io::ip {
 			write_op<HandlerType>* op
 				= new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 
+			async_write(handle, op);
+		}
+
+		void async_write(handle_type handle, cx::io::reactor_write_op<this_type>* op ) {
 			if (handle->ops[1].add_tail(op) == 0) {
 				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
 				if (!this->implementation().bind(handle, ops)) {
@@ -312,6 +318,11 @@ namespace cx::io::ip {
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			read_op<HandlerType>* op
 				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+
+			async_read(handle, op);
+		}
+
+		void async_read(handle_type handle, cx::io::reactor_read_op<this_type>* op) {
 			if (handle->ops[0].add_tail(op) == 0) {
 				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
 				if (!this->implementation().bind(handle, ops)) {
@@ -375,6 +386,31 @@ namespace cx::io::ip {
 			op->io_size(ret);
 			return true;
 		}
+
+		using read_op_type = std::shared_ptr<cx::io::reactor_read_op<this_type>>;
+		using write_op_type = std::shared_ptr<cx::io::reactor_write_op<this_type>>;
+
+		template < typename HandlerType >
+		read_op_type make_read_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< typename read_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		template < typename HandlerType >
+		write_op_type make_write_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< typename write_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		void async_read(handle_type handle, read_op_type op) {
+			async_read(handle, op.get());
+		}
+
+		void async_write(handle_type handle, write_op_type op) {
+			async_write(handle, op.get());
+		}
 	};
 
 	template <typename ImplementationType>
@@ -407,9 +443,9 @@ namespace cx::io::ip {
 		using buffer_type = _buffer;
 
 		template < typename HandlerType > using read_op
-			= cx::io::reactor_read_op< this_type, HandlerType>;
+			= cx::io::handler_op< cx::io::reactor_read_op< this_type>, HandlerType>;
 		template < typename HandlerType > using write_op
-			= cx::io::reactor_write_op< this_type, HandlerType>;
+			= cx::io::handler_op< cx::io::reactor_write_op< this_type>, HandlerType>;
 
 		handle_type make_shared_handle(void) {
 			return this->make_shared_handle(*this);
@@ -471,6 +507,10 @@ namespace cx::io::ip {
 			write_op<HandlerType>* op
 				= new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 
+			async_write(handle, op);
+		}
+
+		void async_write(handle_type handle, cx::io::reactor_write_op<this_type>* op) {
 			if (handle->ops[1].add_tail(op) == 0) {
 				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
 				if (!this->implementation().bind(handle, ops)) {
@@ -490,6 +530,10 @@ namespace cx::io::ip {
 			read_op<HandlerType>* op
 				= new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 
+			async_read(handle, op);
+		}
+
+		void async_read(handle_type handle, cx::io::reactor_read_op<this_type>* op) {
 			if (handle->ops[0].add_tail(op) == 0) {
 				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
 				if (!this->implementation().bind(handle, ops)) {
@@ -520,6 +564,31 @@ namespace cx::io::ip {
 			}
 			op->io_size(ret);
 			return true;
+		}
+
+		using read_op_type = std::shared_ptr<cx::io::reactor_read_op<this_type>>;
+		using write_op_type = std::shared_ptr<cx::io::reactor_write_op<this_type>>;
+
+		template < typename HandlerType >
+		read_op_type make_read_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< typename read_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		template < typename HandlerType >
+		write_op_type make_write_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< typename write_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		void async_read(handle_type handle, read_op_type op) {
+			async_read(handle, op.get());
+		}
+
+		void async_write(handle_type handle, write_op_type op) {
+			async_write(handle, op.get());
 		}
 	};
 }

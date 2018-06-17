@@ -197,3 +197,66 @@ TEST(cx_io_ip_sockets, async_connect0_timer ) {
 	ASSERT_TRUE(!fd);
 	ASSERT_TRUE(fd.handle().get() != nullptr);
 }
+
+
+TEST(cx_io_ip_sockets, make_op) {
+	cx::io::engine<
+		cx::io::ip::tcp::service
+	> engine;
+	cx::io::ip::tcp::socket fd(engine);
+	auto addresses = cx::io::ip::tcp::address::resolve("naver.com", 80, AF_INET);
+	ASSERT_FALSE(addresses.empty());
+	ASSERT_TRUE(fd.open(addresses[0]));
+	ASSERT_TRUE(fd);
+	ASSERT_TRUE(fd.set_option(cx::io::ip::option::non_blocking()));
+
+	bool connected = false;
+	fd.async_connect(addresses[0], [&](const std::error_code& ec) {
+		if (!ec) connected = true;
+	});
+
+	engine.implementation().run(std::chrono::milliseconds(1000));
+
+	ASSERT_TRUE(connected);
+
+
+	int wrsize = 0;
+	int rdsize = 0;
+	char read_buf[1024] = { 0 , };
+	cx::io::ip::tcp::buffer buf(get);
+	cx::io::ip::tcp::buffer rdbuf(read_buf, 1024);
+
+	auto wr = fd.make_write_op([&](const std::error_code& ec, const int size) {
+		if (!ec) {
+			wrsize = size;
+		}
+	});
+
+	auto rd = fd.make_read_op([&](const std::error_code& ec, const int size) {
+		if (!ec) {
+			rdsize = size;
+		}
+	});
+
+	wr->buffer() = buf;
+	rd->buffer() = rdbuf;
+
+	fd.async_write(wr);
+
+	engine.implementation().run(std::chrono::milliseconds(1000));
+
+	ASSERT_TRUE(wrsize == static_cast<int>(buf.length()));
+
+	fd.async_read(rd);
+
+	engine.implementation().run(std::chrono::milliseconds(1000));
+	ASSERT_TRUE(rdsize > 0);
+	gprintf("%s", rdbuf.base());
+	
+	wr.reset();
+	rd.reset();
+
+	fd.close();
+	ASSERT_TRUE(!fd);
+	ASSERT_TRUE(fd.handle().get() != nullptr);
+}

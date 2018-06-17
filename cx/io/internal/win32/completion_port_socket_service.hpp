@@ -204,6 +204,7 @@ namespace cx::io::ip {
 			= cx::io::handler_op< basic_write_op<this_type> , HandlerType>;
 
 
+
 		handle_type make_shared_handle(void) {
 			return std::make_shared<_handle>(*this);
 		}
@@ -323,12 +324,16 @@ namespace cx::io::ip {
 			write_op<HandlerType>* op =
 				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 
+			async_write(handle, op);
+		}
+		
+		void async_write(handle_type handle, basic_write_op<this_type>* op) {
 			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
 				implementation().post(op);
 				return;
 			}
-
+			op->reset();
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASend(handle->fd.s
@@ -351,12 +356,16 @@ namespace cx::io::ip {
 			read_op<HandlerType>* op =
 				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 
+			async_read(handle, op);
+		}
+
+		void async_read(handle_type handle, basic_read_op<this_type>* op) {
 			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
 				implementation().post(op);
 				return;
 			}
-
+			op->reset();
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecv(handle->fd.s
@@ -373,6 +382,7 @@ namespace cx::io::ip {
 				}
 			}
 		}
+
 
 		template < typename HandlerType >
 		void async_accept(handle_type handle, HandlerType&& handler) {
@@ -413,6 +423,30 @@ namespace cx::io::ip {
 			op->error(cx::system_error());
 			implementation().post(op);
 		}
+
+		using read_op_type = std::shared_ptr<basic_read_op<this_type>>;
+		using write_op_type = std::shared_ptr<basic_write_op<this_type>>;
+
+		template < typename HandlerType >
+		read_op_type make_read_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< read_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+		template < typename HandlerType >
+		write_op_type make_write_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< write_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		void async_read(handle_type handle, read_op_type op) {
+			async_read(handle, op.get());
+		}
+
+		void async_write(handle_type handle, write_op_type op) {
+			async_write(handle, op.get());
+		}
 	};
 
 	template <> class completion_port_socket_service< SOCK_DGRAM, IPPROTO_UDP>
@@ -441,6 +475,8 @@ namespace cx::io::ip {
 		template < typename HandlerType > using write_op
 			= cx::io::handler_op< basic_write_op<this_type>, HandlerType>;
 
+		using read_op_type = std::shared_ptr<basic_read_op<this_type>>;
+		using write_op_type = std::shared_ptr<basic_write_op<this_type>>;
 
 		handle_type make_shared_handle(void) {
 			return std::make_shared<_handle>(*this);
@@ -501,7 +537,11 @@ namespace cx::io::ip {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			write_op<HandlerType>* op =
 				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+			
+			async_write(handle, op);
+		}
 
+		void async_write(handle_type handle, basic_write_op<this_type>* op ) {
 			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
 				implementation().post(op);
@@ -532,6 +572,10 @@ namespace cx::io::ip {
 			read_op<HandlerType>* op =
 				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
 
+			async_read(handle, op);
+		}
+
+		void async_read(handle_type handle, basic_read_op<this_type>* op ) {
 			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
 				implementation().post(op);
@@ -555,6 +599,31 @@ namespace cx::io::ip {
 					implementation().post(op);
 				}
 			}
+		}
+
+		using read_op_type = std::shared_ptr<basic_read_op<this_type>>;
+		using write_op_type = std::shared_ptr<basic_write_op<this_type>>;
+
+		template < typename HandlerType >
+		read_op_type make_read_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< read_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		template < typename HandlerType >
+		write_op_type make_write_op(HandlerType&& handler) {
+			return std::make_shared<cx::io::reusable_handler_op< write_op_type::element_type, HandlerType>>(
+				std::forward<HandlerType>(handler)
+			);
+		}
+
+		void async_read(handle_type handle, read_op_type op) {
+			async_read(handle, op.get());
+		}
+
+		void async_write(handle_type handle, write_op_type op) {
+			async_write(handle, op.get());
 		}
 	};
 

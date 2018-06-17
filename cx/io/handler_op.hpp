@@ -13,16 +13,35 @@ namespace cx::io {
 			: BaseType(t)
 			, _handler(std::forward<HandlerType>(handler)) {}
 
+		handler_op(HandlerType&& handler)
+			: _handler(std::forward<HandlerType>(handler)) {}
+
 		virtual ~handler_op(void) {}
 
 		virtual int operator()(void) override {
-			_handler(error(), io_size());
+			_handler(this->error(), this->io_size());
 			delete this;
 			return 1;
 		}
     private:
         HandlerType _handler;
     };
+
+	template < typename BaseType, typename HandlerType >
+	class reusable_handler_op : public BaseType {
+	public:
+		reusable_handler_op(HandlerType&& handler)
+			: _handler(std::forward<HandlerType>(handler)) {}
+
+		virtual ~reusable_handler_op(void) {}
+
+		virtual int operator()(void) override {
+			_handler(this->error(), this->io_size());
+			return 1;
+		}
+	private:
+		HandlerType _handler;
+	};
 
 }
 

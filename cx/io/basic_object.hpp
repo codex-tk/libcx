@@ -14,6 +14,8 @@ namespace cx::io {
 		using handle_type = typename ServiceType::handle_type;
 		using address_type = typename ServiceType::address_type;
 		using buffer_type = typename ServiceType::buffer_type;
+		using read_op_type = typename ServiceType::read_op_type;
+		using write_op_type = typename ServiceType::write_op_type;
 
 		template < typename EngineType >
 		basic_object(EngineType& engine)
@@ -26,7 +28,7 @@ namespace cx::io {
 			, _handle(handle) {}
 
 		~basic_object(void) {
-			if (1 == _handle.use_count())
+			if (_handle.use_count() == 1)
 				_service.close(_handle);
 		}
 
@@ -70,6 +72,24 @@ namespace cx::io {
 		template < typename HandlerType >
 		void async_read(const buffer_type& buf, HandlerType&& handler) {
 			service().async_read(handle(), buf, std::forward<HandlerType>(handler));
+		}
+
+		template < typename HandlerType >
+		read_op_type make_read_op(HandlerType&& handler) {
+			return _service.make_read_op(std::forward<HandlerType>(handler));
+		}
+
+		template < typename HandlerType >
+		write_op_type make_write_op(HandlerType&& handler) {
+			return _service.make_write_op(std::forward<HandlerType>(handler));
+		}
+
+		void async_read(read_op_type op) {
+			service().async_read(handle(), op);
+		}
+
+		void async_write(write_op_type op) {
+			service().async_write(handle(), op);
 		}
 	private:
 		ServiceType& _service;
