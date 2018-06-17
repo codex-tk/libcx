@@ -32,19 +32,20 @@ namespace cx::io::ip {
 		using operation_type = typename implementation_type::operation_type;
 		using service_type = ServiceType<Type, Proto>;
 
+		using native_handle_type = SOCKET;
+		static const native_handle_type invalid_native_handle = INVALID_SOCKET;
+
 		struct _handle : public cx::io::completion_port::basic_handle {
 			_handle(service_type& svc)
 				: service(svc)
 			{
-				this->fd.s = INVALID_SOCKET;
+				this->fd.s = invalid_native_handle;
 			}
 			service_type& service;
 		};
 
 		using handle_type = std::shared_ptr<_handle>;
 
-		using native_handle_type = SOCKET;
-		static const native_handle_type invalid_native_handle = INVALID_SOCKET;
 
 		basic_completion_port_socket_service(implementation_type& impl)
 			: _implementation(impl) {}
@@ -57,29 +58,47 @@ namespace cx::io::ip {
 				, nullptr
 				, 0
 				, WSA_FLAG_OVERLAPPED);
-			if (handle->fd.s != INVALID_SOCKET)
-				return true;
-			return false;
+			if (handle->fd.s == invalid_native_handle) {
+				last_error(cx::system_error());
+				return false;
+			}
+			return true;
 		}
 
 		void close(handle_type handle) {
-			if (handle && handle->fd.s != INVALID_SOCKET) {
+			if (handle && handle->fd.s != invalid_native_handle) {
 				implementation().unbind(handle);
 				::closesocket(handle->fd.s);
-				handle->fd.s = INVALID_SOCKET;
+				handle->fd.s = invalid_native_handle;
 			}
 		}
 
 		bool connect(handle_type handle, const address_type& address) {
-			if (::connect(handle->fd.s, address.sockaddr(), address.length()) == 0)
+			if (handle.get() == nullptr) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return false;
+			}
+			if (handle->fd.s == invalid_native_handle) {
+				if (!open(handle, address)) {
+					return false;
+				}
+			}
+			if (::connect(handle->fd.s, address.sockaddr(), address.length()) != SOCKET_ERROR) {
 				return true;
-			if (WSAGetLastError() == WSAEWOULDBLOCK)
+			}
+			if (WSAGetLastError() == WSAEWOULDBLOCK) {
 				return true;
+			}
+			last_error(cx::system_error());
 			return false;
 		}
 
 		bool bind(handle_type handle, const address_type& address) {
-			return ::bind(handle->fd.s, address.sockaddr(), address.length()) != SOCKET_ERROR;
+			if(::bind(handle->fd.s, address.sockaddr(), address.length()) == SOCKET_ERROR){
+				last_error(cx::system_error());
+				return false;
+			}
+			return true;
 		}
 
 		int poll(handle_type handle
@@ -90,40 +109,59 @@ namespace cx::io::ip {
 			pollfd.fd = handle->fd.s;
 			pollfd.events = ((ops & cx::io::pollin) ? POLLRDNORM : 0)
 				| ((ops & cx::io::pollout) ? POLLWRNORM : 0);
-			if (SOCKET_ERROR == WSAPoll(&pollfd, 1, static_cast<int>(ms.count()))) {
+			int result = WSAPoll(&pollfd, 1, static_cast<int>(ms.count()));
+			if (result == SOCKET_ERROR) {
+				last_error(cx::system_error());
 				return -1;
+			}
+			if (result == 0) {
+				last_error(std::make_error_code(std::errc::timed_out));
+				return 0;
 			}
 			ops = ((pollfd.revents & POLLRDNORM) ? cx::io::pollin : 0)
 				| ((pollfd.revents & POLLWRNORM) ? cx::io::pollout : 0);
-
 			return ops;
 		}
 
-		address_type local_address(handle_type handle) const {
+		address_type local_address(handle_type handle) {
+			this->last_error(std::error_code{});
 			address_type addr;
-			::getsockname(handle->fd.s, addr.sockaddr(), addr.length_ptr());
+			if (::getsockname(handle->fd.s, addr.sockaddr(), addr.length_ptr()) == SOCKET_ERROR) {
+				last_error(cx::system_error());
+			}
 			return addr;
 		}
 
-		address_type remote_address(handle_type handle) const {
+		address_type remote_address(handle_type handle) {
+			this->last_error(std::error_code{});
 			address_type addr;
-			::getpeername(handle->fd.s, addr.sockaddr(), addr.length_ptr());
+			if(::getpeername(handle->fd.s, addr.sockaddr(), addr.length_ptr()) == SOCKET_ERROR){
+				last_error(cx::system_error());
+			}
 			return addr;
 		}
 
 		template < typename T >
 		bool set_option(handle_type handle, T&& opt) {
-			return opt.set(handle->fd.s);
+			if(!opt.set(handle->fd.s)){
+				last_error(cx::system_error());
+				return false;
+			}
+			return true;
 		}
 
 		template < typename T >
 		bool get_option(handle_type handle, T&& opt) {
-			return opt.get(handle->fd.s);
+			if(!opt.get(handle->fd.s)){
+				last_error(cx::system_error());
+				return false;
+			}
+			return true;
 		}
 
 		bool good(handle_type handle) {
 			if (handle) {
-				return handle->fd.s != INVALID_SOCKET;
+				return handle->fd.s != invalid_native_handle;
 			}
 			return false;
 		}
@@ -131,6 +169,14 @@ namespace cx::io::ip {
 		implementation_type& implementation(void) {
 			return _implementation;
 		}
+
+		std::error_code last_error( std::error_code&& ec ) {
+            return _implementation.last_error(ec);
+        }
+
+        std::error_code last_error(void) {
+            return _implementation.last_error();
+        }
 	private:
 		implementation_type& _implementation;
 	};
@@ -172,19 +218,53 @@ namespace cx::io::ip {
 			: basic_completion_port_socket_service(impl) {}
 
 		int write(handle_type handle, const buffer_type& buf) {
-			return send(handle->fd.s, static_cast<const char*>(buf.base()), buf.length(), 0);
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return -1;
+			}
+			int ret = send(handle->fd.s, static_cast<const char*>(buf.base()), buf.length(), 0);
+			if (ret == SOCKET_ERROR) {
+				last_error(cx::system_error());
+				return -1;
+			}
+			return ret;
 		}
 
 		int read(handle_type handle, buffer_type& buf) {
-			return recv(handle->fd.s, static_cast<char*>(buf.base()), buf.length(), 0);
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return -1;
+			}
+			int ret = recv(handle->fd.s, static_cast<char*>(buf.base()), buf.length(), 0);
+			if (ret == SOCKET_ERROR) {
+				last_error(cx::system_error());
+				return -1;
+			}
+			return ret;
 		}
 
 		bool listen(handle_type handle, int backlog) {
-			return ::listen(handle->fd.s, backlog) != SOCKET_ERROR;
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return false;
+			}
+			if (::listen(handle->fd.s, backlog) == SOCKET_ERROR) {
+				last_error(cx::system_error());
+				return false;
+			}
+			return true;
 		}
 
-		int shutdown(handle_type handle, int how) {
-			return ::shutdown(handle->fd.s, how);
+		bool shutdown(handle_type handle, int how) {
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return false;
+			}
+			if (::shutdown(handle->fd.s, how) == SOCKET_ERROR) {
+				last_error(cx::system_error());
+				return false;
+			}
+			return true;
 		}
 
 		basic_accept_context<this_type> accept(handle_type handle, address_type& addr) {
@@ -197,33 +277,44 @@ namespace cx::io::ip {
 			connect_op<HandlerType>* op =
 				new connect_op<HandlerType>(addr, std::forward<HandlerType>(handler));
 
-			if (INVALID_SOCKET != handle->fd.s) {
-				//set_option(handle, cx::io::ip::option::non_blocking());
-				LPFN_CONNECTEX _connect_ex = nullptr;
-				DWORD bytes_returned = 0;
-				GUID guid = WSAID_CONNECTEX;
-				if (SOCKET_ERROR != WSAIoctl(handle->fd.s
-					, SIO_GET_EXTENSION_FUNCTION_POINTER
-					, &guid, sizeof(guid)
-					, &_connect_ex, sizeof(_connect_ex)
-					, &bytes_returned, nullptr, nullptr)) {
-					address_type bindaddr = address_type::any(0, addr.family());
-					if (bind(handle, bindaddr)) {
-						if (implementation().bind(handle, 0)) {
-							bytes_returned = 0;
-							if (_connect_ex(handle->fd.s
-								, op->address().sockaddr()
-								, op->address().length()
-								, nullptr, 0
-								, &bytes_returned, op->overlapped()) == TRUE)
-								return;
-							if (WSAGetLastError() == WSA_IO_PENDING)
-								return;
-						}
+			if (handle.get() == nullptr) {
+				op->error(std::make_error_code(std::errc::invalid_argument));
+				implementation().post(op);
+				return;
+			}
+
+			if (handle->fd.s == invalid_native_handle) {
+				if (!open(handle, addr)) {
+					op->error(last_error());
+					implementation().post(op);
+					return;
+				}
+			}
+			LPFN_CONNECTEX _connect_ex = nullptr;
+			DWORD bytes_returned = 0;
+			GUID guid = WSAID_CONNECTEX;
+			if (WSAIoctl(handle->fd.s
+				, SIO_GET_EXTENSION_FUNCTION_POINTER
+				, &guid, sizeof(guid)
+				, &_connect_ex, sizeof(_connect_ex)
+				, &bytes_returned, nullptr, nullptr) != SOCKET_ERROR ) 
+			{
+				address_type bindaddr = address_type::any(0, addr.family());
+				if (bind(handle, bindaddr)) {
+					if (implementation().bind(handle, 0)) {
+						bytes_returned = 0;
+						if (_connect_ex(handle->fd.s
+							, op->address().sockaddr()
+							, op->address().length()
+							, nullptr, 0
+							, &bytes_returned, op->overlapped()) == TRUE)
+							return;
+						if (WSAGetLastError() == WSA_IO_PENDING)
+							return;
 					}
 				}
 			}
-			op->error(cx::get_last_error());
+			op->error(cx::system_error());
 			implementation().post(op);
 		}
 
@@ -231,6 +322,13 @@ namespace cx::io::ip {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			write_op<HandlerType>* op =
 				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				op->error(std::make_error_code(std::errc::invalid_argument));
+				implementation().post(op);
+				return;
+			}
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASend(handle->fd.s
@@ -242,7 +340,7 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(cx::get_last_error());
+					op->error(cx::system_error());
 					implementation().post(op);
 				}
 			}
@@ -252,6 +350,13 @@ namespace cx::io::ip {
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			read_op<HandlerType>* op =
 				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				op->error(std::make_error_code(std::errc::invalid_argument));
+				implementation().post(op);
+				return;
+			}
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecv(handle->fd.s
@@ -263,7 +368,7 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(cx::get_last_error());
+					op->error(cx::system_error());
 					implementation().post(op);
 				}
 			}
@@ -274,7 +379,7 @@ namespace cx::io::ip {
 			accept_op<HandlerType>* op =
 				new accept_op<HandlerType>( *this , std::forward<HandlerType>(handler));
 			
-			if (!handle || handle->fd.s == INVALID_SOCKET) {
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
 				implementation().post(op);
 				return;
@@ -305,7 +410,7 @@ namespace cx::io::ip {
 				if (WSAGetLastError() == WSA_IO_PENDING)
 					return;
 			}
-			op->error(cx::get_last_error());
+			op->error(cx::system_error());
 			implementation().post(op);
 		}
 	};
@@ -351,21 +456,41 @@ namespace cx::io::ip {
 			: basic_completion_port_socket_service(impl) {}
 
 		int write(handle_type handle, const buffer_type& buf) {
-			return sendto(handle->fd.s
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return -1;
+			}
+			int ret = sendto(handle->fd.s
 				, static_cast<const char*>(buf.buffer.base())
 				, buf.buffer.length()
 				, 0
 				, buf.address.sockaddr()
 				, buf.address.length());
+
+			if (ret == SOCKET_ERROR) {
+				last_error(cx::system_error());
+				return -1;
+			}
+			return ret;
 		}
 
 		int read(handle_type handle, buffer_type& buf) {
-			return recvfrom(handle->fd.s
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				last_error(std::make_error_code(std::errc::invalid_argument));
+				return -1;
+			}
+			int ret = recvfrom(handle->fd.s
 				, static_cast<char*>(buf.buffer.base())
 				, buf.buffer.length()
 				, 0
 				, buf.address.sockaddr()
 				, buf.address.length_ptr());
+
+			if (ret == SOCKET_ERROR) {
+				last_error(cx::system_error());
+				return -1;
+			}
+			return ret;
 		}
 
 		int shutdown(handle_type, int) {
@@ -376,6 +501,13 @@ namespace cx::io::ip {
 		void async_write(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			write_op<HandlerType>* op =
 				new write_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				op->error(std::make_error_code(std::errc::invalid_argument));
+				implementation().post(op);
+				return;
+			}
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASendTo(handle->fd.s
@@ -389,7 +521,7 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(cx::get_last_error());
+					op->error(cx::system_error());
 					implementation().post(op);
 				}
 			}
@@ -399,6 +531,13 @@ namespace cx::io::ip {
 		void async_read(handle_type handle, const buffer_type& buf, HandlerType&& handler) {
 			read_op<HandlerType>* op =
 				new read_op<HandlerType>(buf, std::forward<HandlerType>(handler));
+
+			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
+				op->error(std::make_error_code(std::errc::invalid_argument));
+				implementation().post(op);
+				return;
+			}
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecvFrom(handle->fd.s
@@ -412,7 +551,7 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(cx::get_last_error());
+					op->error(cx::system_error());
 					implementation().post(op);
 				}
 			}

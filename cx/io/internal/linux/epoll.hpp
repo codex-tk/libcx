@@ -27,11 +27,17 @@ namespace cx::io {
 		using native_handle_type = reactor_base<epoll>::native_handle_type;
 
 		epoll(void)
-			: _handle(epoll_create(256))
-			, _eventfd(eventfd(0, 0))
+			: _handle(-1)
+			, _eventfd(-1)
 		{
-			assert(_handle != -1);
-			assert(_eventfd != -1);
+			_handle = epoll_create(256);
+			if (_handle == -1) {
+				throw std::system_error(cx::system_error(), "epoll_create fails");
+			}
+			_eventfd = eventfd(0, 0);
+			if (_eventfd == -1) {
+				throw std::system_error(cx::system_error(), "eventfd fails");
+			}
 			_active_links.store(0);
 			epoll_event evt;
 			evt.events = EPOLLIN;
@@ -47,15 +53,18 @@ namespace cx::io {
 		}
 
 		bool bind(const handle_type& ptr, const int ops) {
-			assert(ptr.get() != nullptr);
-			if (!ptr)
+			if (ptr.get() == nullptr || ptr->fd == -1) {
+				this->last_error(std::make_error_code(std::errc::invalid_argument));
 				return false;
+			}
+
 			epoll_event evt;
 			evt.events = ops;
 			evt.data.ptr = ptr.get();
 			if (epoll_ctl(_handle, EPOLL_CTL_MOD, ptr->fd, &evt) == 0) {
 				return true;
 			}
+
 			if ((errno == ENOENT) && ops) {
 				if (epoll_ctl(_handle, EPOLL_CTL_ADD, ptr->fd, &evt) == 0) {
 					std::lock_guard<std::recursive_mutex> lock(_mutex);
@@ -66,16 +75,20 @@ namespace cx::io {
 					return true;
 				}
 			}
+
+			this->last_error(cx::system_error());
 			return false;
 		}
 
 		void unbind(const handle_type& ptr) {
-			if (!ptr || (ptr->fd == -1))
+			if (ptr.get() == nullptr)
 				return;
-			epoll_event evt;
-			evt.events = 0;
-			evt.data.ptr = ptr.get();
-			epoll_ctl(_handle, EPOLL_CTL_DEL, ptr->fd, &evt);
+			if (ptr->fd != -1) {
+				epoll_event evt;
+				evt.events = 0;
+				evt.data.ptr = ptr.get();
+				epoll_ctl(_handle, EPOLL_CTL_DEL, ptr->fd, &evt);
+			}			
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			_active_handles.erase(ptr);
 			if (_active_handles.empty()) {

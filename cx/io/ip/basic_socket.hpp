@@ -66,7 +66,7 @@ namespace cx::io::ip {
 			return service().bind(handle(), addr);
 		}
 
-		int shutdown(int how) {
+		bool shutdown(int how) {
 			return service().shutdown(handle(), how);
 		}
 

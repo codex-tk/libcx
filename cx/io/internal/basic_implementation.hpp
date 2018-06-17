@@ -4,6 +4,7 @@
 #define __cx_io_detail_basic_implementation_h__
 
 #include <thread>
+#include <cx/error.hpp>
 
 namespace cx::io::internal{
 
@@ -30,6 +31,16 @@ namespace cx::io::internal{
             return false;
         }
 
+        std::error_code last_error( const std::error_code& ec ) {
+            auto old = _error_code;
+            _error_code = ec;
+            return old;
+        }
+
+        std::error_code last_error(void) {
+            return _error_code;
+        }
+
         struct scoped_loop{
             scoped_loop( basic_implementation& impl )
                 :_impl(impl)
@@ -45,6 +56,7 @@ namespace cx::io::internal{
     private:
         std::thread::id _thread_id;
         bool _in_loop;
+        std::error_code _error_code;
     };
 }
 

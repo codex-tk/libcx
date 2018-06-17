@@ -84,7 +84,7 @@ namespace cx::io {
 					int interest = (ops[0].head() ? cx::io::pollin : 0)
 						| (ops[1].head() ? cx::io::pollout : 0);
 					if (impl.bind(pthis, interest) == false) {
-						this->drain_all_ops(impl, cx::get_last_error());
+						this->drain_all_ops(impl, cx::system_error());
 					}
 				}
 				return proc;

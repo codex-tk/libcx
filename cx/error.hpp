@@ -15,8 +15,7 @@ namespace cx {
 
 	std::error_code make_error_code(cx::errc ec);
 
-	std::error_code get_last_error(void);
-
+	std::error_code system_error(void);
 }
 
 namespace std {

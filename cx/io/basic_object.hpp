@@ -26,7 +26,7 @@ namespace cx::io {
 			, _handle(handle) {}
 
 		~basic_object(void) {
-			if (_handle.use_count() == 1)
+			if (1 == _handle.use_count())
 				_service.close(_handle);
 		}
 
@@ -56,6 +56,10 @@ namespace cx::io {
 
 		explicit operator bool() const {
 			return _service.good(_handle);
+		}
+
+		std::error_code last_error(void){
+			return _service.last_error();
 		}
 	public:
 		template < typename HandlerType >

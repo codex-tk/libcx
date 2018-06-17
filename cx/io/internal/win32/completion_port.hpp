@@ -69,7 +69,11 @@ namespace cx::io {
 	public:
 		completion_port(void)
 			: _handle(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
-			, _active_links(0) {}
+			, _active_links(0) {
+			if (_handle == INVALID_HANDLE_VALUE) {
+				throw std::system_error(cx::system_error() , "CreateIoCompletionPort fails" );
+			}
+		}
 
 		~completion_port(void) {
 			CloseHandle(_handle);
@@ -77,22 +81,29 @@ namespace cx::io {
 		}
 
 		bool bind(const handle_type& ptr, const int /*ops*/) {
-			if (!ptr)
+			if (ptr.get() == nullptr || ptr->fd.h == INVALID_HANDLE_VALUE) {
+				this->last_error(std::make_error_code(std::errc::invalid_argument));
 				return false;
+			}
+				
 			if (CreateIoCompletionPort(
 				ptr->fd.h
 				, _handle
 				, reinterpret_cast<ULONG_PTR>(ptr.get())
-				, 0) == _handle)
+				, 0) != _handle)
 			{
-				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				_active_handles.insert(ptr);
-				return true;
+				this->last_error(cx::system_error());
+				return false;
 			}
-			return false;
+			std::lock_guard<std::recursive_mutex> lock(_mutex);
+			_active_handles.insert(ptr);
+			return true;
+			
 		}
 
 		void unbind(const handle_type& ptr) {
+			if (ptr.get() == nullptr)
+				return;
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			_active_handles.erase(ptr);
 		}
@@ -137,7 +148,7 @@ namespace cx::io {
 			} else {
 				operation_type* op = static_cast<operation_type*>(ov);
 				if (FALSE == ret) {
-					op->error( cx::get_last_error() );
+					op->error( cx::system_error() );
 				}
 				op->io_size(bytes_transferred);
 				(*op)();
