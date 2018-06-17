@@ -71,7 +71,9 @@ namespace cx::time {
 				, Resolution
 				, Resolution
 				, WT_EXECUTEDEFAULT);
-			assert(_wakeup_timer != INVALID_HANDLE_VALUE);
+			if (_wakeup_timer == INVALID_HANDLE_VALUE) {
+				throw std::system_error(cx::system_error(), "CreateTimerQueueTimer fails");
+			}
 		}
 
 		~win32_timer_queue_service(void) {

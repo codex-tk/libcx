@@ -219,12 +219,10 @@ TEST(cx_io_ip_sockets, make_op) {
 
 	ASSERT_TRUE(connected);
 
-
 	int wrsize = 0;
 	int rdsize = 0;
 	char read_buf[1024] = { 0 , };
 	cx::io::ip::tcp::buffer buf(get);
-	cx::io::ip::tcp::buffer rdbuf(read_buf, 1024);
 
 	auto wr = fd.make_write_op([&](const std::error_code& ec, const int size) {
 		if (!ec) {
@@ -239,7 +237,7 @@ TEST(cx_io_ip_sockets, make_op) {
 	});
 
 	wr->buffer() = buf;
-	rd->buffer() = rdbuf;
+	rd->buffer().reset( read_buf , 1024 );
 
 	fd.async_write(wr);
 
@@ -251,7 +249,7 @@ TEST(cx_io_ip_sockets, make_op) {
 
 	engine.implementation().run(std::chrono::milliseconds(1000));
 	ASSERT_TRUE(rdsize > 0);
-	gprintf("%s", rdbuf.base());
+	gprintf("%s", rd->buffer().base());
 	
 	wr.reset();
 	rd.reset();

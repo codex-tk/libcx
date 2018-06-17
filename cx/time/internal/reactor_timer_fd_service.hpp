@@ -68,6 +68,9 @@ namespace cx::time {
 			, _timer_fd(std::make_shared< typename implementation_type::basic_handle >())
 		{
 			_timer_fd->fd = timerfd_create(CLOCK_REALTIME, 0);
+			if (_timer_fd->fd == -1) {
+				throw std::system_error(cx::system_error(), "timerfd_create fails");
+			}
 		}
 
 		~reactor_timer_fd_service(void) {

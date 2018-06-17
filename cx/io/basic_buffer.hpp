@@ -27,6 +27,11 @@ namespace cx::io {
 			this->length(msg.size());
 		}
 
+		void reset(void* ptr , const std::size_t sz) {
+			base(ptr);
+			length(sz);
+		}
+
 #if CX_PLATFORM == CX_P_WINDOWS
 		void* base(void) const { return buf; }
 
