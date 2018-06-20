@@ -19,8 +19,8 @@ namespace cx::io {
 
 		template < typename EngineType >
 		basic_object(EngineType& engine)
-			: _service(engine.service(cx::tag<ServiceType>()))
-			, _handle(engine.service(cx::tag<ServiceType>())
+			: _service(engine.template service<ServiceType>())
+			, _handle(engine.template service<ServiceType>()
 				.make_shared_handle()) {}
 
 		basic_object(ServiceType& service, handle_type handle)

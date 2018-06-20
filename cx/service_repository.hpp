@@ -52,7 +52,7 @@ namespace cx {
 			: _services(std::forward<T>(t)) {}
 
 		template < typename T >
-		T& service( const cx::tag<T>& ) {
+		T& service( void ) {
 			return _service_impl<T>(_services);
 		}
 	private:

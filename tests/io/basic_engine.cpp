@@ -20,7 +20,7 @@ public:
 
 TEST(basic_engine, t0) {
 	cx::io::basic_engine< cx::io::implementation, foo_service > engine;
-	ASSERT_EQ(engine.service( cx::tag<foo_service>())._impl.run(std::chrono::milliseconds(1)), 0);
+	ASSERT_EQ(engine.template service<foo_service>()._impl.run(std::chrono::milliseconds(1)), 0);
 	int value = 0;
 	engine.implementation().post_handler([&] {
 		++value;
@@ -28,7 +28,7 @@ TEST(basic_engine, t0) {
 	engine.implementation().post_handler([&] {
 		++value;
 	});
-	ASSERT_EQ(engine.service( cx::tag<foo_service>())._impl.run(std::chrono::milliseconds(1)), 2);
+	ASSERT_EQ(engine.template service<foo_service>()._impl.run(std::chrono::milliseconds(1)), 2);
 	ASSERT_EQ(value, 2);
 }
 
@@ -39,13 +39,13 @@ TEST(basic_engine, socket_service) {
 		, cx::io::ip::udp::service > engine;
 	ASSERT_EQ(engine.implementation().run(std::chrono::milliseconds(1)), 0);
 	int value = 0;
-	engine.service(cx::tag<cx::io::ip::tcp::service>()).implementation().post_handler([&] {
+	engine.template service<cx::io::ip::tcp::service>().implementation().post_handler([&] {
 		++value;
 	});
-	engine.service(cx::tag<cx::io::ip::udp::service>()).implementation().post_handler([&] {
+	engine.template service<cx::io::ip::udp::service>().implementation().post_handler([&] {
 		++value;
 	});
-	ASSERT_EQ(engine.service(cx::tag<cx::io::ip::udp::service>()).implementation().run(std::chrono::milliseconds(1)), 2);
+	ASSERT_EQ(engine.template service<cx::io::ip::udp::service>().implementation().run(std::chrono::milliseconds(1)), 2);
 	ASSERT_EQ(value, 2);
 }
 

@@ -13,8 +13,8 @@ namespace cx::time {
 
 		template < typename EngineType >
 		basic_timer(EngineType& e)
-			: _service(e.service(cx::tag<ServiceType>()))
-			, _handle(e.service(cx::tag<ServiceType>()).make_shared_handle()) {}
+			: _service(e.template service<ServiceType>())
+			, _handle(e.template service<ServiceType>().make_shared_handle()) {}
 
 		void expired_at(const std::chrono::system_clock::time_point& tp) {
 			_handle->expired_at = tp;

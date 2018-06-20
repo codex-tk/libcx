@@ -28,4 +28,8 @@ namespace cx {
 	std::error_code make_error_code(cx::errc ec) {
 		return std::error_code(static_cast<int>(ec), cx::internal::cx_error_category::instance());
 	}
+
+	std::error_condition make_error_condition(cx::errc ec){
+		return std::error_condition(static_cast<int>(ec), cx::internal::cx_error_category::instance());
+	}
 }
