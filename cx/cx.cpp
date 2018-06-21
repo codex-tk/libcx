@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cx/cx.hpp>
+#include <cx/cxdefine.hpp>
 #include <cx/error.hpp>
 
 namespace cx {

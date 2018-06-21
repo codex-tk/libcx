@@ -16,13 +16,13 @@ namespace cx {
 
 	/*!
 	@brief ADL Lookup 으로 std 에서 해당 함수를 찾아서 사용
-	codex::errc 와 동일한 네임스페이스에 존재해야한다.
+	cx::errc 와 동일한 네임스페이스에 존재해야한다.
 	*/
 	std::error_code make_error_code(cx::errc ec);
 
 	/*!
 	@brief ADL Lookup 으로 std 에서 해당 함수를 찾아서 사용
-	codex::errc 와 동일한 네임스페이스에 존재해야한다.
+	cx::errc 와 동일한 네임스페이스에 존재해야한다.
 	*/
 	std::error_condition make_error_condition(cx::errc ec);
 	

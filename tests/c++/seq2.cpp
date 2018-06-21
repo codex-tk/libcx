@@ -15,9 +15,6 @@ template < unsigned ... s > struct make_seq1< 0 , s ... > { typedef seq<s...> ty
 }
 
 
-
-
-
 TEST( make_seq , view ) {
     std::cout << cx::pretty_type_name( make_seq0<0>::type{} ) << std::endl; // char
     std::cout << cx::pretty_type_name( make_seq0<1>::type{} ) << std::endl; // int

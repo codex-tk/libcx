@@ -30,6 +30,10 @@ Windows	 _WIN32 or __WIN32__
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 #include <MSWsock.h>
@@ -52,6 +56,8 @@ namespace cx::io::ip::internal {
 		static win32_socket_initializer initializer;
 	}
 }
+
+
 
 #else
 
@@ -95,6 +101,10 @@ namespace cx::io::ip::internal {
 #include <functional>
 #include <cassert>
 #include <sstream>
+
+#define _USE_MATH_DEFINES
+
+#include <math.h>
 
 #ifndef MAX_PATH
 #define MAX_PATH 256
