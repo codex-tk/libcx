@@ -36,10 +36,10 @@ TEST( cx_core , type_list ){
 
     tl::rebind< std::tuple >::other sample_tuple;
 
-    static_assert( std::is_same< cx::mp::transform< 
+    static_assert( std::is_same< cx::transform< 
         cx::type_list< int , double , char >
         , std::add_pointer >::type , cx::type_list< int* , double* , char* > >::value );
-    static_assert( std::is_same< cx::mp::transform< 
+    static_assert( std::is_same< cx::transform< 
         std::tuple< int& , double , char >
         , std::remove_reference >::type , std::tuple< int , double , char > >::value );
 

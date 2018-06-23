@@ -9,8 +9,8 @@
 #include <cx/core/tuple_sample.hpp>
 
 TEST( cx_mp , tuple ) {
-	cx::mp::internal::tuple_sample< int, double, char > t1{ 1 , 0.1 , 'c' };
-    int value = cx::mp::internal::get<0>(t1);
+	cx::internal::tuple_sample< int, double, char > t1{ 1 , 0.1 , 'c' };
+    int value = cx::internal::get<0>(t1);
     auto c_0 = std::integral_constant<std::size_t,0>();
     auto c_1 = std::integral_constant<std::size_t,1>(); 
     int value1 = t1[ c_0 ];

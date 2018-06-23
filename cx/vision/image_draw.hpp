@@ -3,7 +3,7 @@
 
 #include <cx/vision/image.hpp>
 
-namespace cx { namespace vision {
+namespace cx::vision {
 
     void line_to( image& img
                   , const cx::vision::point& from
@@ -11,6 +11,6 @@ namespace cx { namespace vision {
                   , const uint8_t color
                   );
 
-}}
+}
 
 #endif

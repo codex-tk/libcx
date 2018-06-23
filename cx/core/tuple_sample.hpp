@@ -10,7 +10,7 @@
 
 #include <cx/core/type_list.hpp>
 
-namespace cx::mp::internal {
+namespace cx::internal {
 	template < std::size_t N, typename T > struct value {
 		T data;
 		value(void) {}
@@ -20,29 +20,29 @@ namespace cx::mp::internal {
 	template < typename I, typename ... Ts > struct values;
 
 	template < std::size_t ... Is, typename ... Ts >
-	struct values< cx::mp::sequence< Is ... >, Ts ...  >
+	struct values< cx::sequence< Is ... >, Ts ...  >
 		: value< Is, Ts > ...
 	{
 		values(Ts&& ...  args)
-			: value< Is, typename cx::mp::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
+			: value< Is, typename cx::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
 		{}
 
 		template < std::size_t I >
-		constexpr typename cx::mp::at< I, type_list< Ts ... >>::type
+		constexpr typename cx::at< I, type_list< Ts ... >>::type
 			operator[](const std::integral_constant< std::size_t, I >&)
 		{
-			return static_cast<value< I, typename cx::mp::at< I, type_list< Ts ... >>::type >*>(this)->data;
+			return static_cast<value< I, typename cx::at< I, type_list< Ts ... >>::type >*>(this)->data;
 		}
 	};
 
 	template < typename I, typename T > struct values0;
 
 	template < std::size_t ... Is, typename ... Ts >
-	struct values0< cx::mp::sequence< Is ... >, type_list< Ts ... > >
-		: value< Is, typename cx::mp::at< Is, type_list< Ts ... >>::type > ...
+	struct values0< cx::sequence< Is ... >, type_list< Ts ... > >
+		: value< Is, typename cx::at< Is, type_list< Ts ... >>::type > ...
 	{
 		values0(Ts&& ...  args)
-			: value< Is, typename cx::mp::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
+			: value< Is, typename cx::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
 		{}
 
 	};
@@ -53,7 +53,7 @@ namespace cx::mp::internal {
 	}
 
 	template < typename ... Ts >
-	using tuple_sample = values< cx::mp::make_sequence< sizeof...(Ts) >, Ts ... >;
+	using tuple_sample = values< cx::make_sequence< sizeof...(Ts) >, Ts ... >;
 }
 
 #endif

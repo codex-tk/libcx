@@ -46,14 +46,14 @@ TEST( cx_io_ip_udp , async ) {
     buf.address = cx::io::ip::udp::address( "127.0.0.1" , 7543 , AF_INET );
     buf.buffer = cx::io::buffer( hello.data() , hello.length() );
     ASSERT_TRUE( cli_fd.open( buf.address ));
-    cli_fd.async_write( buf , [&] ( const std::error_code& ec , int size ) {
+    cli_fd.async_write( buf , [&] ( const std::error_code&  , int  ) {
         cli_fd.close();
     });
 
     char read_buf[1024] = {0 , };
     cx::io::ip::udp::buffer rdbuf;
     rdbuf.buffer = cx::io::buffer( read_buf , 1024);
-    svr_fd.async_read( rdbuf , [&] ( const std::error_code& ec , int size ) {
+    svr_fd.async_read( rdbuf , [&] ( const std::error_code&  , int  ) {
         svr_fd.close();
     });
     engine.run();

@@ -30,7 +30,7 @@ TEST(ts, cancel) {
 	timer.expired_at(at);
 	timer2.expired_at(at + std::chrono::seconds(2));
 	int testValue = 0;
-	timer.handler([&](const std::error_code& ec) {
+	timer.handler([&](const std::error_code& ) {
 		testValue = 1;
 	});
 	timer2.handler([&](const std::error_code& ec) {
