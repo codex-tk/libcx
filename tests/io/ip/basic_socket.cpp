@@ -251,9 +251,6 @@ TEST(cx_io_ip_sockets, make_op) {
 	ASSERT_TRUE(rdsize > 0);
 	gprintf("%s", rd->buffer().base());
 	
-	wr.reset();
-	rd.reset();
-
 	fd.close();
 	ASSERT_TRUE(!fd);
 	ASSERT_TRUE(fd.handle().get() != nullptr);

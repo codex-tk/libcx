@@ -3,7 +3,7 @@
 
 #include <cx/cxdefine.hpp>
 
-namespace cx::core {
+namespace cx {
     
     double radian( double degree ) {
         return degree * M_PI / 180;

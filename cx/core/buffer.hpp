@@ -5,7 +5,7 @@
  * @author ghtak
  * @date 2018-05-12
  */
-namespace cx::core {
+namespace cx {
 
     /**
      * @brief 

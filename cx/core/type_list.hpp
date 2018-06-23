@@ -11,7 +11,7 @@
 
 #include <cx/core/mp.hpp>
 
-namespace cx::core {
+namespace cx {
 
 	template < typename ... Ts >
 	struct type_list {
@@ -19,26 +19,26 @@ namespace cx::core {
 		using self = type_list< Ts ... >;
 
 		template < std::size_t I >
-		using at = cx::core::mp::at< I, self >;
+		using at = cx::mp::at< I, self >;
 
-		using front = cx::core::mp::front< self>;
+		using front = cx::mp::front< self>;
 
-		using back = cx::core::mp::back< self>;
-
-		template < typename ... Us >
-		using push_back = cx::core::mp::push_back< self, Us ... >;
+		using back = cx::mp::back< self>;
 
 		template < typename ... Us >
-		using push_front = cx::core::mp::push_front< self, Us ... >;
+		using push_back = cx::mp::push_back< self, Us ... >;
 
-		using pop_front = cx::core::mp::pop_front< self >;
+		template < typename ... Us >
+		using push_front = cx::mp::push_front< self, Us ... >;
 
-		using pop_back = cx::core::mp::pop_back< cx::core::mp::make_sequence<sizeof...(Ts)-1>, self >;
+		using pop_front = cx::mp::pop_front< self >;
 
-		using size = cx::core::mp::size< Ts ... >;
+		using pop_back = cx::mp::pop_back< cx::mp::make_sequence<sizeof...(Ts)-1>, self >;
+
+		using size = cx::mp::size< Ts ... >;
 
 		template < std::size_t I >
-		using at_t = typename cx::core::mp::at< I, type_list< Ts ... >>::type;
+		using at_t = typename cx::mp::at< I, type_list< Ts ... >>::type;
 
 		template < template < typename ... > class U >
 		struct rebind {

@@ -19,18 +19,18 @@ namespace cx::internal {
 	template < typename Is, typename ... Ts > struct values;
 
 	template < std::size_t ... Is, typename ... Ts >
-	struct values< cx::core::mp::sequence< Is ... >, Ts ... >
+	struct values< cx::mp::sequence< Is ... >, Ts ... >
 		: value< Is, Ts >... {
 		template < typename ... Args >
 		values(Args&& ... args)
 			: value< Is,
-			typename cx::core::mp::at< Is, cx::core::type_list< Ts ... > >::type
+			typename cx::mp::at< Is, cx::type_list< Ts ... > >::type
 			>(std::forward<Ts>(args)) ... {}
 
 		template < typename T >
 		values(T&& t)
 			: value< Is,
-			typename cx::core::mp::at< Is, cx::core::type_list< Ts ... > >::type
+			typename cx::mp::at< Is, cx::type_list< Ts ... > >::type
 			>(std::forward<T>(t)) ... {}
 
 		~values(void) {}
@@ -81,7 +81,7 @@ namespace cx {
 		template < typename T, std::size_t I > T& _service_impl(internal::value< I, T >& t) {
 			return t.data;
 		}
-		internal::values< cx::core::mp::make_sequence<sizeof...(Services)>
+		internal::values< cx::mp::make_sequence<sizeof...(Services)>
 			, Services ... > _services;*/
 		internal::combined_storage< Services... > _services;
 	};

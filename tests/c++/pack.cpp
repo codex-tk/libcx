@@ -44,14 +44,14 @@ template < typename ... Ts >
 class base0{
 public:
     base0() {
-        std::cout << cx::pretty_type_name( *this ) << std::endl;
+        std::cout << cx::type_name( *this ) << std::endl;
     }
 };
 
 template < typename ... Ts >
 class base1{
 public:
-    base1() { std::cout << cx::pretty_type_name( *this ) << std::endl; }
+    base1() { std::cout << cx::type_name( *this ) << std::endl; }
     base1( const int i ) { }
     void g() { }
 };

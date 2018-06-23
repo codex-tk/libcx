@@ -26,8 +26,8 @@ template<> struct gen_seq<1> : seq<0>{};
 
 
 TEST( gen_seq_test , usage ) {
-    std::cout << cx::pretty_type_name( gen_seq<0>::type() ) << std::endl;
-    std::cout << cx::pretty_type_name( gen_seq<1>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<0>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<1>::type() ) << std::endl;
 /*
     struct gen_seq : concat<
         typename gen_seq<N/2>::type     // gen_seq<2/2>  => gen_seq<1>::type =>  seq<0>
@@ -40,7 +40,7 @@ TEST( gen_seq_test , usage ) {
     struct concat<seq<I1...>, seq<I2...>>
     : seq< 0 , 1 + 0 >{};*/
     // gen_seq<2> - > seq< 0 , 1 >
-    std::cout << cx::pretty_type_name( gen_seq<2>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<2>::type() ) << std::endl;
 /*
     struct gen_seq : concat<
         typename gen_seq<N/2>::type     // gen_seq<1> seq<0>
@@ -53,7 +53,7 @@ TEST( gen_seq_test , usage ) {
     struct concat<seq<I1...>, seq<I2...>>
     : seq< 0 ,  1 + 0 , 1 + 1  >{}; //sizeof...(I1) == 1 */
     // seq< 0 , 1  , 2>
-    std::cout << cx::pretty_type_name( gen_seq<3>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<3>::type() ) << std::endl;
 
     /*
     struct gen_seq : concat<
@@ -68,12 +68,12 @@ TEST( gen_seq_test , usage ) {
     : seq< 0 , 1 ,  2 + 0 , 2 + 1  >{}; ////sizeof...(I1) == 2
      seq< 0 , 1 , 2 , 3>
     */
-    std::cout << "4" <<  cx::pretty_type_name( gen_seq<4>::type() ) << std::endl;
-    std::cout << cx::pretty_type_name( gen_seq<5>::type() ) << std::endl;
-    std::cout << cx::pretty_type_name( gen_seq<6>::type() ) << std::endl;
-    std::cout << cx::pretty_type_name( gen_seq<10>::type()) << std::endl;
+    std::cout << "4" <<  cx::type_name( gen_seq<4>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<5>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<6>::type() ) << std::endl;
+    std::cout << cx::type_name( gen_seq<10>::type()) << std::endl;
 
-    std::cout << cx::pretty_type_name( concat<seq<> , seq<0>>::type()) << std::endl;
+    std::cout << cx::type_name( concat<seq<> , seq<0>>::type()) << std::endl;
 }
 
 template < unsigned ... i_list >
@@ -86,7 +86,7 @@ struct rebind : public eval < (sizeof(i_list)+i_list)... > {
 };
 
 TEST( tmp , rebind ) {
-    std::cout << cx::pretty_type_name( rebind< 1 , 2 ,3 >::type{} ) << std::endl;
+    std::cout << cx::type_name( rebind< 1 , 2 ,3 >::type{} ) << std::endl;
 }
 
 template < typename ... T >
@@ -143,14 +143,14 @@ struct pop_back0 < type_list< T ... > >{
 
 TEST( tmp , tuple_element ) {
     std::tuple< int , char , int , char > tup;
-    std::cout << cx::pretty_type_name( tup ) << std::endl;
+    std::cout << cx::type_name( tup ) << std::endl;
 
     _eval<  int , char , double , short >::type tup2;
-    std::cout << cx::pretty_type_name( tup2 ) << std::endl;
+    std::cout << cx::type_name( tup2 ) << std::endl;
     
-    std::cout <<  cx::pretty_type_name(  pop_back<  int , char , void* >{}) << std::endl;
-    std::cout <<  cx::pretty_type_name(  pop_back<  int , char , void* >::rebind<dispose>{} ) << std::endl;
-    std::cout <<  cx::pretty_type_name(  pop_back<  int , char , void* >::rebind<dispose>::type{} ) << std::endl;
-    std::cout <<  cx::pretty_type_name(  pop_back0< int , char , void* >::type{} ) << std::endl;
-    std::cout <<  cx::pretty_type_name(  pop_back0< type_list< int , char , void* > >::type{} ) << std::endl;
+    std::cout <<  cx::type_name(  pop_back<  int , char , void* >{}) << std::endl;
+    std::cout <<  cx::type_name(  pop_back<  int , char , void* >::rebind<dispose>{} ) << std::endl;
+    std::cout <<  cx::type_name(  pop_back<  int , char , void* >::rebind<dispose>::type{} ) << std::endl;
+    std::cout <<  cx::type_name(  pop_back0< int , char , void* >::type{} ) << std::endl;
+    std::cout <<  cx::type_name(  pop_back0< type_list< int , char , void* > >::type{} ) << std::endl;
 }

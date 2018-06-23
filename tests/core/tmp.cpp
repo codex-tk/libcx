@@ -38,8 +38,8 @@ protected:
 TEST_F(test_tmp, member_pointer) {
 	int sample::* piv = &sample::ivalue;
 	double sample::* pdv = &sample::dvalue;
-	cx::core::mem_ptr<sample, int>::type piv0 = &sample::ivalue;
-	cx::core::mem_ptr<sample, double>::type pdv0 = &sample::dvalue;
+	cx::mem_ptr<sample, int>::type piv0 = &sample::ivalue;
+	cx::mem_ptr<sample, double>::type pdv0 = &sample::dvalue;
 
 	_s.*piv = 1;
 	_s.*pdv = 0.1;
@@ -59,8 +59,8 @@ TEST_F(test_tmp, member_pointer) {
 }
 
 TEST_F(test_tmp, member_function_pointer) {
-	cx::core::mem_fun_ptr< sample, int(int) >::type mptr = &sample::dosome;
-	cx::core::mem_fun_ptr< sample, void(void) >::type mptr_overloaded = &sample::dosome;
+	cx::mem_fun_ptr< sample, int(int) >::type mptr = &sample::dosome;
+	cx::mem_fun_ptr< sample, void(void) >::type mptr_overloaded = &sample::dosome;
 	(_s.*mptr_overloaded)();
 	ASSERT_EQ(_s.ivalue, 0);
 	ASSERT_EQ((_s.*mptr)(32), 32);

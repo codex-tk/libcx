@@ -22,12 +22,15 @@ namespace cx::io {
 
 	class completion_port : public cx::io::internal::basic_implementation {
 	public:
-		struct basic_handle {
+		struct basic_handle : std::enable_shared_from_this<basic_handle> {
 			union {
 				SOCKET s;
 				HANDLE h;
 			} fd;
 		};
+
+		using handle_type = std::shared_ptr<basic_handle>;
+
 		class operation : public OVERLAPPED {
 		public:
 			operation(void)
@@ -36,6 +39,7 @@ namespace cx::io {
 			}
 
 			virtual ~operation(void) = default;
+			
 			int io_size(void) { return this->Offset; }
 			int io_size(int sz) {
 				int old = this->Offset;
@@ -51,13 +55,18 @@ namespace cx::io {
 				return old;
 			}
 
-			virtual int operator()(void) = 0;
-
 			operation* next(void) { return _next; }
 			operation* next(operation* op) {
 				std::swap(_next, op);
 				return op;
 			}
+
+			virtual int operator()(void) = 0;
+
+			virtual bool complete(const handle_type& /*handle*/) {
+				return true;
+			};
+
 			OVERLAPPED *overlapped(void) { return static_cast<OVERLAPPED*>(this); }
 			void reset(void) { memset(overlapped(), 0x00, sizeof(decltype(*overlapped()))); }
 		private:
@@ -147,11 +156,14 @@ namespace cx::io {
 				return proc;
 			} else {
 				operation_type* op = static_cast<operation_type*>(ov);
+				completion_port::basic_handle* pbasic_handle =
+					reinterpret_cast<completion_port::basic_handle*>(key);
 				if (FALSE == ret) {
 					op->error( cx::system_error() );
 				}
 				op->io_size(bytes_transferred);
-				(*op)();
+				if(op->complete( pbasic_handle->shared_from_this()))
+					(*op)();
 			}
 			return 1;
 		}

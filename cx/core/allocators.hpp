@@ -8,7 +8,7 @@
 
 #ifndef __cx_core_basic_allocator_h__
 #define __cx_core_basic_allocator_h__
-namespace cx::core {
+namespace cx {
 
 	template <typename T>
 	struct basic_allocator

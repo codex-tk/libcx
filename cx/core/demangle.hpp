@@ -36,8 +36,8 @@ namespace cx {
 #endif
 
 namespace cx {
-    template <class T>
-    std::string pretty_type_name(const T& t) {
+    template <typename T>
+    std::string type_name(const T& t) {
         return demangle(typeid(t).name());
     }
 }

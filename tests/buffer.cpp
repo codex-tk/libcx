@@ -9,6 +9,6 @@
 #include <cx/core/buffer.hpp>
 
 TEST( cx_core_buffer , generate ) {
-    cx::core::basic_buffer< int , int > buf;
+    cx::basic_buffer< int , int > buf;
 	(void*)&buf;
 }
