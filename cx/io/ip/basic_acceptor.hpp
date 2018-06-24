@@ -22,9 +22,6 @@ namespace cx::io::ip {
 				if (_fd.set_option(cx::io::ip::option::reuse_address())) {
 					if (_fd.bind(addr)) {
 						if (_fd.service().listen(_fd.handle(), SOMAXCONN)) {
-#if CX_PLATFORM == CX_P_WINDOWS
-							_fd.service().implementation().bind(_fd.handle(), 0);
-#endif
 							return true;
 						}
 					}

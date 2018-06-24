@@ -8,6 +8,8 @@
 #ifndef __cx_core_mp_h__
 #define __cx_core_mp_h__
 
+#include <cx/cxdefine.hpp>
+
 #define USE_CX_SEQ_IMPL
 
 namespace cx {

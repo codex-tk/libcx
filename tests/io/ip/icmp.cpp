@@ -38,6 +38,9 @@ int in_cksum(u_short *p, int n)
 TEST( cx_io_ip , hdr ) {
 
 	cx::io::engine<
+		cx::io::ip::tcp::service ,
+		cx::io::ip::udp::service ,
+		cx::time::timer_service ,
 		cx::io::ip::icmp::service
 	> engine;
 

@@ -226,6 +226,7 @@ namespace cx::io::ip {
 		handle_type make_shared_handle(native_handle_type handle) {
 			auto h = make_shared_handle();
 			h->fd.s = handle;
+			implementation().bind(h, 0);
 			return h;
 		}
 
@@ -394,6 +395,7 @@ namespace cx::io::ip {
 		handle_type make_shared_handle(native_handle_type handle) {
 			auto h = make_shared_handle();
 			h->fd.s = handle;
+			implementation().bind(h, 0);
 			return h;
 		}
 
