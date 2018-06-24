@@ -63,6 +63,7 @@ namespace cx::io::ip {
 				last_error(cx::system_error());
 				return false;
 			}
+			implementation().bind(handle, 0);
 			return true;
 		}
 
@@ -483,17 +484,15 @@ namespace cx::io::ip {
 			{
 				address_type bindaddr = address_type::any(0, addr.family());
 				if (bind(handle, bindaddr)) {
-					if (implementation().bind(handle, 0)) {
-						bytes_returned = 0;
-						if (_connect_ex(handle->fd.s
-							, op->address().sockaddr()
-							, op->address().length()
-							, nullptr, 0
-							, &bytes_returned, op->overlapped()) == TRUE)
-							return;
-						if (WSAGetLastError() == WSA_IO_PENDING)
-							return;
-					}
+					bytes_returned = 0;
+					if (_connect_ex(handle->fd.s
+						, op->address().sockaddr()
+						, op->address().length()
+						, nullptr, 0
+						, &bytes_returned, op->overlapped()) == TRUE)
+						return;
+					if (WSAGetLastError() == WSA_IO_PENDING)
+						return;
 				}
 			}
 			op->error(cx::system_error());

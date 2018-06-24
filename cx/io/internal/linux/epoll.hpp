@@ -68,9 +68,6 @@ namespace cx::io {
 			if ((errno == ENOENT) && ops) {
 				if (epoll_ctl(_handle, EPOLL_CTL_ADD, ptr->fd, &evt) == 0) {
 					std::lock_guard<std::recursive_mutex> lock(_mutex);
-					if (_active_handles.empty()) {
-						add_active_links();
-					}
 					_active_handles.insert(ptr);
 					return true;
 				}
@@ -91,9 +88,6 @@ namespace cx::io {
 			}			
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			_active_handles.erase(ptr);
-			if (_active_handles.empty()) {
-				release_active_links();
-			}
 		}
 
 		void add_active_links(void) {
@@ -105,7 +99,7 @@ namespace cx::io {
 		}
 
 		void run(void) {
-			while (_active_links.load() != 0) {
+			while (_active_links.load() != 0 || _active_handles.size() != 0) {
 				run(std::chrono::milliseconds(0xffffffff));
 			}
 		}

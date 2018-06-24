@@ -107,8 +107,8 @@ TEST(cx_io_ip_basic_acceptor, async) {
 		}
 		cx::io::ip::tcp::socket afd(ac.service() , ac.make_shared_handle() );
 		afd.close();
-
 		acceptor.close();
+		client.close();
 	});
 	engine.run();
 	ASSERT_TRUE(accepted);

@@ -29,6 +29,10 @@ namespace cx::io {
 	namespace ip::udp {
 		using service = cx::io::ip::completion_port_socket_service<SOCK_DGRAM, IPPROTO_UDP>;
 	}
+	namespace ip::icmp {
+		using service = cx::io::ip::completion_port_socket_service<SOCK_RAW, IPPROTO_ICMP>;
+	}
+
 #elif CX_PLATFORM == CX_P_LINUX
 	using implementation = cx::io::epoll;
 
@@ -40,7 +44,10 @@ namespace cx::io {
 		using service = cx::io::ip::reactor_socket_service<
             implementation , SOCK_DGRAM, IPPROTO_UDP>;
 	}
-
+	namespace ip::icmp {
+		using service = cx::io::ip::reactor_socket_service<
+			implementation, SOCK_RAW, IPPROTO_ICMP>;
+	}
 #elif CX_PLATFORM == CX_P_MACOSX
 	using implementation = cx::io::kqueue;
 #else
@@ -54,6 +61,11 @@ namespace cx::io {
 		using accept_context = cx::io::ip::basic_accept_context<service>;
 	}
 	namespace ip::udp {
+		using address = typename service::address_type;
+		using socket = cx::io::ip::basic_socket<service>;
+		using buffer = typename service::buffer_type;
+	}
+	namespace ip::icmp {
 		using address = typename service::address_type;
 		using socket = cx::io::ip::basic_socket<service>;
 		using buffer = typename service::buffer_type;
