@@ -46,9 +46,6 @@ namespace cx {
 		template < typename T >
 		using callable_impl = cx::callable0< T, R, Args ... >;
 
-		template <typename T> struct is_self_type : std::false_type {};
-		template <> struct is_self_type<function> : std::true_type {};
-
 		/*! default construct */
 		function(void);
 		/*! copy construct */
@@ -58,7 +55,7 @@ namespace cx {
 		function(function&& rhs);
 
 		/*! ctor from callable */
-		template < typename HandlerT, typename = std::enable_if< !is_self_type< std::remove_reference<HandlerT>::type>::value >::type >
+		template < typename HandlerT, typename = typename std::enable_if< !std::is_same_v< function, std::remove_reference_t<HandlerT>>>::type >
 		function(HandlerT&& handler);
 
 		/*! typically assign operation */
@@ -68,7 +65,7 @@ namespace cx {
 		function& operator=(function&& rhs);
 
 		/*! assign from callable */
-		template < typename HandlerT, typename = std::enable_if< !is_self_type< std::remove_reference<HandlerT>::type>::value >::type >
+		template < typename HandlerT, typename = typename std::enable_if< !std::is_same_v< function, std::remove_reference_t<HandlerT>>>::type >
 		function& operator=(HandlerT&& handler);
 
 		/*! */

@@ -186,7 +186,6 @@ namespace cx::vision {
 
 		detail::non_maximum_supression(derivative, angle, non_maximum_sup_img);
 		detail::hysteresis(derivative, angle, non_maximum_sup_img, dst, threshold_hi, threshold_lo);
-
 	}
 
 }
