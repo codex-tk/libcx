@@ -1,5 +1,5 @@
 #include <cx/io/basic_engine.hpp>
-
+#include <cx/core/basic_buffer.hpp>
 #include <iostream>
 
 using engine_type = cx::io::engine<
@@ -10,9 +10,8 @@ class session : public std::enable_shared_from_this<session> {
 public:
 	session(engine_type& e, cx::io::ip::tcp::accept_context& ac)
 		: _fd(e.template service< cx::io::ip::tcp::service>()
-			, ac.make_shared_handle())
-	{	
-	}
+		, ac.make_shared_handle())
+		, _read_buffer(1024){}
 
 	void do_read(void) {
 		if (!_read_op) {
@@ -23,24 +22,21 @@ public:
 					std::cout << "Close" << std::endl;
 					return;
 				}
-
-				char* wr_buf = new char[size];
-				memcpy(wr_buf, _read_buffer, size);
-
-				_fd.async_write(cx::io::buffer(wr_buf, size),
-					[wr_buf](const std::error_code& ec, int) {
-					delete[] wr_buf;
-				});
+				_read_buffer.commit(size);
+				auto wrbuf = cx::deepcopy(_read_buffer);
+				_fd.async_write(cx::io::buffer(wrbuf.rdptr(), wrbuf.rdsize()),
+					[wrbuf](const std::error_code& ec, int) {});
 				do_read();
 			});
 		}
-		_read_op->buffer().reset(_read_buffer,1024);
+		_read_buffer.clear();
+		_read_op->buffer().reset(_read_buffer.prepare(1024), 1024);
 		_fd.async_read(_read_op );
 	}
 private:
 	cx::io::ip::tcp::socket _fd;
 	cx::io::ip::tcp::socket::read_op_type _read_op;
-	char _read_buffer[1024];
+	cx::basic_buffer<char> _read_buffer;
 };
 
 void async_accept(engine_type& engine, cx::io::ip::tcp::acceptor& acceptor) {

@@ -383,3 +383,4 @@ build*
 GPATH
 GRTAGS
 GTAGS
+tests_qt
