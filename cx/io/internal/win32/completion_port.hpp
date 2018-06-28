@@ -164,6 +164,7 @@ namespace cx::io {
 				op->io_size(bytes_transferred);
 				if(op->complete( pbasic_handle->shared_from_this()))
 					(*op)();
+				release_active_links();
 			}
 			return 1;
 		}

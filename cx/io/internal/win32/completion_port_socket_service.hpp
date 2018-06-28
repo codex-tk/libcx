@@ -290,6 +290,7 @@ namespace cx::io::ip {
 				return;
 			}
 
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASendTo(handle->fd.s
@@ -303,10 +304,12 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					op->error(cx::system_error());
+					op->error(cx::system_error());					
 					implementation().post(op);
+					return;
 				}
 			}
+			implementation().add_active_links();
 		}
 
 		template < typename HandlerType >
@@ -324,6 +327,7 @@ namespace cx::io::ip {
 				return;
 			}
 
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecvFrom(handle->fd.s
@@ -339,8 +343,10 @@ namespace cx::io::ip {
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::system_error());
 					implementation().post(op);
+					return;
 				}
 			}
+			implementation().add_active_links();
 		}
 
 		using read_op_type = std::shared_ptr<basic_read_op<this_type>>;
@@ -475,6 +481,7 @@ namespace cx::io::ip {
 					return;
 				}
 			}
+			implementation().add_active_links();
 			LPFN_CONNECTEX _connect_ex = nullptr;
 			DWORD bytes_returned = 0;
 			GUID guid = WSAID_CONNECTEX;
@@ -499,6 +506,7 @@ namespace cx::io::ip {
 			}
 			op->error(cx::system_error());
 			implementation().post(op);
+			implementation().release_active_links();
 		}
 
 		template < typename HandlerType >
@@ -529,8 +537,10 @@ namespace cx::io::ip {
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::system_error());
 					implementation().post(op);
+					return;
 				}
 			}
+			implementation().add_active_links();
 		}
 
 		template < typename HandlerType >
@@ -561,8 +571,10 @@ namespace cx::io::ip {
 				if (WSAGetLastError() != WSA_IO_PENDING) {
 					op->error(cx::system_error());
 					implementation().post(op);
+					return;
 				}
 			}
+			implementation().add_active_links();
 		}
 
 
@@ -576,6 +588,8 @@ namespace cx::io::ip {
 				implementation().post(op);
 				return;
 			}
+
+			implementation().add_active_links();
 
 			address_type addr = this->local_address(handle);
 
@@ -604,6 +618,7 @@ namespace cx::io::ip {
 			}
 			op->error(cx::system_error());
 			implementation().post(op);
+			implementation().release_active_links();
 		}
 
 		using read_op_type = std::shared_ptr<basic_read_op<this_type>>;

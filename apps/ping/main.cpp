@@ -46,10 +46,12 @@ public:
 		_ip_address = ip;
 		_current_times = 0;
 		_times = times;
+
 		if (_fd.open(cx::io::ip::icmp::address::any(0, AF_INET))) {
+			init_timer();
+			start_timer();
 			send_ping();
 			do_read();
-			start_timer();
 			return true;
 		}
 		return false;
@@ -83,9 +85,8 @@ public:
 		_read_op->buffer().buffer.reset(_read_buffer.prepare(1024), 1024);
 		_fd.async_read(_read_op);
 	}
-
-	void start_timer() {
-		_timer.expired_at(std::chrono::system_clock::now() + std::chrono::seconds(1));
+	
+	void init_timer(void) {
 		auto pthis = shared_from_this();
 		_timer.handler([&, pthis](const std::error_code& ec) {
 			if (ec == std::errc::operation_canceled) {
@@ -102,6 +103,10 @@ public:
 				_fd.close();
 			}
 		});
+	}
+
+	void start_timer() {
+		_timer.expired_at(std::chrono::system_clock::now() + std::chrono::seconds(1));
 		_timer.fire();
 	}
 
