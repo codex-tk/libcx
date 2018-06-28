@@ -1,8 +1,8 @@
-project( tests )
+project( echo  )
 
 include_directories( ${CMAKE_SOURCE_DIR} )
 
-file(GLOB_RECURSE SRCS RELATIVE "${CMAKE_SOURCE_DIR}/echo" "*.cpp" )
+file(GLOB_RECURSE SRCS RELATIVE "${CMAKE_SOURCE_DIR}/apps/echo" "*.cpp" )
 
 add_executable( echo ${SRCS} )
 

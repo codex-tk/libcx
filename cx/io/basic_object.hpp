@@ -32,7 +32,11 @@ namespace cx::io {
 				_service.close(_handle);
 		}
 
-		handle_type handle(void) const {
+		const handle_type& handle(void) const {
+			return _handle;
+		}
+
+		handle_type& handle(void) {
 			return _handle;
 		}
 
@@ -60,18 +64,22 @@ namespace cx::io {
 			return _service.good(_handle);
 		}
 
-		std::error_code last_error(void){
+		bool good(void) const {
+			return _service.good(_handle);
+		}
+
+		std::error_code last_error(void) {
 			return _service.last_error();
 		}
 	public:
 		template < typename HandlerType >
 		void async_write(const buffer_type& buf, HandlerType&& handler) {
-			service().async_write(handle(), buf, std::forward<HandlerType>(handler));
+			service().async_write(_handle, buf, std::forward<HandlerType>(handler));
 		}
 
 		template < typename HandlerType >
 		void async_read(const buffer_type& buf, HandlerType&& handler) {
-			service().async_read(handle(), buf, std::forward<HandlerType>(handler));
+			service().async_read(_handle, buf, std::forward<HandlerType>(handler));
 		}
 
 		template < typename HandlerType >
@@ -85,11 +93,11 @@ namespace cx::io {
 		}
 
 		void async_read(read_op_type op) {
-			service().async_read(handle(), op);
+			service().async_read(_handle, op);
 		}
 
 		void async_write(write_op_type op) {
-			service().async_write(handle(), op);
+			service().async_write(_handle, op);
 		}
 	private:
 		ServiceType& _service;

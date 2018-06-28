@@ -131,6 +131,8 @@ namespace cx::time {
 		bool cancel(handle_type handle) {
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 			if (_queue.remove(handle)) {
+				if (_queue.empty())
+					_implementation.release_active_links();
 				_implementation.post_handler([handle] {
 					handle->handler(std::make_error_code(std::errc::operation_canceled));
 				});
