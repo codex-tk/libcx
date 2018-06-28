@@ -1,20 +1,21 @@
 /**
  * */
-#ifndef __cx_io_ip_completion_port_accept_op_h__
-#define __cx_io_ip_completion_port_accept_op_h__
+#ifndef __cx_io_ip__accept_op_h__
+#define __cx_io_ip__accept_op_h__
 
 #include <cx/io/ip/basic_accept_op.hpp>
 
 namespace cx::io::ip {
+inline namespace iocp{
     
 	template < typename ServiceType, typename HandlerType >
-    class completion_port_accept_op : public basic_accept_op< ServiceType > {
+    class accept_op : public basic_accept_op< ServiceType > {
     public:
-		completion_port_accept_op(ServiceType& svc, HandlerType&& handler)
+		accept_op(ServiceType& svc, HandlerType&& handler)
 			: basic_accept_op(svc)
 			, _handler(std::forward<HandlerType>(handler)) {}
 
-		virtual ~completion_port_accept_op(void) {}
+		virtual ~accept_op(void) {}
 
         virtual int operator()(void) override {
 		    _handler(error() , accept_context() , address());
@@ -25,6 +26,6 @@ namespace cx::io::ip {
         HandlerType _handler;
     };
 
-}
+}}
 
 #endif

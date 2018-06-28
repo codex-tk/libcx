@@ -1,7 +1,7 @@
 /**
  */
-#ifndef __cx_io_detail_completion_port_h__
-#define __cx_io_detail_completion_port_h__
+#ifndef __cx_io_iocp_implementation_h__
+#define __cx_io_iocp_implementation_h__
 
  /*
  */
@@ -15,12 +15,12 @@
 #include <mutex>
 #include <set>
 
-
 #if CX_PLATFORM == CX_P_WINDOWS
 
 namespace cx::io {
+inline namespace iocp{
 
-	class completion_port : public cx::io::internal::basic_implementation {
+	class implementation : public cx::io::internal::basic_implementation {
 	public:
 		struct basic_handle : std::enable_shared_from_this<basic_handle> {
 			union {
@@ -73,10 +73,10 @@ namespace cx::io {
 			std::error_code _ec;
 			operation* _next;
 		};
-		using handle_type = std::shared_ptr<completion_port::basic_handle>;
+		using handle_type = std::shared_ptr<implementation::basic_handle>;
 		using operation_type = operation;
 	public:
-		completion_port(void)
+		implementation(void)
 			: _handle(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1))
 			, _active_links(0) {
 			if (_handle == INVALID_HANDLE_VALUE) {
@@ -84,7 +84,7 @@ namespace cx::io {
 			}
 		}
 
-		~completion_port(void) {
+		~implementation(void) {
 			CloseHandle(_handle);
 			_handle = INVALID_HANDLE_VALUE;
 		}
@@ -156,8 +156,8 @@ namespace cx::io {
 				return proc;
 			} else {
 				operation_type* op = static_cast<operation_type*>(ov);
-				completion_port::basic_handle* pbasic_handle =
-					reinterpret_cast<completion_port::basic_handle*>(key);
+				implementation::basic_handle* pbasic_handle =
+					reinterpret_cast<implementation::basic_handle*>(key);
 				if (FALSE == ret) {
 					op->error( cx::system_error() );
 				}
@@ -216,7 +216,7 @@ namespace cx::io {
 		std::atomic<int> _active_links;
 	};
 
-}
+}}
 
 #endif
 
