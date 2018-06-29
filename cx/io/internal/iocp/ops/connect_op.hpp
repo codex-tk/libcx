@@ -5,11 +5,10 @@
 
 #include <cx/io/ip/basic_connect_op.hpp>
 
-namespace cx::io::ip {
-inline namespace iocp{
+namespace cx::io::internal::iocp::ip {
 
     template < typename ServiceType , typename HandlerType >
-    class connect_op : public basic_connect_op< ServiceType > {
+	class connect_op : public cx::io::ip::basic_connect_op< ServiceType > {
     public:
 		connect_op(const address_type& addr, HandlerType&& handler)
 			: basic_connect_op(addr)
@@ -26,6 +25,6 @@ inline namespace iocp{
         HandlerType _handler;
     };
 
-}}
+}
 
 #endif

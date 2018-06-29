@@ -1,25 +1,26 @@
 
 /**
  * */
-#ifndef __cx_io_ip_reactor_accept_op_h__
-#define __cx_io_ip_reactor_accept_op_h__
+#ifndef __cx_io_internal_reactor_ip_accept_op_h__
+#define __cx_io_internal_reactor_ip_accept_op_h__
 
 #include <cx/io/ip/basic_accept_op.hpp>
 
-namespace cx::io::ip {
+namespace cx::io::internal::reactor::ip {
 
 	template < typename ServiceType, typename HandlerType >
-	class reactor_accept_op : public basic_accept_op< ServiceType > {
+	class accept_op : public cx::io::ip::basic_accept_op< ServiceType > {
 	public:
 		using handle_type = typename ServiceType::handle_type;
 		using implementation_type = typename ServiceType::implementation_type;
-		reactor_accept_op(ServiceType& svc, HandlerType&& handler)
-			: basic_accept_op< ServiceType >(svc)
+		
+		accept_op(ServiceType& svc, HandlerType&& handler)
+			: cx::io::ip::basic_accept_op< ServiceType >(svc)
 			, _handler(std::forward<HandlerType>(handler)) {}
 
-		virtual ~reactor_accept_op(void) {}
+		virtual ~accept_op(void) {}
 
-		virtual bool complete(const typename reactor_base<implementation_type>::handle_type& handle) override {
+		virtual bool complete(const typename basic_reactor<implementation_type>::handle_type& handle) override {
 			handle_type ptr = std::static_pointer_cast<typename handle_type::element_type>(handle);
 			return ptr->service.accept_complete(ptr, this);
 		}

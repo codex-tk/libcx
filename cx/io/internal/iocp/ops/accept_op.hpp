@@ -5,14 +5,13 @@
 
 #include <cx/io/ip/basic_accept_op.hpp>
 
-namespace cx::io::ip {
-inline namespace iocp{
+namespace cx::io::internal::iocp::ip {
     
 	template < typename ServiceType, typename HandlerType >
-    class accept_op : public basic_accept_op< ServiceType > {
+    class accept_op : public cx::io::ip::basic_accept_op< ServiceType > {
     public:
 		accept_op(ServiceType& svc, HandlerType&& handler)
-			: basic_accept_op(svc)
+			: cx::io::ip::basic_accept_op< ServiceType >(svc)
 			, _handler(std::forward<HandlerType>(handler)) {}
 
 		virtual ~accept_op(void) {}
@@ -26,6 +25,6 @@ inline namespace iocp{
         HandlerType _handler;
     };
 
-}}
+}
 
 #endif

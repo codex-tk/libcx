@@ -1,8 +1,7 @@
 /**
 */
-#ifndef __cx_io_detail_epoll_h__
-#define __cx_io_detail_epoll_h__
-
+#ifndef __cx_io_internal_epoll_h__
+#define __cx_io_internal_epoll_h__
 /*
 */
 #include <cx/cxdefine.hpp>
@@ -10,23 +9,25 @@
 #include <cx/container_of.hpp>
 #include <cx/error.hpp>
 
+#include <cx/io/internal/reactor/basic_reactor.hpp>
+#include <cx/io/internal/basic_implementation.hpp>
+
 #include <mutex>
 #include <set>
-#include <cx/io/internal/reactor/reactor.hpp>
-#include <cx/io/internal/basic_implementation.hpp>
 
 #if CX_PLATFORM == CX_P_LINUX
 
-namespace cx::io {
+namespace cx::io::internal::epoll {
 
-	class epoll : public cx::io::internal::basic_implementation {
+	class implementation : public cx::io::internal::basic_implementation {
 	public:
-		using basic_handle = reactor_base<epoll>::basic_handle;
-		using handle_type = reactor_base<epoll>::handle_type;
-		using operation_type = reactor_base<epoll>::operation_type;
-		using native_handle_type = reactor_base<epoll>::native_handle_type;
+		using reactor = cx::io::internal::reactor::basic_reactor<implementation>;
+		using basic_handle = reactor::basic_handle;
+		using handle_type = reactor::handle_type;
+		using operation_type = reactor::operation_type;
+		using native_handle_type = reactor::native_handle_type;
 
-		epoll(void)
+		implementation(void)
 			: _handle(-1)
 			, _eventfd(-1)
 		{
@@ -45,7 +46,7 @@ namespace cx::io {
 			epoll_ctl(_handle, EPOLL_CTL_ADD, _eventfd, &evt);
 		}
 
-		~epoll(void) {
+		~implementation(void) {
 			close(_handle);
 			close(_eventfd);
 			_handle = -1;
@@ -114,7 +115,7 @@ namespace cx::io {
 			cx::io::internal::basic_implementation::scoped_loop sl(*this);
 			int proc = 0;
 			for (int i = 0; i < nbfd; ++i) {
-				epoll::basic_handle* pbasic_handle = static_cast<epoll::basic_handle*>(events[i].data.ptr);
+				implementation::basic_handle* pbasic_handle = static_cast<implementation::basic_handle*>(events[i].data.ptr);
 				if (pbasic_handle) {
 					proc += pbasic_handle->handle_events(*this, events[i].events);
 				} else {

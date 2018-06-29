@@ -12,41 +12,40 @@
 #include <cx/io/ip/basic_socket.hpp>
 #include <cx/io/ip/basic_acceptor.hpp>
 
-#include <cx/io/internal/win32/iocp/implementation.hpp>
-#include <cx/io/internal/win32/iocp/basic_socket_service_impl.hpp>
-#include <cx/io/internal/win32/iocp/basic_socket_service_impl_tcp.hpp>
+#include <cx/io/internal/iocp/implementation.hpp>
+#include <cx/io/internal/iocp/socket_service_tcp.hpp>
 
-#include <cx/io/internal/linux/epoll.hpp>
-#include <cx/io/internal/reactor/reactor_socket_service.hpp>
+#include <cx/io/internal/epoll/implemenation.hpp>
+#include <cx/io/internal/reactor/socket_service_tcp.hpp>
 
 namespace cx::io {
 
 #if CX_PLATFORM == CX_P_WINDOWS
-	using implementation = cx::io::implementation;
+	using implementation = cx::io::internal::iocp::implementation;
 
 	namespace ip::tcp {
-		using service = cx::io::ip::basic_socket_service_impl<SOCK_STREAM, IPPROTO_TCP>;
+		using service = cx::io::internal::iocp::ip::socket_service<SOCK_STREAM, IPPROTO_TCP>;
     }
 	namespace ip::udp {
-		using service = cx::io::ip::basic_socket_service_impl<SOCK_DGRAM, IPPROTO_UDP>;
+		using service = cx::io::internal::iocp::ip::socket_service<SOCK_DGRAM, IPPROTO_UDP>;
 	}
 	namespace ip::icmp {
-		using service = cx::io::ip::basic_socket_service_impl<SOCK_RAW, IPPROTO_ICMP>;
+		using service = cx::io::internal::iocp::ip::socket_service<SOCK_RAW, IPPROTO_ICMP>;
 	}
 
 #elif CX_PLATFORM == CX_P_LINUX
-	using implementation = cx::io::epoll;
+	using implementation = cx::io::internal::epoll::implementation;
 
     namespace ip::tcp {
-		using service = cx::io::ip::reactor_socket_service<
+		using service = cx::io::internal::reactor::ip::socket_service<
             implementation , SOCK_STREAM, IPPROTO_TCP>;
     }
 	namespace ip::udp {
-		using service = cx::io::ip::reactor_socket_service<
+		using service = cx::io::internal::reactor::ip::socket_service<
             implementation , SOCK_DGRAM, IPPROTO_UDP>;
 	}
 	namespace ip::icmp {
-		using service = cx::io::ip::reactor_socket_service<
+		using service = cx::io::internal::reactor::ip::socket_service<
 			implementation, SOCK_RAW, IPPROTO_ICMP>;
 	}
 #elif CX_PLATFORM == CX_P_MACOSX

@@ -17,8 +17,7 @@
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
-namespace cx::io {
-inline namespace iocp{
+namespace cx::io::internal::iocp {
 
 	class implementation : public cx::io::internal::basic_implementation {
 	public:
@@ -216,7 +215,7 @@ inline namespace iocp{
 		std::atomic<int> _active_links;
 	};
 
-}}
+}
 
 #endif
 

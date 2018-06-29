@@ -125,6 +125,7 @@ namespace cx::io::ip::internal {
 #include <functional>
 #include <cassert>
 #include <sstream>
+#include <mutex>
 
 #define _USE_MATH_DEFINES
 

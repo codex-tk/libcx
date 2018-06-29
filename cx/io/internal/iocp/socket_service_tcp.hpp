@@ -5,43 +5,42 @@
 
 #if CX_PLATFORM == CX_P_WINDOWS
 
-#include <cx/io/internal/win32/iocp/basic_socket_service_impl.hpp>
+#include <cx/io/internal/iocp/socket_service.hpp>
 
-namespace cx::io::ip {
-inline namespace iocp{
+#include <cx/io/internal/iocp/ops/connect_op.hpp>
+#include <cx/io/internal/iocp/ops/accept_op.hpp>
 
-	template <> class basic_socket_service_impl< SOCK_STREAM, IPPROTO_TCP >
-		: public basic_socker_service < 
-			basic_socket_service_impl< SOCK_STREAM, IPPROTO_TCP >
-		> {
+namespace cx::io::internal::iocp::ip {
+
+	template <> class socket_service<SOCK_STREAM,IPPROTO_TCP>
+		: public basic_socket_service<socket_service<SOCK_STREAM,IPPROTO_TCP>> {
 	public:
-		using this_type = basic_socket_service_impl;
+		using this_type = socket_service;
 		using buffer_type = cx::io::buffer;
-		using basic_socker_service < this_type >::connect;
+		using basic_socket_service < this_type >::connect;
 		
 		template < typename HandlerType > using connect_op 
-			= cx::io::ip::iocp::connect_op< this_type, HandlerType>;
+			= cx::io::internal::iocp::ip::connect_op< this_type, HandlerType>;
 		template < typename HandlerType > using accept_op
-			= cx::io::ip::iocp::accept_op< this_type, HandlerType>;
+			= cx::io::internal::iocp::ip::accept_op< this_type, HandlerType>;
 
 		template < typename HandlerType > using read_op 
 			= cx::io::handler_op< basic_read_op<this_type> , HandlerType>;
 		template < typename HandlerType > using write_op 
 			= cx::io::handler_op< basic_write_op<this_type> , HandlerType>;
 
+		socket_service(implementation_type& impl)
+			: basic_socket_service(impl) {}
+
 		handle_type make_shared_handle(void) {
 			return std::make_shared<_handle>(*this);
 		}
 
-		handle_type make_shared_handle(native_handle_type handle) {
-			auto h = make_shared_handle();
-			h->fd.s = handle;
-			implementation().bind(h, 0);
-			return h;
+		handle_type make_shared_handle(native_handle_type raw_handle) {
+			handle_type handle = std::make_shared<_handle>(*this , raw_handle);
+			implementation().bind(handle, 0);
+			return handle;
 		}
-
-		basic_socket_service_impl(implementation_type& impl)
-			: basic_socker_service(impl) {}
 
 		int write(const handle_type& handle, const buffer_type& buf) {
 			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
@@ -93,9 +92,9 @@ inline namespace iocp{
 			return true;
 		}
 
-		basic_accept_context<this_type> accept(const handle_type& handle, address_type& addr) {
+		cx::io::ip::basic_accept_context<this_type> accept(const handle_type& handle, address_type& addr) {
 			native_handle_type fd = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
-			return basic_accept_context<this_type>(*this, fd);
+			return cx::io::ip::basic_accept_context<this_type>(*this, fd);
 		}
 
 		template < typename HandlerType >
@@ -281,7 +280,7 @@ inline namespace iocp{
 		}
 	};
 
-}}
+}
 
 #endif // 
 

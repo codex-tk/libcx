@@ -1,7 +1,7 @@
 /**
 */
-#ifndef __cx_io_detail_reactor_base_h__
-#define __cx_io_detail_reactor_base_h__
+#ifndef __cx_io_detail_basic_reactor_h__
+#define __cx_io_detail_basic_reactor_h__
 
 #include <cx/cxdefine.hpp>
 #include <cx/slist.hpp>
@@ -9,10 +9,10 @@
 #include <cx/io/io.hpp>
 #include <cx/io/ip/basic_address.hpp>
 
-namespace cx::io {
+namespace cx::io::internal::reactor {
 
     template < typename ImplementationType >
-	class reactor_base {
+	class basic_reactor {
 	public:
 		struct basic_handle;
 		using handle_type = std::shared_ptr<basic_handle>;

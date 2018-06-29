@@ -19,10 +19,24 @@ namespace cx::io {
 		virtual ~handler_op(void) {}
 
 		virtual int operator()(void) override {
-			_handler(this->error(), this->io_size());
+			holder hold(this);
 			delete this;
-			return 1;
+			return hold.invoke();
 		}
+	private:
+		struct holder{
+			HandlerType handler;
+			std::error_code ec;
+			int size;
+			holder( handler_op* op )
+				: handler(std::move(op->_handler)) 
+				, ec(op->error())
+				, size(op->io_size()){}
+			int invoke(void){
+				handler(ec,size);
+				return 1;
+			}
+		};
     private:
         HandlerType _handler;
     };

@@ -44,13 +44,13 @@ TEST(service, t0) {
 	ASSERT_EQ(_s0.template service<foo_service>().svcid(), 1);
 }
 #if CX_PLATFORM == CX_P_LINUX
-#include <cx/io/internal/linux/epoll.hpp>
-#include <cx/io/internal/reactor/reactor_socket_service.hpp>
+#include <cx/io/internal/epoll/implemenation.hpp>
+#include <cx/io/internal/reactor/socket_service.hpp>
 #include <cx/io/basic_engine.hpp>
-using svc = cx::io::ip::reactor_socket_service<
-            cx::io::epoll , SOCK_STREAM, IPPROTO_TCP>;
+using svc = cx::io::internal::reactor::ip::socket_service<
+            cx::io::internal::epoll::implementation, SOCK_STREAM, IPPROTO_TCP>;
 TEST(epoll,to){
-    cx::io::basic_engine< cx::io::epoll , svc > engine; 
+    cx::io::basic_engine< cx::io::internal::epoll::implementation, svc > engine;
     engine.template service<svc>();
 }
 #endif

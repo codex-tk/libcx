@@ -6,7 +6,8 @@ CONFIG += staticlib
 
 INCLUDEPATH +=  ./../../
 
-QMAKE_CXXFLAGS += /std:c++17
+win32:QMAKE_CXXFLAGS += /std:c++17
+else::QMAKE_CXXFLAGS += -std=c++17
 
 CX_BASE = ./../../
 
@@ -46,15 +47,15 @@ HEADERS += \
         $$CX_BASE/cx/io/internal/basic_implementation.hpp\
         $$CX_BASE/cx/io/internal/linux/epoll.hpp\
         $$CX_BASE/cx/io/internal/reactor/reactor.hpp\
-        $$CX_BASE/cx/io/internal/reactor/reactor_accept_op.hpp\
-        $$CX_BASE/cx/io/internal/reactor/reactor_connect_op.hpp\
-        $$CX_BASE/cx/io/internal/reactor/reactor_read_op.hpp\
-        $$CX_BASE/cx/io/internal/reactor/reactor_socket_service.hpp\
-        $$CX_BASE/cx/io/internal/reactor/reactor_write_op.hpp\
-        $$CX_BASE/cx/io/internal/win32/completion_port.hpp\
-        $$CX_BASE/cx/io/internal/win32/completion_port_accept_op.hpp\
-        $$CX_BASE/cx/io/internal/win32/completion_port_connect_op.hpp\
-        $$CX_BASE/cx/io/internal/win32/completion_port_socket_service.hpp\
+        $$CX_BASE/cx/io/internal/reactor/accept_op.hpp\
+        $$CX_BASE/cx/io/internal/reactor/connect_op.hpp\
+        $$CX_BASE/cx/io/internal/reactor/read_op.hpp\
+        $$CX_BASE/cx/io/internal/reactor/socket_service.hpp\
+        $$CX_BASE/cx/io/internal/reactor/write_op.hpp\
+        $$CX_BASE/cx/io/internal/completion_port.hpp\
+        $$CX_BASE/cx/io/internal/completion_port_accept_op.hpp\
+        $$CX_BASE/cx/io/internal/completion_port_connect_op.hpp\
+        $$CX_BASE/cx/io/internal/completion_port_socket_service.hpp\
         $$CX_BASE/cx/io/io.hpp\
         $$CX_BASE/cx/io/ip/basic_accept_context.hpp\
         $$CX_BASE/cx/io/ip/basic_accept_op.hpp\
