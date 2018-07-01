@@ -96,4 +96,8 @@ TEST(test_on_runtime, vftable1) {
 	Derived3* wrong_cast = static_cast<Derived3*>(ibase);
 	// check in runtime
 	Derived3* right_cast = dynamic_cast<Derived3*>(ibase);
+	(void*)from_ibase;
+	(void*)from_ibase2;
+	(void*)wrong_cast;
+	(void*)right_cast;
 }

@@ -53,8 +53,8 @@ namespace cx {
 	/**
 	 * @brief
 	 *
-	 * @tparam
-	 * @tparam Allocator
+	 * @tparam T
+	 * @tparam AllocatorType
 	 */
 	template < typename T, typename AllocatorType = internal::basic_buffer_allocator >
 	class basic_buffer {
@@ -110,7 +110,7 @@ namespace cx {
 		T* base(void) { return _block ? _block->base() : nullptr; }
 		int size(void) { return _block ? _block->size() : 0; }
 
-		T* rdptr(void) { return _block ? _block->base() + _rd_pos : nullptr; }
+		T* rdptr(void) const { return _block ? _block->base() + _rd_pos : nullptr; }
 		int rdptr(int n) {
 			int offset = (n >= 0 ?
 				std::min(n, rdsize())
@@ -174,6 +174,11 @@ namespace cx {
 			}
 		}
 
+		int write( const void* ptr , const std::size_t sz ) {
+			memcpy( prepare(sz) , ptr , sz );
+			commit(sz);
+			return sz;
+		}
 	private:
 		block_type* _block;
 		int _rd_pos;
