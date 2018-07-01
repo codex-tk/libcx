@@ -104,18 +104,7 @@ namespace cx::io::internal::reactor::ip {
 		}
 
 		void async_write(const handle_type& handle, cx::io::basic_write_op<this_type>* op) {
-			if (handle->ops[1].add_tail(op) == 0) {
-				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
-				if (!this->implementation().bind(handle, ops)) {
-					handle->drain_all_ops(this->implementation(), this->last_error());
-				}
-			}
-			else {
-				if (handle.get() == nullptr || handle->fd == invalid_native_handle) {
-					handle->drain_all_ops(this->implementation()
-						, std::make_error_code(std::errc::invalid_argument));
-				}
-			}
+			this->register_op( handle , 1 , op);
 		}
 
 		template < typename HandlerType >
@@ -127,18 +116,7 @@ namespace cx::io::internal::reactor::ip {
 		}
 
 		void async_read(const handle_type& handle, cx::io::basic_read_op<this_type>* op) {
-			if (handle->ops[0].add_tail(op) == 0) {
-				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-				if (!this->implementation().bind(handle, ops)) {
-					handle->drain_all_ops(this->implementation(), this->last_error());
-				}
-			}
-			else {
-				if (handle.get() == nullptr || handle->fd == invalid_native_handle) {
-					handle->drain_all_ops(this->implementation()
-						, std::make_error_code(std::errc::invalid_argument));
-				}
-			}
+			this->register_op(handle ,0,op);
 		}
 
 		bool write_complete(const handle_type& handle, cx::io::basic_write_op<this_type>* op) {

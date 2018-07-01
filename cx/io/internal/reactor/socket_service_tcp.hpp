@@ -99,9 +99,8 @@ namespace cx::io::internal::reactor::ip {
 			return true;
 		}
 
-		cx::io::ip::basic_accept_context<this_type> accept(const handle_type& handle, address_type& addr) {
-			native_handle_type fd = ::accept(handle->fd, addr.sockaddr(), addr.length_ptr());
-			return cx::io::ip::basic_accept_context<this_type>(*this, fd);
+		native_handle_type accept(const handle_type& handle, address_type& addr) {
+			return ::accept(handle->fd, addr.sockaddr(), addr.length_ptr());
 		}
 
 		template < typename HandlerType >
@@ -109,7 +108,7 @@ namespace cx::io::internal::reactor::ip {
 			connect_op< HandlerType >* op
 				= new connect_op< HandlerType >(addr,
 					std::forward<HandlerType>(handler));
-
+			this->set_option(handle , cx::io::ip::option::non_blocking());
 			if (this->connect(handle, addr)) {
 				if (this->implementation().bind(handle, cx::io::pollout)) {
 					handle->ops[1].add_tail(op);
@@ -129,18 +128,7 @@ namespace cx::io::internal::reactor::ip {
 		}
 
 		void async_write(const handle_type& handle, cx::io::basic_write_op<this_type>* op ) {
-			if (handle->ops[1].add_tail(op) == 0) {
-				int ops = cx::io::pollout | (handle->ops[0].head() ? cx::io::pollin : 0);
-				if (!this->implementation().bind(handle, ops)) {
-					handle->drain_all_ops(this->implementation(), this->last_error());
-				}
-			}
-			else {
-				if (handle.get() == nullptr || handle->fd == invalid_native_handle) {
-					handle->drain_all_ops(this->implementation()
-						, std::make_error_code(std::errc::invalid_argument));
-				}
-			}
+			this->register_op(handle,1,op);
 		}
 
 		template < typename HandlerType >
@@ -152,37 +140,14 @@ namespace cx::io::internal::reactor::ip {
 		}
 
 		void async_read(const handle_type& handle, cx::io::basic_read_op<this_type>* op) {
-			if (handle->ops[0].add_tail(op) == 0) {
-				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-				if (!this->implementation().bind(handle, ops)) {
-					handle->drain_all_ops(this->implementation(), this->last_error());
-				}
-			}
-			else {
-				if (handle.get() == nullptr || handle->fd == invalid_native_handle) {
-					handle->drain_all_ops(this->implementation()
-						, std::make_error_code(std::errc::invalid_argument));
-				}
-			}
+			this->register_op(handle,0,op);
 		}
 
 		template < typename HandlerType >
 		void async_accept(const handle_type& handle, HandlerType&& handler) {
 			accept_op<HandlerType>* op =
-				new accept_op<HandlerType>(*this, std::forward<HandlerType>(handler));
-
-			if (handle->ops[0].add_tail(op) == 0) {
-				int ops = cx::io::pollin | (handle->ops[1].head() ? cx::io::pollout : 0);
-				if (!this->implementation().bind(handle, ops)) {
-					handle->drain_all_ops(this->implementation(), this->last_error());
-				}
-			}
-			else {
-				if (handle.get() == nullptr || handle->fd == invalid_native_handle) {
-					handle->drain_all_ops(this->implementation()
-						, std::make_error_code(std::errc::invalid_argument));
-				}
-			}
+				new accept_op<HandlerType>(std::forward<HandlerType>(handler));
+			this->register_op(handle,0,op);
 		}
 
 		bool connect_complete(const handle_type& handle, cx::io::ip::basic_connect_op<this_type>* op) {
@@ -191,7 +156,7 @@ namespace cx::io::internal::reactor::ip {
 
 		bool accept_complete(const handle_type& handle, cx::io::ip::basic_accept_op<this_type>* op) {
 			native_handle_type fd = ::accept(handle->fd, op->address().sockaddr(), op->address().length_ptr());
-			op->accept_context().handle(fd);
+			op->raw_handle(fd);
 			if (fd == invalid_native_handle) {
 				op->error(cx::system_error());
 			}

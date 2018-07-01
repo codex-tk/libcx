@@ -8,9 +8,8 @@ using engine_type = cx::io::engine<
 
 class session : public std::enable_shared_from_this<session> {
 public:
-	session(engine_type& e, cx::io::ip::tcp::accept_context& ac)
-		: _fd(e.template service< cx::io::ip::tcp::service>()
-		, ac.make_shared_handle())
+	session(engine_type& e, cx::io::ip::tcp::service::native_handle_type raw_handle)
+		: _fd(e , raw_handle )
 		, _read_buffer(1024){}
 
 	void do_read(void) {
@@ -41,11 +40,11 @@ private:
 
 void async_accept(engine_type& engine, cx::io::ip::tcp::acceptor& acceptor) {
 	acceptor.async_accept([&](const std::error_code& e
-		, cx::io::ip::tcp::accept_context& ac
+		, cx::io::ip::tcp::service::native_handle_type handle
 		, const cx::io::ip::tcp::address& /*addr*/)
 	{
 		if (!e) {
-			auto p = std::make_shared<session>(engine, ac);
+			auto p = std::make_shared<session>(engine, handle);
 			p->do_read();
 		}
 		async_accept(engine, acceptor);

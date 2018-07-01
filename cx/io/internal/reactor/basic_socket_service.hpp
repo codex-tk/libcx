@@ -189,6 +189,23 @@ namespace cx::io::internal::reactor::ip {
         std::error_code last_error(void) {
             return _implementation.last_error();
         }
+
+        void register_op( const handle_type& handle , int op_id , typename implementation_type::operation_type* op ){
+            bool empty = handle->ops[op_id].empty();
+			handle->ops[op_id].add_tail(op);
+			if (handle.get() == nullptr || handle->fd == invalid_native_handle) {
+				handle->drain_all_ops(this->implementation()
+					, std::make_error_code(std::errc::invalid_argument));
+				return;
+			}
+			if (empty) {
+                int ops = (handle->ops[0].empty() ? 0 : cx::io::pollin ) | 
+                    (handle->ops[1].empty() ? 0 : cx::io::pollout);
+                if (!this->implementation().bind(handle, ops)) {
+					handle->drain_all_ops(this->implementation(), this->last_error());
+				}
+			}
+        }
     private:
         implementation_type& _implementation;
 	};

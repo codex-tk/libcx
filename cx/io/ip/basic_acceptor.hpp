@@ -4,7 +4,6 @@
 #define __cx_io_ip_basic_acceptor_h__
 
 #include <cx/io/ip/basic_socket.hpp>
-#include <cx/io/ip/basic_accept_context.hpp>
 
 namespace cx::io::ip {
 
@@ -13,6 +12,8 @@ namespace cx::io::ip {
 	public:
 		using address_type = typename ServiceType::address_type;
 		using handle_type = typename ServiceType::handle_type;
+		using native_handle_type = typename ServiceType::native_handle_type;
+
 		template < typename EngineType >
 		basic_acceptor(EngineType& engine)
 			: _fd(engine) {}
@@ -39,16 +40,16 @@ namespace cx::io::ip {
 			_fd.close();
 		}
 
-		basic_accept_context<ServiceType> accept(address_type& addr) {
+		native_handle_type accept(address_type& addr) {
 			return _fd.service().accept(_fd.handle(), addr);
 		}
 
-		basic_accept_context<ServiceType> accept(address_type& addr
+		native_handle_type accept(address_type& addr
 			, const std::chrono::milliseconds& ms) {
 			if (cx::io::pollin == _fd.service().poll(_fd.handle(), cx::io::pollin, ms)) {
 				return _fd.service().accept(_fd.handle(), addr);
 			}
-			return basic_accept_context<ServiceType>(_fd.service(), ServiceType::invalid_native_handle);
+			return ServiceType::invalid_native_handle;
 		}
 
 		template < typename HandlerType >

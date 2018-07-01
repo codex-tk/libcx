@@ -21,16 +21,18 @@ namespace cx {
 		/**
 		@return if empty list 0 else 1
 		*/
-		int add_tail(T *node);
+		void add_tail(T *node);
 
 		/**
 		@return if empty list 0 else 1
 		*/
-		int add_tail(slist<T>&& rhs);
+		void add_tail(slist<T>&& rhs);
 
 		T *head(void);
 
 		T *remove_head(void);
+
+		bool empty(void);
 
 	private:
 		T *_head;
@@ -56,35 +58,27 @@ namespace cx {
 	}
 
 	template <typename T>
-	int slist<T>::add_tail(T *node) {
+	void slist<T>::add_tail(T *node) {
 		assert( node != nullptr );
-		if ( node == nullptr )
-			return -1;
-
-		int ret = 0;
+		if ( node == nullptr ) return;
 		if (_head == nullptr) {
 			_head = _tail = node;
 		} else {
 			_tail->next(node);
 			_tail = node;
-			ret = 1;
 		}
 		node->next(nullptr);
-		return ret;
 	}
 
 	template <typename T>
-	int slist<T>::add_tail(slist<T>&& rhs) {
-		int ret = 0;
+	void slist<T>::add_tail(slist<T>&& rhs) {
 		if (_head == nullptr) {
 			_head = rhs._head;
 		} else {
 			_tail->next(rhs._head);
-			ret = 1;
 		}
 		_tail = rhs._tail;
 		rhs._head = rhs._tail = nullptr;
-		return ret;
 	}
 
 	template <typename T>
@@ -105,6 +99,11 @@ namespace cx {
 			_head = static_cast<T *>(_head->next());
 		}
 		return head;
+	}
+
+	template <typename T>
+	bool slist<T>::empty(void) {
+		return _head == nullptr;
 	}
 }
 

@@ -19,6 +19,7 @@ namespace cx::io::ip {
     public:
         using implementation_type = typename ServiceType::implementation_type;
         using handle_type = typename ServiceType::handle_type;
+		using native_handle_type = typename ServiceType::native_handle_type;
         using address_type = typename ServiceType::address_type;
         using buffer_type = typename ServiceType::buffer_type;
 
@@ -34,6 +35,11 @@ namespace cx::io::ip {
 
 		basic_socket(ServiceType& service, handle_type handle)
 			: base_type(service, handle) {}
+
+	    template < typename EngineType >
+		basic_socket(EngineType& e, native_handle_type raw_handle)
+			: base_type(e.template service<ServiceType>()
+				, e.template service<ServiceType>().make_shared_handle(raw_handle)) {}
 
 		basic_socket(const basic_socket& rhs)
 			: base_type(rhs.service(), rhs.handle()) {}

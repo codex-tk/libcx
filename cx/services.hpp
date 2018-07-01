@@ -22,53 +22,35 @@ namespace cx::io {
 
 #if CX_PLATFORM == CX_P_WINDOWS
 	using implementation = cx::io::internal::iocp::implementation;
-
-	namespace ip::tcp {
-		using service = cx::io::internal::iocp::ip::socket_service<SOCK_STREAM, IPPROTO_TCP>;
-    }
-	namespace ip::udp {
-		using service = cx::io::internal::iocp::ip::socket_service<SOCK_DGRAM, IPPROTO_UDP>;
-	}
-	namespace ip::icmp {
-		using service = cx::io::internal::iocp::ip::socket_service<SOCK_RAW, IPPROTO_ICMP>;
-	}
-
+	template < int type , int proto > using socket_service_impl
+		= cx::io::internal::iocp::ip::socket_service< type , proto >;
 #elif CX_PLATFORM == CX_P_LINUX
 	using implementation = cx::io::internal::epoll::implementation;
-
-    namespace ip::tcp {
-		using service = cx::io::internal::reactor::ip::socket_service<
-            implementation , SOCK_STREAM, IPPROTO_TCP>;
-    }
-	namespace ip::udp {
-		using service = cx::io::internal::reactor::ip::socket_service<
-            implementation , SOCK_DGRAM, IPPROTO_UDP>;
-	}
-	namespace ip::icmp {
-		using service = cx::io::internal::reactor::ip::socket_service<
-			implementation, SOCK_RAW, IPPROTO_ICMP>;
-	}
+	template < int type , int proto > using socket_service_impl
+		=  cx::io::internal::reactor::ip::socket_service< implementation , type , proto >;
 #elif CX_PLATFORM == CX_P_MACOSX
-	using implementation = cx::io::kqueue;
+
 #else
-	using implementation = cx::io::poll;
+	
 #endif
 	namespace ip::tcp {
+		using service = socket_service_impl<SOCK_STREAM, IPPROTO_TCP>;
+		using buffer = typename service::buffer_type;
 		using address = typename service::address_type;
 		using socket = cx::io::ip::basic_socket<service>;
-		using buffer = typename service::buffer_type;
 		using acceptor = cx::io::ip::basic_acceptor<service>;
-		using accept_context = cx::io::ip::basic_accept_context<service>;
 	}
 	namespace ip::udp {
+		using service = socket_service_impl<SOCK_DGRAM, IPPROTO_UDP>;
+		using buffer = typename service::buffer_type;
 		using address = typename service::address_type;
 		using socket = cx::io::ip::basic_socket<service>;
-		using buffer = typename service::buffer_type;
 	}
 	namespace ip::icmp {
+		using service = socket_service_impl<SOCK_RAW, IPPROTO_ICMP>;
+		using buffer = typename service::buffer_type;
 		using address = typename service::address_type;
 		using socket = cx::io::ip::basic_socket<service>;
-		using buffer = typename service::buffer_type;
 	}
 }
 

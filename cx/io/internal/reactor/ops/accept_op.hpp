@@ -14,9 +14,8 @@ namespace cx::io::internal::reactor::ip {
 		using handle_type = typename ServiceType::handle_type;
 		using implementation_type = typename ServiceType::implementation_type;
 		
-		accept_op(ServiceType& svc, HandlerType&& handler)
-			: cx::io::ip::basic_accept_op< ServiceType >(svc)
-			, _handler(std::forward<HandlerType>(handler)) {}
+		accept_op(HandlerType&& handler)
+			: _handler(std::forward<HandlerType>(handler)) {}
 
 		virtual ~accept_op(void) {}
 
@@ -26,7 +25,7 @@ namespace cx::io::internal::reactor::ip {
 		}
 
 		virtual int operator()(void) override {
-			_handler(this->error(), this->accept_context(), this->address());
+			_handler(this->error(), this->raw_handle(), this->address());
 			delete this;
 			return 1;
 		}

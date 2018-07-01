@@ -92,9 +92,8 @@ namespace cx::io::internal::iocp::ip {
 			return true;
 		}
 
-		cx::io::ip::basic_accept_context<this_type> accept(const handle_type& handle, address_type& addr) {
-			native_handle_type fd = ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
-			return cx::io::ip::basic_accept_context<this_type>(*this, fd);
+		native_handle_type accept(const handle_type& handle, address_type& addr) {
+			return ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
 		}
 
 		template < typename HandlerType >
@@ -215,7 +214,7 @@ namespace cx::io::internal::iocp::ip {
 		template < typename HandlerType >
 		void async_accept(const handle_type& handle, HandlerType&& handler) {
 			accept_op<HandlerType>* op =
-				new accept_op<HandlerType>( *this , std::forward<HandlerType>(handler));
+				new accept_op<HandlerType>(std::forward<HandlerType>(handler));
 			
 			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
 				op->error(std::make_error_code(std::errc::invalid_argument));
@@ -235,7 +234,7 @@ namespace cx::io::internal::iocp::ip {
 				, WSA_FLAG_OVERLAPPED);
 
 			if (fd != invalid_native_handle ) {
-				op->accept_context().handle(fd);
+				op->raw_handle(fd);
 				DWORD bytes_returned = 0;
 				if (AcceptEx(handle->fd.s
 					, fd

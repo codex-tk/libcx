@@ -171,7 +171,9 @@ namespace cx::io::internal::iocp {
 		void post(operation_type* op) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				if (_ops.add_tail(op) == 0) {
+				bool empty = _ops.empty();
+				_ops.add_tail(op);
+				if (empty) {
 					add_active_links();
 				}
 			} while (0);
@@ -181,7 +183,9 @@ namespace cx::io::internal::iocp {
 		void post(cx::slist<operation_type>&& ops) {
 			do {
 				std::lock_guard<std::recursive_mutex> lock(_mutex);
-				if (_ops.add_tail(std::forward<cx::slist<operation_type>>(ops)) == 0) {
+				bool empty = _ops.empty();
+				_ops.add_tail(std::forward<cx::slist<operation_type>>(ops));
+				if (empty) {
 					add_active_links();
 				}
 			} while (0);

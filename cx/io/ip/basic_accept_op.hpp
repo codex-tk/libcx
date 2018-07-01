@@ -3,20 +3,22 @@
 #ifndef __cx_io_ip_detail_basic_accept_op_h__
 #define __cx_io_ip_detail_basic_accept_op_h__
 
-#include <cx/io/ip/basic_accept_context.hpp>
-
 namespace cx::io::ip{
 
     template < typename ServiceType >
 	class basic_accept_op : public ServiceType::operation_type {
 	public:
 		using address_type = typename ServiceType::address_type;
+		using native_handle_type = typename ServiceType::native_handle_type;
 
-		basic_accept_op(ServiceType& svc)
-			: _accept_context(svc) {}
+		basic_accept_op(void){}
 
-		cx::io::ip::basic_accept_context<ServiceType>& accept_context(void) {
-			return _accept_context;
+		native_handle_type raw_handle(void) {
+			return _raw_handle;
+		}
+
+		void raw_handle(native_handle_type raw_handle){
+			_raw_handle = raw_handle;
 		}
 
 		address_type& address(void) {
@@ -24,7 +26,7 @@ namespace cx::io::ip{
 		}
 	private:
 		address_type _address;
-		cx::io::ip::basic_accept_context<ServiceType> _accept_context;
+		native_handle_type _raw_handle;
 	};
 
 }

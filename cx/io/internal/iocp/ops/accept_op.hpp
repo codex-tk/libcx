@@ -10,14 +10,13 @@ namespace cx::io::internal::iocp::ip {
 	template < typename ServiceType, typename HandlerType >
     class accept_op : public cx::io::ip::basic_accept_op< ServiceType > {
     public:
-		accept_op(ServiceType& svc, HandlerType&& handler)
-			: cx::io::ip::basic_accept_op< ServiceType >(svc)
-			, _handler(std::forward<HandlerType>(handler)) {}
+		accept_op(HandlerType&& handler)
+			: _handler(std::forward<HandlerType>(handler)) {}
 
 		virtual ~accept_op(void) {}
 
         virtual int operator()(void) override {
-		    _handler(error() , accept_context() , address());
+		    _handler(error() , raw_handle() , address());
 			delete this;
 			return 1;
         }
