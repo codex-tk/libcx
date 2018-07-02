@@ -6,19 +6,23 @@
 #include <cx/log/filter.hpp>
 #include <cx/log/formatter.hpp>
 #include <cx/log/writer.hpp>
+#include <cx/log/internal/string_formatter.hpp>
 
 namespace cx::log {
 
 	class sink {
 	public:
-		explicit sink(std::shared_ptr<cx::log::filter> filter,
-			std::shared_ptr<cx::log::formatter> formatter)
+		sink(void)
+			: _filter(std::make_shared< source_filter<>>()),
+			_formatter(cx::log::string_formatter::instance()) {}
+
+		sink(std::shared_ptr<cx::log::filter>&& filter)
 			: _filter(filter),
-			_formatter(formatter) {}
+			_formatter(cx::log::string_formatter::instance()) {}
 
 		void put(const cx::log::record& record) {
+			_buf.clear();
 			if ((*_filter)(record)) {
-				_buf.clear();
 				(*_formatter)(record, _buf);
 				std::for_each(_writers.begin(), _writers.end(), [&](std::shared_ptr<writer>& w) {
 					(*w)(record, _buf);

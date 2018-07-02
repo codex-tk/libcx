@@ -9,6 +9,8 @@
 #include <cx/log/sink.hpp>
 #include <cx/log/internal/cout_writer.hpp>
 #include <cx/log/internal/string_formatter.hpp>
+#include <cx/log/internal/tag_source.hpp>
+#include <cx/log/internal/lib_source.hpp>
 
 #include <stdarg.h>
 
@@ -17,13 +19,40 @@ namespace cx::log {
 	class core {
 	public:
 		void log(cx::log::level lv,
+			cx::log::source* src,
 			const char* file,
 			const int line,
 			const char* function,
-			const char* tag,
 			const char* msg, ...)
 		{
-			cx::log::record r(lv, file, line, function, tag);
+			cx::log::record r(lv, src, file, line, function);
+			va_list args;
+			va_start(args, msg);
+			int len = vsnprintf(r.message.wrptr(), r.message.wrsize(), msg, args);
+			va_end(args);
+			if (len > r.message.wrsize()) {
+				r.message.reserve(len + 1);
+				va_list args0;
+				va_start(args0, msg);
+				len = vsnprintf(r.message.wrptr(), r.message.wrsize(), msg, args0);
+				va_end(args0);
+			}
+			r.message.wrptr(len);
+			std::scoped_lock<std::mutex> guard(_lock);
+			std::for_each(_sinks.begin(), _sinks.end(), [&](std::shared_ptr<cx::log::sink>& s) {
+				s->put(r);
+			});
+		}
+
+		void log(cx::log::level lv,
+			const char* tag,
+			const char* file,
+			const int line,
+			const char* function,
+			const char* msg, ...)
+		{
+			cx::log::tag_source ts(tag);
+			cx::log::record r(lv, &ts, file, line, function);
 			va_list args;
 			va_start(args, msg);
 			int len = vsnprintf(r.message.wrptr(), r.message.wrsize(), msg, args);
@@ -43,15 +72,16 @@ namespace cx::log {
 		}
 
 		void dump(cx::log::level lv,
-			const char* file,
-			const int line,
-			const char* function,
 			const char* tag,
 			void* buf,
 			const std::size_t sz,
+			const char* file,
+			const int line,
+			const char* function,
 			const char* msg, ...)
 		{
-			cx::log::record r(lv, file, line, function, tag);
+			cx::log::tag_source ts(tag);
+			cx::log::record r(lv, &ts, file, line, function);
 			va_list args;
 			va_start(args, msg);
 			int len = vsnprintf(r.message.wrptr(), r.message.wrsize(), msg, args);
@@ -85,11 +115,11 @@ namespace cx::log {
 			});
 		}
 
-
 		void add_sink(const std::shared_ptr<cx::log::sink>& sink) {
 			std::scoped_lock<std::mutex> guard(_lock);
 			_sinks.push_back(sink);
 		}
+
 		static std::shared_ptr<core> instance(void) {
 			static std::shared_ptr<core> core_ptr = std::make_shared<core>();
 			return core_ptr;
