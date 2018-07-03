@@ -1,5 +1,5 @@
 /**
- */
+*/
 #ifndef __cx_log_cout_writer_h__
 #define __cx_log_cout_writer_h__
 
@@ -31,8 +31,8 @@ namespace cx::log {
 				FOREGROUND_GREEN | FOREGROUND_RED ,
 				FOREGROUND_BLUE | FOREGROUND_GREEN ,
 				FOREGROUND_BLUE | FOREGROUND_RED ,
-				FOREGROUND_RED , 
-				 FOREGROUND_BLUE ,
+				FOREGROUND_RED ,
+				FOREGROUND_BLUE ,
 				FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY
 			};
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), colors[static_cast<int>(r.level)]);
