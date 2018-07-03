@@ -26,13 +26,14 @@ namespace cx::io::internal::iocp {
 				SOCKET s;
 				HANDLE h;
 			} fd;
+			basic_handle(void) noexcept { fd.h = INVALID_HANDLE_VALUE; }
 		};
 
 		using handle_type = std::shared_ptr<basic_handle>;
 
 		class operation : public OVERLAPPED {
 		public:
-			operation(void)
+			operation(void) noexcept
 				: _next(nullptr) {
 				reset();
 			}

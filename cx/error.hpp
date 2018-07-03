@@ -40,7 +40,7 @@ namespace cx::internal {
 
 	class cx_error_category : public ::std::error_category {
 	public:
-		cx_error_category(void) {
+		cx_error_category(void) noexcept {
 			_error_message[cx::errc::success] = "success";
 			_error_message[cx::errc::operation_canceled] = "operation_canceled";
 		}
@@ -92,7 +92,7 @@ namespace cx::internal {
 #if CX_PLATFORM == CX_P_WINDOWS
 	class windows_category_impl : public std::error_category {
 	public:
-		windows_category_impl(void) {}
+		windows_category_impl(void) noexcept {}
 
 		virtual const char *name() const noexcept override {
 			return "windows_category";

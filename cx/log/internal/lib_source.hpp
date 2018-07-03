@@ -9,7 +9,7 @@ namespace cx::log {
 
 	class lib_source : public basic_source<lib_source> {
 	public:
-		lib_source(void)
+		lib_source(void) noexcept
 			: _name("cx") {}
 		virtual const char* name(void) {
 			return _name.c_str();

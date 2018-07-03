@@ -12,7 +12,7 @@ namespace cx::io::internal{
     protected:
         ~basic_implementation(void){}
     public:
-		basic_implementation(void)
+		basic_implementation(void) noexcept
 			: _thread_id(std::this_thread::get_id())
 			, _in_loop(false) {}
 

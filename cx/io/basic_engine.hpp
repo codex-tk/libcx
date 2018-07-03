@@ -12,7 +12,7 @@ namespace cx::io {
 	class basic_engine {
 	public:
 		using implementation_type = ImplementationType;
-		basic_engine(void)
+		basic_engine(void) noexcept
 			: _services(_implementation) {}
 
 		~basic_engine(void) {}

@@ -10,7 +10,7 @@ namespace cx::log {
 
 	class filter {
 	public:
-		filter(void) {}
+		filter(void) noexcept {}
 		virtual ~filter(void) {}
 		virtual bool operator()(const cx::log::record&) {
 			return true;
@@ -22,18 +22,35 @@ namespace cx::log {
 		}
 	};
 
-	template < typename AcceptSourceType = cx::log::tag_source >
-	class source_filter : public filter {
+	template < typename AcceptSourceType = cx::log::tag_source
+		, typename LevelCompareType = std::greater_equal<cx::log::level>>
+	class simple_source_filter : public filter {
 	public:
-		explicit source_filter(cx::log::level lv = cx::log::level::error) : _level(lv) {}
-		virtual ~source_filter(void) {}
+		explicit simple_source_filter(cx::log::level lv = cx::log::level::trace) noexcept
+			: _level(lv) {}
+		virtual ~simple_source_filter(void) {}
 		virtual bool operator()(const cx::log::record& r) {
 			if (r.source->hash() == typeid(AcceptSourceType).hash_code()) {
-				return _level > r.level;
+				return _compare(r.level, _level);
 			}
 			return false;
 		}
 	private:
+		LevelCompareType _compare;
+		cx::log::level _level;
+	};
+
+	template < typename LevelCompareType = std::greater_equal<cx::log::level>>
+	class simple_level_filter : public filter {
+	public:
+		explicit simple_level_filter(cx::log::level lv = cx::log::level::trace) noexcept
+			: _level(lv) {}
+		virtual ~simple_level_filter(void) {}
+		virtual bool operator()(const cx::log::record& r) {
+			return _compare(r.level, _level);
+		}
+	private:
+		LevelCompareType _compare;
 		cx::log::level _level;
 	};
 }

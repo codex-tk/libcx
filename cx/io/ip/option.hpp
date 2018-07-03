@@ -22,7 +22,7 @@ namespace cx::io::ip::option {
 	template < typename T, int level, int opt >
 	class value_option {
 	public:
-		value_option(void) : _option(enable) {}
+		value_option(void) noexcept : _option(enable) {}
 
 		explicit value_option(const T& t) : _option(t) {}
 
@@ -48,7 +48,7 @@ namespace cx::io::ip::option {
 
 	class blocking {
 	public:
-		blocking(void) : _option(0) {}
+		blocking(void) noexcept : _option(0) {}
 		~blocking(void) {}
 		bool set(socket_type fd) {
 #if CX_PLATFORM == CX_P_WINDOWS
@@ -64,7 +64,7 @@ namespace cx::io::ip::option {
 
 	class non_blocking {
 	public:
-		non_blocking(void) : _option(1) {}
+		non_blocking(void) noexcept : _option(1) {}
 		~non_blocking(void) {}
 		bool set(socket_type fd) {
 #if CX_PLATFORM == CX_P_WINDOWS

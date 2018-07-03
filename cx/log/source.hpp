@@ -21,7 +21,7 @@ namespace cx::log {
 	template < typename SourceType >
 	class basic_source : public source {
 	public:
-		basic_source(void)
+		basic_source(void) noexcept
 			: source(typeid(SourceType).hash_code()) {}
 	};
 

@@ -80,18 +80,6 @@ namespace cx::io::internal::iocp::ip {
 			return true;
 		}
 
-		bool shutdown(const handle_type& handle, int how) {
-			if (handle.get() == nullptr || handle->fd.s == invalid_native_handle) {
-				last_error(std::make_error_code(std::errc::invalid_argument));
-				return false;
-			}
-			if (::shutdown(handle->fd.s, how) == SOCKET_ERROR) {
-				last_error(cx::system_error());
-				return false;
-			}
-			return true;
-		}
-
 		native_handle_type accept(const handle_type& handle, address_type& addr) {
 			return ::accept(handle->fd.s, addr.sockaddr(), addr.length_ptr());
 		}

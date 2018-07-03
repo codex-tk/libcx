@@ -12,7 +12,7 @@ namespace cx::io {
 		: public iovec{
 #endif
 	public:
-		buffer(void) {
+		buffer(void) noexcept {
 			this->base(nullptr);
 			this->length(0);
 		}

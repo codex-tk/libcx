@@ -10,7 +10,7 @@ namespace cx {
 
 	template < typename T > class slist {
 	public:
-		slist(void);
+		slist(void) noexcept;
 
 		slist(slist&& rhs);
 
@@ -40,7 +40,7 @@ namespace cx {
 	};
 
 	template <typename T>
-	slist<T>::slist(void)
+	slist<T>::slist(void) noexcept
 		: _head(nullptr), _tail(nullptr) {}
 
 	template <typename T>
