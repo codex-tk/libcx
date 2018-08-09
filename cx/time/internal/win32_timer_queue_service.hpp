@@ -9,7 +9,7 @@
 
 namespace cx::time {
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 
 	template < typename ImplementationType, std::size_t Resolution  >
 	class win32_timer_queue_service {

@@ -15,7 +15,7 @@
 #include <mutex>
 #include <set>
 
-#if CX_PLATFORM == CX_P_LINUX
+#if defined(CX_PLATFORM_LINUX)
 
 namespace cx::io::internal::epoll {
 

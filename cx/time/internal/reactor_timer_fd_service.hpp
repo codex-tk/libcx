@@ -6,7 +6,7 @@
 #include <cx/cxdefine.hpp>
 #include <cx/stdext/removable_priority_queue.hpp>
 
-#if CX_PLATFORM == CX_P_LINUX
+#if defined(CX_PLATFORM_LINUX)
 
 #include <sys/timerfd.h>
 

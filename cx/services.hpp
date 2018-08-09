@@ -20,15 +20,15 @@
 
 namespace cx::io {
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 	using implementation = cx::io::internal::iocp::implementation;
 	template < int type , int proto > using socket_service_impl
 		= cx::io::internal::iocp::ip::socket_service< type , proto >;
-#elif CX_PLATFORM == CX_P_LINUX
+#elif defined(CX_PLATFORM_LINUX)
 	using implementation = cx::io::internal::epoll::implementation;
 	template < int type , int proto > using socket_service_impl
 		=  cx::io::internal::reactor::ip::socket_service< implementation , type , proto >;
-#elif CX_PLATFORM == CX_P_MACOSX
+#elif defined(CX_PLATFORM_MACOSX)
 
 #else
 	
@@ -60,11 +60,11 @@ namespace cx::io {
 
 namespace cx::time {
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 	using timer_service = cx::time::win32_timer_queue_service< cx::io::implementation, 100 >;
-#elif CX_PLATFORM == CX_P_LINUX
+#elif defined(CX_PLATFORM_LINUX)
 	using timer_service = cx::time::reactor_timer_fd_service< cx::io::implementation >;
-#elif CX_PLATFORM == CX_P_MACOSX 
+#elif defined(CX_PLATFORM_MACOSX)
 
 #else 
 

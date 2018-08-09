@@ -43,7 +43,7 @@ TEST(service, t0) {
 	ASSERT_EQ(_s0.template service<empty_service>().svcid(), 0);
 	ASSERT_EQ(_s0.template service<foo_service>().svcid(), 1);
 }
-#if CX_PLATFORM == CX_P_LINUX
+#if defined(CX_PLATFORM_LINUX)
 #include <cx/io/internal/epoll/implemenation.hpp>
 #include <cx/io/internal/reactor/socket_service.hpp>
 #include <cx/io/basic_engine.hpp>

@@ -8,7 +8,7 @@
 #include <vector>
 #include <iostream>
 
-#if CX_PLATFORM != CX_P_WINDOWS
+#if !defined(CX_PLATFORM_WIN32)
 #include <ifaddrs.h>
 #endif
 
@@ -23,7 +23,7 @@ namespace cx::io::ip {
 
 	std::vector< ifaddr > interfaces(void) {
 		std::vector< ip::ifaddr > retifaddrs;
-#if CX_PLATFORM == CX_P_WINDOWS 
+#if defined(CX_PLATFORM_WIN32) 
 		// https://msdn.microsoft.com/en-us/library/aa365917.aspx GetAdaptersInfo function
 		ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
 		PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO *)std::malloc(sizeof(IP_ADAPTER_INFO));

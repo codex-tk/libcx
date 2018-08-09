@@ -12,23 +12,21 @@ Solaris	 sun or __sun				SunOS versions < 5 will not have __SVR4 or __svr4__ def
 Windows	 _WIN32 or __WIN32__
 */
 
-#define CX_P_LINUX 0
-#define CX_P_WINDOWS 1
-#define CX_P_MACOSX 2
-#define CX_P_UNKNOWN 0xffffffff
-
 #if defined( linux ) || defined ( __linux )
-#define CX_PLATFORM CX_P_LINUX
-#elif defined( _WIN32 ) || defined (_WIN64) 
-#define CX_PLATFORM CX_P_WINDOWS
+#define CX_PLATFORM_LINUX
+#elif defined( _WIN32 ) 
+#define CX_PLATFORM_WIN32
+#if defined (_WIN64) 
+#define CX_PLATFORM_WIN64
+#endif
 #elif defined ( __MACOSX__ ) || defined ( __APPLE__ ) 
-#define CX_PLATFORM CX_P_MACOSX
+#define CX_PLATFORM_MACOSX
 #else
-#define CX_PLATFORM CX_P_UNKNOWN
+#define CX_PLATFORM_UNKNOWN
 #endif
 
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 
 #if !defined(NOMINMAX)
 #define NOMINMAX
@@ -99,15 +97,15 @@ namespace cx::io::ip::internal {
 #include <fcntl.h>
 #include <poll.h>
 
-#if CX_PLATFORM == CX_P_LINUX
+#if defined(CX_PLATFORM_LINUX)
 
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <netinet/tcp.h>
 
-#endif // CX_P_LINUX
+#endif // CX_PLATFORM_LINUX
 
-#endif // CX_P_WINDOWS 
+#endif // CX_PLATFORM_WIN32 
 
 #include <cstdio>
 #include <cstdlib>
@@ -138,6 +136,9 @@ namespace cx::io::ip::internal {
 #define MAX_PATH 256
 #endif
 
+#ifndef CX_UNUSED
+#define CX_UNUSED(param) (void)param
+#endif
 
 
 #endif

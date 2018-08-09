@@ -44,7 +44,7 @@ namespace cx::io::ip {
 					&(reinterpret_cast<struct sockaddr_in6*>(sockaddr())->sin6_addr));
 				break;
                 /*
-#if CX_PLATFORM != CX_P_WINDOWS
+#if !defined(CX_PLATFORM_WIN32)
 			//case AF_UNIX:
 			case PF_FILE:
 				_address.sun_family = family;
@@ -94,7 +94,7 @@ namespace cx::io::ip {
 					, out
 					, len) != nullptr;
                 /*
-#if CX_PLATFORM != CX_P_WINDOWS
+#if !defined(CX_PLATFORM_WIN32)
 			case AF_UNIX:
 			case PF_FILE:
 				strncpy(out, _address.sun_path, len);
@@ -131,7 +131,7 @@ namespace cx::io::ip {
 				len += snprintf(buf + len, MAX_PATH - len, "AF_INET6 ");
 				break;
                 /*
-#if CX_PLATFORM != CX_P_WINDOWS
+#if !defined(CX_PLATFORM_WIN32)
 			case AF_UNIX:
 			case PF_FILE:
 				len += snprintf(buf + len, MAX_PATH - len, "AF_UNIX ");

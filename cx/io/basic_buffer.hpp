@@ -6,7 +6,7 @@
 namespace cx::io {
 
 	class buffer 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 		: public WSABUF {
 #else
 		: public iovec{
@@ -32,7 +32,7 @@ namespace cx::io {
 			length(sz);
 		}
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 		void* base(void) const { return buf; }
 
 		std::size_t length(void) const { return len; }

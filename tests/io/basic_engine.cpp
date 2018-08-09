@@ -50,7 +50,7 @@ TEST(basic_engine, socket_service) {
 }
 
 
-#if CX_PLATFORM == CX_P_WINDOWS 
+#if defined(CX_PLATFORM_WIN32) 
 TEST(union_test, to) {
 	struct handle {
 		union {

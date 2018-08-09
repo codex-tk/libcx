@@ -17,7 +17,7 @@ namespace cx::io{
         };
 
         selector( void ) : _fds_length(0) , _sigfds_length(0) {
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
             static_assert( N < 64 );
 #endif
             for ( std::size_t i = 0 ; i < N ; ++i ) {
@@ -68,13 +68,13 @@ namespace cx::io{
             fd_set wrfds;
             FD_ZERO( &rdfds );
             FD_ZERO( &wrfds );
-#if CX_PLATFORM != CX_P_WINDOWS
+#if !defined(CX_PLATFORM_WIN32)
             int maxfd = 0;
 #endif
             for ( std::size_t i = 0 ; i < _fds_length ; ++i ) {
                 handle_type fd = std::get<context_id::handle>(_fds[i]);
                 int ops = std::get< context_id::ops >(_fds[i]);
-#if CX_PLATFORM != CX_P_WINDOWS
+#if !defined(CX_PLATFORM_WIN32)
                 if ( fd > maxfd ) maxfd = std::get<context_id::handle>(_fds[i]);
 #endif
                 if ( ops & cx::io::pollin )
@@ -88,7 +88,7 @@ namespace cx::io{
             tv.tv_usec =( wait_milli_sec % 1000 ) * 1000;
 
             int ret = 0;
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
             ret = ::select( 0 , &rdfds , &wrfds , nullptr  , &tv );
             if ( ret == 0 || ret == -1 ) // timeout or error
                 return 0;

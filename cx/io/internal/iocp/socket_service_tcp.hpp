@@ -3,7 +3,7 @@
 #ifndef __cx_io_detail_completion_port_socket_h__
 #define __cx_io_detail_completion_port_socket_h__
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 
 #include <cx/io/internal/iocp/socket_service.hpp>
 

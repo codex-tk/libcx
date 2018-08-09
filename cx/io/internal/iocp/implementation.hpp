@@ -15,7 +15,7 @@
 #include <mutex>
 #include <set>
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 
 namespace cx::io::internal::iocp {
 

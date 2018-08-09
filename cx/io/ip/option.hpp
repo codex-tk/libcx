@@ -12,7 +12,7 @@
 
 namespace cx::io::ip::option {
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 	using socket_type = SOCKET;
 #else
 	using socket_type = int;
@@ -51,7 +51,7 @@ namespace cx::io::ip::option {
 		blocking(void) : _option(0) {}
 		~blocking(void) {}
 		bool set(socket_type fd) {
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 			return ioctlsocket(fd, FIONBIO, &_option) != -1;
 #else
 			int x = fcntl(fd, F_GETFL, 0);
@@ -67,7 +67,7 @@ namespace cx::io::ip::option {
 		non_blocking(void) : _option(1) {}
 		~non_blocking(void) {}
 		bool set(socket_type fd) {
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 			return ioctlsocket(fd, FIONBIO, &_option) != -1;
 #else
 			int x = fcntl(fd, F_GETFL, 0);

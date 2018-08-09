@@ -4,7 +4,7 @@
 #ifndef __cx_io_ip_basic_socket_service_h__
 #define __cx_io_ip_basic_socket_service_h__
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 
 #include <cx/cxdefine.hpp>
 #include <cx/io/internal/iocp/implementation.hpp>
@@ -184,6 +184,6 @@ namespace cx::io::internal::iocp::ip {
 	};
 }
 
-#endif // #if CX_PLATFORM == CX_P_WINDOWS
+#endif // #if defined(CX_PLATFORM_WIN32)
 
 #endif

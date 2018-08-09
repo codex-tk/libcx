@@ -89,7 +89,7 @@ namespace cx::internal {
 	};
 
 
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 	class windows_category_impl : public std::error_category {
 	public:
 		windows_category_impl(void) {}

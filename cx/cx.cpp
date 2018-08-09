@@ -8,7 +8,7 @@ namespace cx {
     }
 
 	
-#if CX_PLATFORM ==  CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 	namespace internal {
 		std::error_category& windows_category(void) {
 			static internal::windows_category_impl impl;

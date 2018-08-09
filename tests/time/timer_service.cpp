@@ -48,7 +48,7 @@ TEST(ts, cancel) {
 	ASSERT_EQ(testValue, 3);
 }
 /*
-#if CX_PLATFORM == CX_P_LINUX 
+#if defined(CX_PLATFORM_LINUX) 
 
 TEST( epoll , timer_fd ){
 	int epoll = epoll_create(1);

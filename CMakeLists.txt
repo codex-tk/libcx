@@ -7,7 +7,7 @@ if(MSVC)
   # vs option change
   add_compile_options("/wd4819")
   add_compile_options("/wd4127")
-
+  add_compile_options("/MP")
   # for googletest
   foreach (flag_var
       CMAKE_CXX_FLAGS

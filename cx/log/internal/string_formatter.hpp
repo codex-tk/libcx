@@ -15,7 +15,7 @@ namespace cx::log {
 		virtual void operator()(const cx::log::record& record, cx::basic_buffer<char>& buf) {
 			time_t ts = std::chrono::system_clock::to_time_t(record.time);
 			struct tm tm;
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 			localtime_s(&tm, &ts);
 #else
 			localtime_r(&ts, &tm);
