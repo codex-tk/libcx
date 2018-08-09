@@ -9,7 +9,7 @@ namespace cx::log {
 
 	class string_formatter : public cx::log::formatter {
 	public:
-		string_formatter(void) {}
+		string_formatter(void) noexcept {}
 		virtual ~string_formatter(void) {}
 
 		virtual void operator()(const cx::log::record& record, cx::basic_buffer<char>& buf) {
@@ -22,7 +22,7 @@ namespace cx::log {
 #endif	
 			std::size_t tid = std::hash<std::thread::id>{}(record.tid);
 
-			static char level[] = { 'D','I','W','E','F' };
+			static char level[] = {'T','D','I','W','E','F'};
 			int len = snprintf(buf.wrptr(), buf.wrsize(),
 				"[%04d%02d%02d %02d%02d%02d][%c][%s][%s][%s][%s:%d][%zu]\r\n",
 				tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,

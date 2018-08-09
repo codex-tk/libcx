@@ -12,8 +12,8 @@ namespace cx::log {
 
 	class sink {
 	public:
-		sink(void)
-			: _filter(std::make_shared< source_filter<>>()),
+		sink(void) noexcept
+			: _filter(std::make_shared< simple_source_filter<>>()),
 			_formatter(cx::log::string_formatter::instance()) {}
 
 		sink(std::shared_ptr<cx::log::filter>&& filter)

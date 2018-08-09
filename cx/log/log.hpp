@@ -11,6 +11,7 @@
 #if defined(CX_PLATFORM_WIN32)
 #define CXLOG(lv,src_or_tag,msg,...) do{ cx::log::core::instance()->log(lv,src_or_tag,__FILE__,__LINE__,__FUNCTION__,msg,__VA_ARGS__); } while(0)
 #define CXDUMP(lv,src_or_tag,buf,sz,msg,...) do{ cx::log::core::instance()->dump(lv,src_or_tag,buf,sz,__FILE__,__LINE__,__FUNCTION__,msg,__VA_ARGS__); } while(0)
+#define CXLOG_T(src_or_tag,msg,...) CXLOG(cx::log::level::trace,src_or_tag,msg,__VA_ARGS__)
 #define CXLOG_D(src_or_tag,msg,...) CXLOG(cx::log::level::debug,src_or_tag,msg,__VA_ARGS__)
 #define CXLOG_I(src_or_tag,msg,...) CXLOG(cx::log::level::info,src_or_tag,msg,__VA_ARGS__)
 #define CXLOG_W(src_or_tag,msg,...) CXLOG(cx::log::level::warn,src_or_tag,msg,__VA_ARGS__)
@@ -19,6 +20,7 @@
 #else
 #define CXLOG(lv,src_or_tag,msg,...) do{ cx::log::core::instance()->log(lv,src_or_tag,__FILE__,__LINE__,__FUNCTION__,msg,##__VA_ARGS__); } while(0)
 #define CXDUMP(lv,src_or_tag,buf,sz,msg,...) do{ cx::log::core::instance()->dump(lv,src_or_tag,buf,sz,__FILE__,__LINE__,__FUNCTION__,msg,##__VA_ARGS__); } while(0)
+#define CXLOG_T(src_or_tag,msg,...) CXLOG(cx::log::level::trace,src_or_tag,msg,##__VA_ARGS__)
 #define CXLOG_D(src_or_tag,msg,...) CXLOG(cx::log::level::debug,src_or_tag,msg,##__VA_ARGS__)
 #define CXLOG_I(src_or_tag,msg,...) CXLOG(cx::log::level::info,src_or_tag,msg,##__VA_ARGS__)
 #define CXLOG_W(src_or_tag,msg,...) CXLOG(cx::log::level::warn,src_or_tag,msg,##__VA_ARGS__)
@@ -29,7 +31,7 @@
 
 namespace cx::log {
 
-	enum class level { debug, info, warn, error, fatal };
+	enum class level { trace , debug, info, warn, error, fatal };
 
 	struct record {
 		cx::log::level level;

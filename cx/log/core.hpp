@@ -8,6 +8,7 @@
 #include <cx/log/log.hpp>
 #include <cx/log/sink.hpp>
 #include <cx/log/internal/cout_writer.hpp>
+#include <cx/log/internal/win32_debug_writer.hpp>
 #include <cx/log/internal/string_formatter.hpp>
 #include <cx/log/internal/tag_source.hpp>
 #include <cx/log/internal/lib_source.hpp>

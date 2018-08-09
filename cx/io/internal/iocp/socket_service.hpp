@@ -31,7 +31,7 @@ namespace cx::io::internal::iocp::ip {
 		struct _buffer {
 			_buffer(void* ptr, std::size_t len)
 				: buffer(ptr, len){}
-			_buffer(void)
+			_buffer(void) noexcept
 				: buffer(nullptr, 0){}
 			address_type address;
 			cx::io::buffer buffer;

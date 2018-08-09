@@ -11,7 +11,8 @@ namespace cx::io::ip{
 		using address_type = typename ServiceType::address_type;
 		using native_handle_type = typename ServiceType::native_handle_type;
 
-		basic_accept_op(void){}
+		basic_accept_op(void) noexcept 
+			: _raw_handle(ServiceType::invalid_native_handle) {}
 
 		native_handle_type raw_handle(void) {
 			return _raw_handle;

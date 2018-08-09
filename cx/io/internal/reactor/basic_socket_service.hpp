@@ -54,7 +54,7 @@ namespace cx::io::internal::reactor::ip {
         basic_socket_service(implementation_type& impl)
             : _implementation(impl) {}
 
-        bool open(const handle_type& handle, const address_type& address) {
+        bool  open(const handle_type& handle, const address_type& address) {
             close(handle);
             handle->fd = ::socket(address.family()
                 , address.type()

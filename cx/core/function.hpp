@@ -47,12 +47,12 @@ namespace cx {
 		using callable_impl = cx::callable0< T, R, Args ... >;
 
 		/*! default construct */
-		function(void);
+		function(void) noexcept;
 		/*! copy construct */
 		function(const function& rhs);
 
 		/*! move construct */
-		function(function&& rhs);
+		function(function&& rhs) noexcept;
 
 		/*! ctor from callable */
 		template < typename HandlerT, typename = typename std::enable_if< !std::is_same_v< function, std::remove_reference_t<HandlerT>>>::type >
@@ -62,7 +62,7 @@ namespace cx {
 		function& operator=(const function& rhs);
 
 		/*! move assign */
-		function& operator=(function&& rhs);
+		function& operator=(function&& rhs) noexcept;
 
 		/*! assign from callable */
 		template < typename HandlerT, typename = typename std::enable_if< !std::is_same_v< function, std::remove_reference_t<HandlerT>>>::type >
@@ -78,14 +78,14 @@ namespace cx {
 	};
 
 	template < typename R, typename ... Args >
-	function < R(Args...) >::function(void) {}
+	function < R(Args...) >::function(void) noexcept {}
 
 	template < typename R, typename ... Args >
 	function < R(Args...) >::function(const function& rhs)
 		: _callable(rhs._callable) {}
 
 	template < typename R, typename ... Args >
-	function < R(Args...) >::function(function&& rhs)
+	function < R(Args...) >::function(function&& rhs) noexcept
 		: _callable(std::move(rhs._callable)) {}
 
 
@@ -103,7 +103,7 @@ namespace cx {
 	}
 
 	template < typename R, typename ... Args >
-	function < R(Args...) >& function < R(Args...) >::operator=(function&& rhs) {
+	function < R(Args...) >& function < R(Args...) >::operator=(function&& rhs) noexcept {
 		_callable = std::move(rhs._callable);
 		return *this;
 	}

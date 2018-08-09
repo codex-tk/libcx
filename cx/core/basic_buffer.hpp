@@ -60,7 +60,7 @@ namespace cx {
 	class basic_buffer {
 	public:
 		using block_type = internal::block<T, AllocatorType>;
-		basic_buffer(void)
+		basic_buffer(void) noexcept
 			:_block(nullptr), _rd_pos(0), _wr_pos(0) {}
 
 		basic_buffer(const std::size_t sz)
@@ -78,7 +78,7 @@ namespace cx {
 				_block->add_ref();
 		}
 
-		basic_buffer(basic_buffer&& rhs)
+		basic_buffer(basic_buffer&& rhs) noexcept
 			: _block(std::move(rhs._block))
 			, _rd_pos(std::move(rhs._rd_pos))
 			, _wr_pos(std::move(rhs._wr_pos)) {
@@ -92,7 +92,7 @@ namespace cx {
 			return *this;
 		}
 
-		basic_buffer& operator=(basic_buffer&& rhs) {
+		basic_buffer& operator=(basic_buffer&& rhs) noexcept {
 			basic_buffer nb(std::forward<basic_buffer>(rhs));
 			swap(nb);
 			return *this;

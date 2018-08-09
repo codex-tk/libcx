@@ -16,7 +16,7 @@ namespace cx::io::ip {
 	template < typename SockAddrT, int Type, int Proto >
 	class basic_address {
 	public:
-		basic_address(void) : _length(sizeof(SockAddrT)) {
+		basic_address(void) noexcept : _length(sizeof(SockAddrT)) {
 			memset(&_address, 0x00, sizeof(_address));
 		}
 

@@ -46,9 +46,10 @@ Windows	 _WIN32 or __WIN32__
 namespace cx::io::ip::internal {
 	namespace {
 		struct win32_socket_initializer {
-			win32_socket_initializer(void) {
+			win32_socket_initializer(void) noexcept {
 				WSADATA    wsaData;
-				WSAStartup(MAKEWORD(2, 2), &wsaData);
+				int ret = WSAStartup(MAKEWORD(2, 2), &wsaData);
+				(void)ret;
 			}
 		};
 		static win32_socket_initializer initializer;

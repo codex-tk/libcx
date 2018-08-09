@@ -7,7 +7,7 @@ namespace {
 
 	class basic_copy_assign {
 	public:
-		basic_copy_assign(void) { basic_copy_assign_call_ids[0] += 1; }
+		basic_copy_assign(void) noexcept { basic_copy_assign_call_ids[0] += 1; }
 		basic_copy_assign(const basic_copy_assign&) { basic_copy_assign_call_ids[1] += 1; }
 		basic_copy_assign(basic_copy_assign&&) { basic_copy_assign_call_ids[2] += 1; }
 		template < typename HandlerType > basic_copy_assign(HandlerType&&) { basic_copy_assign_call_ids[3] += 1; }
