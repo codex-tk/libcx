@@ -10,6 +10,7 @@ namespace cx::log {
 	class win32_debug_writer : public cx::log::writer {
 	public:
 		virtual void operator()(const cx::log::record& r, const cx::basic_buffer<char>& formatted) {
+			CX_UNUSED(r);
             OutputDebugStringA(formatted.rdptr());
 		}
 	public:

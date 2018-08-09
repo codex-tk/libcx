@@ -2,10 +2,6 @@
 #include <cx/log/core.hpp>
 
 TEST(log, core) {
-<<<<<<< HEAD
-
-=======
->>>>>>> dev
 	CXLOG(cx::log::level::debug, "Sample Tag", "Test Message %d %s", 10, "StringMessage");
 	char dump[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	CXDUMP(cx::log::level::info, "Tag", dump, 32, "Test Dump %d %s", 10, "StringMessage");
