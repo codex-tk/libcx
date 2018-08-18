@@ -5,35 +5,6 @@
 #include <cx/io/basic_engine.hpp>
 #include "tests/gprintf.hpp"
 
-int in_cksum(u_short *p, int n)
-{
-	u_short answer;
-	long sum = 0;
-	u_short odd_byte = 0;
-
-	while (n > 1)
-	{
-		sum += *p++;
-		n -= 2;
-
-	}/* WHILE */
-
-
-	 /* mop up an odd byte, if necessary */
-	if (n == 1)
-	{
-		*(u_char*)(&odd_byte) = *(u_char*)p;
-		sum += odd_byte;
-
-	}/* IF */
-
-	sum = (sum >> 16) + (sum & 0xffff);    /* add hi 16 to low 16 */
-	sum += (sum >> 16);                    /* add carry */
-	answer = ~sum;                            /* ones-complement, truncate*/
-
-	return (answer);
-
-}
 
 TEST( cx_io_ip , hdr ) {
 
@@ -62,9 +33,9 @@ TEST( cx_io_ip , hdr ) {
 	icmphdr.icmp_checksum = 0;
 	icmphdr.icmp_sequence= 15;
 	icmphdr.icmp_id = 81;
-	icmphdr.icmp_checksum = in_cksum(reinterpret_cast<u_short*>(&icmphdr), sizeof(icmphdr));
+	icmphdr.icmp_checksum = cx::checksum(&icmphdr, sizeof(icmphdr));
 	
-	ASSERT_EQ(fd.write(wrbuf), sizeof(icmphdr));
+	ASSERT_EQ(fd.write(wrbuf), static_cast<int>(sizeof(icmphdr)));
 
 	fd.async_read(rdbuf , [&](const std::error_code& ec, int sz) {
 		if (!ec && sz > 0) {

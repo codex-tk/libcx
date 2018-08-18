@@ -76,5 +76,6 @@
     },
     "C_Cpp.errorSquiggles": "Disabled",
     "C_Cpp.dimInactiveRegions": true ,
-    "codegnuglobal.executable": "C:/msys64/mingw64/bin/global.exe" ,
+    "codegnuglobal.executable": "C:/msys64/mingw64/bin/global.exe",
+    "C_Cpp.configurationWarnings": "Disabled",
 }

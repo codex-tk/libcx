@@ -27,9 +27,9 @@ namespace cx {
 	template < typename HandlerT, typename R, typename ... Args >
 	class callable0 : public callable< R(Args...) > {
 	public:
-		callable0(HandlerT&& h)
+		callable0(HandlerT&& h) noexcept
 			: _handler(std::forward< HandlerT >(h)) {}
-		virtual ~callable0(void) override { }
+		virtual ~callable0(void) noexcept override { }
 		virtual R operator()(Args&& ... args) override {
 			return _handler(std::forward< Args >(args)...);
 		}

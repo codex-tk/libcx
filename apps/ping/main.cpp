@@ -3,35 +3,6 @@
 #include <iostream>
 
 #include <cx/io/ip/hdr.hpp>
-int in_cksum(u_short *p, int n)
-{
-	u_short answer;
-	long sum = 0;
-	u_short odd_byte = 0;
-
-	while (n > 1)
-	{
-		sum += *p++;
-		n -= 2;
-
-	}/* WHILE */
-
-
-	 /* mop up an odd byte, if necessary */
-	if (n == 1)
-	{
-		*(u_char*)(&odd_byte) = *(u_char*)p;
-		sum += odd_byte;
-
-	}/* IF */
-
-	sum = (sum >> 16) + (sum & 0xffff);    /* add hi 16 to low 16 */
-	sum += (sum >> 16);                    /* add carry */
-	answer = ~sum;                            /* ones-complement, truncate*/
-
-	return (answer);
-
-}
 
 using engine_type = cx::io::engine<
 	cx::io::ip::icmp::service
@@ -122,7 +93,7 @@ public:
 		icmphdr.icmp_checksum = 0;
 		icmphdr.icmp_sequence = _current_times;
 		icmphdr.icmp_id = 81;
-		icmphdr.icmp_checksum = in_cksum(reinterpret_cast<u_short*>(&icmphdr), sizeof(icmphdr));
+		icmphdr.icmp_checksum = cx::checksum(&icmphdr, sizeof(icmphdr));
 		_fd.write(wrbuf);
 	}
 private:
@@ -132,10 +103,12 @@ private:
 	cx::basic_buffer<char> _read_buffer;
 	std::string _ip_address;
 	int _times;
-	int _current_times;
+	uint16_t _current_times;
 };
 
 int main(int argc, char* argv[]) {
+	CX_UNUSED(argc);
+	CX_UNUSED(argv);
 	engine_type engine;
 	auto s = std::make_shared<session>(engine);
 	s->start_ping("192.168.1.1", 5);

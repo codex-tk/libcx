@@ -27,7 +27,7 @@ namespace cx::vision {
 			const uint8_t* src_ptr = src.ptr(y);
 			uint8_t* dst_ptr = dst.ptr(y);
 			for (std::size_t x = 0; x < src.width(); ++x) {
-				dst_ptr[x * dst.channel() + channel] = norm[src_ptr[x * src.channel() + channel]];
+				dst_ptr[x * dst.channel() + channel] = static_cast<uint8_t>(norm[src_ptr[x * src.channel() + channel]]);
 			}
 		}
 	}
@@ -59,7 +59,7 @@ namespace cx::vision {
 		}
 		for (std::size_t y = 0; y < src.height(); ++y) {
 			for (std::size_t x = 0; x < src.width(); ++x) {
-				dst.at(x, y) = norm[src.at(x, y)];
+				dst.at(x, y) = static_cast<uint8_t>(norm[src.at(x, y)]);
 			}
 		}
 
