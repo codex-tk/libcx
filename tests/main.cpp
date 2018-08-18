@@ -13,5 +13,5 @@ int main(int argc, char** argv) {
 	sink->add_writer(cx::log::cout_writer::instance());
 	cx::log::core::instance()->add_sink(sink);
   ::testing::InitGoogleTest(&argc, argv);
-  RUN_ALL_TESTS();
+  return RUN_ALL_TESTS();
 }

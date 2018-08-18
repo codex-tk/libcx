@@ -100,7 +100,7 @@ TEST(basic_buffer, ptr) {
 	cx::basic_buffer<char> buf(1024);
 	ASSERT_EQ(buf.rdptr(), buf.wrptr());
 	int i = 0;
-	while (buf.wrsize() >= sizeof(int)) {
+	while (buf.wrsize() >= static_cast<int>(sizeof(int))) {
 		memcpy(buf.wrptr(), &i, sizeof(int));
 		buf.wrptr(sizeof(int));
 		++i;
@@ -108,7 +108,7 @@ TEST(basic_buffer, ptr) {
 	ASSERT_EQ(buf.wrsize(), 0);
 	i = 0;
 	ASSERT_NE(buf.rdsize(), 0);
-	while (buf.rdsize() >= sizeof(int)) {
+	while (buf.rdsize() >= static_cast<int>(sizeof(int))) {
 		int value = 0;
 		memcpy(&value, buf.rdptr(), sizeof(int));
 		buf.rdptr(sizeof(int));

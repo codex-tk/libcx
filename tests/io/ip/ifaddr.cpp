@@ -6,7 +6,6 @@
 #include "tests/gprintf.hpp"
 
 TEST( cx_io_ifaddr , ifaddrs ) {
-    char buf[1024] = {0 , };
     for( auto ifa : cx::io::ip::interfaces()) {
         gprintf( "%d %s %s %s %s" , 
                     if_nametoindex(ifa.name.c_str())

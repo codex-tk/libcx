@@ -111,13 +111,13 @@ public:
     void SetUp() override {
         for ( int i = 0 ; i < 8 ; ++i ){
             node<char> n; 
-            n.value = i + '0';
+            n.value = static_cast<char>(i + '0');
             n.left = nullptr;
             n.right = nullptr;
             nodes.push_back(n);
         }
-        for ( int i = 0 ; i < 8 ; ++i ){
-            int child_idx = i * 2 + 1;
+        for ( std::size_t i = 0 ; i < 8 ; ++i ){
+            std::size_t child_idx = i * 2 + 1;
             if ( nodes.size() > child_idx ) {
                 nodes[i].left = &nodes[child_idx];
                 ++child_idx;
