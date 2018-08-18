@@ -4,7 +4,7 @@
 #define __cx_log_win32_debug_writer_h__
 
 #include <cx/log/writer.hpp>
-#if CX_PLATFORM == CX_P_WINDOWS
+#if defined(CX_PLATFORM_WIN32)
 namespace cx::log {
 
 	class win32_debug_writer : public cx::log::writer {
