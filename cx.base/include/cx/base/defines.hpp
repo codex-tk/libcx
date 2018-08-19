@@ -64,11 +64,11 @@ Windows	 _WIN32 or __WIN32__
         }
     }
     */
-    #define CX_LITTLE_ENDIAN
+//#define CX_LITTLE_ENDIAN
 /// CX_PLATFORM_WIN32 END  -----------------------     
 #else  
 /// CX_PLATFORM_UNIX BEGIN -----------------------     
-
+/*
     //https://stackoverflow.com/questions/4239993/determining-endianness-at-compile-time/4240029
     #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
         defined(__BIG_ENDIAN__) ||                               \
@@ -87,9 +87,10 @@ Windows	 _WIN32 or __WIN32__
         // It's a little-endian target architecture
         #define CX_LITTLE_ENDIAN
     #else
-        #error "I don't know what architecture this is!"
+		#define CX_LITTLE_ENDIAN
+        //#error "I don't know what architecture this is!"
     #endif
-
+*/
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <sys/un.h>

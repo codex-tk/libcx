@@ -26,8 +26,9 @@ namespace cx::base::mp {
 	template < std::size_t ... Is, typename ... Ts >
 	struct values< cx::base::mp::sequence< Is ... >, Ts ...  >
 		: value< Is, Ts > ...
+	//	: value< Is, typename cx::base::mp::at< Is, type_list< Ts ... >>::type > ...
 	{
-		values(Ts&& ...  args)
+		values(Ts&& ... args)
 			: value< Is, typename cx::base::mp::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
 		{}
 
@@ -38,26 +39,14 @@ namespace cx::base::mp {
 			return static_cast<value< I, typename cx::base::mp::at< I, type_list< Ts ... >>::type >*>(this)->data;
 		}
 	};
-
-	template < typename I, typename T > struct values0;
-
-	template < std::size_t ... Is, typename ... Ts >
-	struct values0< cx::base::mp::sequence< Is ... >, type_list< Ts ... > >
-		: value< Is, typename cx::base::mp::at< Is, type_list< Ts ... >>::type > ...
-	{
-		values0(Ts&& ...  args)
-			: value< Is, typename cx::base::mp::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
-		{}
-
-	};
-
+	
 	template < std::size_t I, typename T >
 	T& get(value< I, T >& v) {
 		return v.data;
 	}
 
 	template < typename ... Ts >
-	using tuple_sample = values< cx::base::mp::make_sequence< sizeof...(Ts) >, Ts ... >;
+	using tuple = values< cx::base::mp::make_sequence< sizeof...(Ts) >, Ts ... >;
 }
 
 #endif
