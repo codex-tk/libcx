@@ -53,3 +53,6 @@ add_subdirectory( cx )
 add_subdirectory( tests )
 add_subdirectory( apps/echo )
 add_subdirectory( apps/ping )
+
+add_subdirectory(cx.base)
+add_subdirectory(cx.base/test)
