@@ -10,7 +10,7 @@
 
 #include <cx/base/defines.hpp>
 
-namespace cx::base {
+namespace cx {
 
 	/**
 	 * @brief

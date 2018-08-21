@@ -54,5 +54,5 @@ add_subdirectory( tests )
 add_subdirectory( apps/echo )
 add_subdirectory( apps/ping )
 
-add_subdirectory(cx.base)
-add_subdirectory(cx.base/test)
+add_subdirectory(base)
+add_subdirectory(base/test)

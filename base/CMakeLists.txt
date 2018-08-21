@@ -10,4 +10,4 @@ list(FILTER SRCS EXCLUDE REGEX "test/*")
 MESSAGE( STATUS "SRCS " ${SRCS} )
 
 add_library( cx.base STATIC ${HEADERS} ${SRCS} )
-add_library( cx.base.shared SHARED ${HEADERS} ${SRCS} )
+#add_library( cx.base.shared SHARED ${HEADERS} ${SRCS} )

@@ -11,7 +11,7 @@
 
 #include <cx/base/type_list.hpp>
 
-namespace cx::base::mp {
+namespace cx::mp {
     
 	template < std::size_t N, typename T > 
 	struct value {
@@ -24,19 +24,19 @@ namespace cx::base::mp {
 	struct values;
 
 	template < std::size_t ... Is, typename ... Ts >
-	struct values< cx::base::mp::sequence< Is ... >, Ts ...  >
+	struct values< cx::mp::sequence< Is ... >, Ts ...  >
 		: value< Is, Ts > ...
-	//	: value< Is, typename cx::base::mp::at< Is, type_list< Ts ... >>::type > ...
+	//	: value< Is, typename cx::mp::at< Is, type_list< Ts ... >>::type > ...
 	{
 		values(Ts&& ... args)
-			: value< Is, typename cx::base::mp::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
+			: value< Is, typename cx::mp::at< Is, type_list< Ts ... >>::type >(std::forward<Ts>(args)) ...
 		{}
 
 		template < std::size_t I >
-		constexpr typename cx::base::mp::at< I, type_list< Ts ... >>::type
+		constexpr typename cx::mp::at< I, type_list< Ts ... >>::type
 			operator[](const std::integral_constant< std::size_t, I >&)
 		{
-			return static_cast<value< I, typename cx::base::mp::at< I, type_list< Ts ... >>::type >*>(this)->data;
+			return static_cast<value< I, typename cx::mp::at< I, type_list< Ts ... >>::type >*>(this)->data;
 		}
 	};
 	
@@ -46,7 +46,7 @@ namespace cx::base::mp {
 	}
 
 	template < typename ... Ts >
-	using tuple = values< cx::base::mp::make_sequence< sizeof...(Ts) >, Ts ... >;
+	using tuple = values< cx::mp::make_sequence< sizeof...(Ts) >, Ts ... >;
 }
 
 #endif

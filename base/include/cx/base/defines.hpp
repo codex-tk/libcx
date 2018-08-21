@@ -46,11 +46,11 @@ Windows	 _WIN32 or __WIN32__
     #include <iphlpapi.h>
     #include <windows.h>
     #include <stdint.h>
-    /*
+    
     #pragma comment( lib , "ws2_32.lib")
     #pragma comment( lib , "Mswsock.lib") 
     #pragma comment( lib , "IPHLPAPI.lib")
-
+	/*
     namespace cx::io::ip::internal {
         namespace {
             struct win32_socket_initializer {

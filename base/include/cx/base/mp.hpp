@@ -13,7 +13,7 @@
 
 #define USE_CX_SEQ_IMPL
 
-namespace cx::base::mp {
+namespace cx::mp {
 
 #if defined( USE_CX_SEQ_IMPL )
 	template < std::size_t ... S > struct sequence {};

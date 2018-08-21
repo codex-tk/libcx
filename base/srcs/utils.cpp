@@ -11,7 +11,7 @@
 	#endif
 #endif
 
-namespace cx::base {
+namespace cx {
 
 	uint16_t checksum(void* p, int sz) {
 		assert(p != nullptr);
