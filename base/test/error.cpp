@@ -1,3 +1,10 @@
+/**
+ * @brief 
+ * 
+ * @file error.cpp
+ * @author ghtak
+ * @date 2018-08-24
+ */
 #include <gtest/gtest.h>
 #include <cx/base/defines.hpp>
 #include <cx/base/error.hpp>

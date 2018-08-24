@@ -51,16 +51,31 @@ namespace cx {
 
 		template< typename S > using mem_func_ptr_t = typename mem_func_helper<S>::type;
 
+		/**
+		 * @brief 
+		 * 
+		 * @tparam U 
+		 * @param ptr_to_member 
+		 * @return std::ptrdiff_t 
+		 */
 		template< typename U >
 		static std::ptrdiff_t offset_of(const mem_ptr_t<U> ptr_to_member) {
-			const T* const ptr = nullptr;
+			const T* const pthis = nullptr;
 			const uint8_t *const member = static_cast<const uint8_t *>(
-				static_cast<const void *>(&(ptr->*ptr_to_member)));
+				static_cast<const void *>(&(pthis->*ptr_to_member)));
 			std::ptrdiff_t offset(member - static_cast<const uint8_t *>(
-				static_cast<const void *>(ptr)));
+				static_cast<const void *>(pthis)));
 			return offset;
 		}
 
+		/**
+		 * @brief 
+		 * 
+		 * @tparam U 
+		 * @param member 
+		 * @param ptr_to_member 
+		 * @return T* 
+		 */
 		template<typename U>
 		static T* container_of(U *member, const mem_ptr_t<U> ptr_to_member) {
 			return static_cast<T*>(
@@ -71,6 +86,14 @@ namespace cx {
 				);
 		}
 
+		/**
+		 * @brief 
+		 * 
+		 * @tparam U 
+		 * @param member 
+		 * @param ptr_to_member 
+		 * @return const T* 
+		 */
 		template<typename U>
 		inline const T *container_of(const U *member, const mem_ptr_t<U> ptr_to_member)
 		{
