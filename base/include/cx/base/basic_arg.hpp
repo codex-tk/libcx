@@ -1,6 +1,6 @@
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @file basic_arg.hpp
  * @author ghtak
  * @date 2018-08-24
@@ -20,17 +20,21 @@ namespace cx {
 		T operator=(U&& u) {
 			return T(std::forward<U>(u));
 		}
+		template < typename U >
+		T operator()(U&& u) {
+			return T(std::forward<U>(u));
+		}
 	};
 
 	using basic_arg_expend = int[];
-	//(void)basic_arg_expend{0, (ProcessArg(ts), 0)...};
+
 }
 
 #ifndef CX_DECLARE_ARG
 #define CX_DECLARE_ARG( name , param_type ) \
 	struct name{ param_type value; name(param_type&& p):value(std::forward<param_type>(p)) {}  }; \
 	using name##_generator_type = cx::basic_arg_generator<name>; \
-	name##_generator_type name##_generator;
+	static name##_generator_type name##_generator;
 #endif
 
 #ifndef CX_EXPAND_ARGS
