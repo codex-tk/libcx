@@ -344,7 +344,7 @@ public:
 
 	template < typename T, typename ... > struct sp0;
 	template <typename ... Ts> struct sp0< cx::mp::sequence<>, Ts ... > { sp0(std::tuple< Args... >& tup, ...) {} };
-	template < unsigned S0, unsigned ... S, typename T, typename ... Ts >
+	template < std::size_t S0, std::size_t ... S, typename T, typename ... Ts >
 	struct sp0< cx::mp::sequence<S0, S...>, T, Ts ... > : sp0< cx::mp::sequence< S...>, Ts ... > {
 		sp0(std::tuple< Args... >& tup, T t, Ts ... ts)
 			: sp0< cx::mp::sequence< S... >, Ts ... >(tup, ts...)
@@ -354,7 +354,7 @@ public:
 	};
 
 
-	template < unsigned N, typename T > struct tuple_setter {
+	template < std::size_t N, typename T > struct tuple_setter {
 		tuple_setter(std::tuple< Args... >& tup, T t) {
 			std::get<N>(tup) = t;
 		}
@@ -362,7 +362,7 @@ public:
 
 
 	template < typename T, typename ... Ts > struct sp1;
-	template < unsigned ... S, typename ... Ts >
+	template < std::size_t ... S, typename ... Ts >
 	struct sp1< cx::mp::sequence< S ... >, Ts ... > {
 		sp1(std::tuple< Args... >& tup, Ts ... ts) {
 			auto eval = { 0 , (tuple_setter<S,Ts>(tup,ts) , 0)... };
@@ -372,7 +372,7 @@ public:
 		}
 	};
 
-	template < unsigned ... S >
+	template < std::size_t ... S >
 	void set_params(cx::mp::sequence< S ... >, Args... args) {
 		auto eval = { 0 , (tuple_setter<S,Args>(_params,args) , 0)... };
 		(void)eval;
@@ -380,7 +380,7 @@ public:
 
 
 	void set_params(Args ... args) {
-		set_params(cx::mp::make_sequence<sizeof...(Args)>{}, args ...);
+		set_params(cx::mp::make_sequence<sizeof...(Args)>(), args ...);
 		//sp1< typename cx::make_seq<sizeof...(Args)>::type , Args ... > s1( _params  , args... );
 		//sp0< typename cx::make_seq<sizeof...(Args)>::type , Args ... > s0( _params  , args... );
 	}
@@ -389,13 +389,13 @@ public:
 		_func = func;
 	}
 
-	template < unsigned ... S >
+	template < std::size_t ... S >
 	R call(cx::mp::sequence< S... >) {
 		return _func(std::get<S>(_params)...);
 	}
 
 	R operator()() {
-		return call(cx::mp::make_sequence<sizeof...(Args)>{});
+		return call(cx::mp::make_sequence<sizeof...(Args)>());
 	}
 
 	std::tuple< Args ... >& params() {

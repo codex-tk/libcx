@@ -35,7 +35,7 @@ namespace cx::io {
 		}
 
 		template <typename T> T fd(T fd) {
-			T old = fd<T>();
+			T old = this->fd<T>();
 			_fd = fd;
 			return old;
 		}

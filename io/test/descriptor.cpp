@@ -58,12 +58,12 @@ TEST(cx_io,descriptor){
 		std::make_shared<cx::testing::out_operation>()
 	};
 
-	for each (auto op in inops) {
+	for (auto op : inops) {
 		op->set(std::error_code(), 0);
 		descriptor->put(cx::io::pollin, op.get());
 	}
 
-	for each (auto op in outops) {
+	for (auto op : outops) {
 		op->set(std::error_code(), 0);
 		descriptor->put(cx::io::pollout, op.get());
 	}

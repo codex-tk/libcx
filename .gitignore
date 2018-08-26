@@ -384,4 +384,4 @@ GPATH
 GRTAGS
 GTAGS
 tests_qt
-z_build
+z_build*
