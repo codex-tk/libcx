@@ -11,7 +11,7 @@
 #include <cx/base/tuple.hpp>
 #include <cx/base/utils.hpp>
 
-TEST(cx_base_mp , sequence) {
+TEST(cx_base_mp, sequence) {
 	static_assert(std::is_same<
 		cx::mp::make_sequence<4>,
 		cx::mp::sequence<0, 1, 2, 3>>::value);
@@ -185,12 +185,11 @@ TEST(cx_base_mp, tuple_element) {
 #if defined(CX_PLATFORM_WIN32)
 	ASSERT_EQ(cx::type_name(tup), "class std::tuple<int,char,int,char>");
 	ASSERT_EQ(cx::type_name(tup2), "short");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >{}) , "struct pop_back<int,char,void *>");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>{}) , "struct dispose<int,char>");
+	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >{}), "struct pop_back<int,char,void *>");
+	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>{}), "struct dispose<int,char>");
 	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>::type{}), "struct dispose<int,char>");
 	ASSERT_EQ(cx::type_name(pop_back0< int, char, void* >::type{}), "struct type_list<int,char>");
 	ASSERT_EQ(cx::type_name(pop_back0< type_list< int, char, void* > >::type{}), "struct type_list<int,char>");
-	
 #else
 	ASSERT_EQ(cx::type_name(tup), "std::tuple<int, char, int, char>");
 	ASSERT_EQ(cx::type_name(tup2), "short");
@@ -200,4 +199,224 @@ TEST(cx_base_mp, tuple_element) {
 	ASSERT_EQ(cx::type_name(pop_back0< int, char, void* >::type{}), "type_list<int, char>");
 	ASSERT_EQ(cx::type_name(pop_back0< type_list< int, char, void* > >::type{}), "type_list<int, char>");
 #endif	
+}
+
+
+// ParameterPack
+
+TEST(cpp_parameter_pack, comma_op) {
+	int i, j;
+	i = 0;
+	j = i + 2;
+
+	ASSERT_EQ(i, 0);
+	ASSERT_EQ(j, 2);
+
+	i = 10; j = 10;
+	j = (i = 0, i + 2);
+
+	ASSERT_EQ(i, 0);
+	ASSERT_EQ(j, 2);
+}
+
+template < typename ... Ts >
+std::string print_sample(Ts ... args) {
+	//int arr [ sizeof...(args) + 2 ] = { 0 , args... , 4 };
+	std::stringstream ss;
+	using expend = int[];
+	(void)expend {
+		0, (ss << args, 0)...
+	};
+	return ss.str();
+	//int dummy[sizeof...(Ts)] = { (std::cout << args, 0)... };
+}
+
+TEST(cpp_parameter_pack, print_sample) {
+	ASSERT_EQ(print_sample(1, 2, 3, std::string("Test")), "123Test");
+}
+
+template < typename T, typename U, typename ... Ts >
+void tuple_test(T t, U u, Ts ... ts) {
+	std::tuple< T, U, Ts...> tuple0{ t , u ,ts... };
+	std::tuple< T, Ts..., U> tuple1{ t , ts... , u };
+	std::tuple< Ts..., T, U> tuple2{ ts... , t , u };
+}
+
+TEST(cpp_parameter_pack, tuple_test) {
+	tuple_test(1, 2, 3, "Test");
+}
+
+
+template < typename ... Ts >
+class base0 {
+public:
+	base0(std::stringstream& ss) {
+		ss << cx::type_name(*this) << "|";
+	}
+};
+
+template < typename ... Ts >
+class base1 {
+public:
+	base1(std::stringstream& ss) { ss << cx::type_name(*this) << "|"; }
+	base1(const int i) { }
+	void g() { }
+};
+
+
+template < typename ... Ts >
+class derived : private base0< Ts ... >,
+	private base1< Ts, Ts ... > ...
+{
+public:
+	// visuatl studio not works
+	//using base1<Ts, Ts...>::g...;
+	derived(std::stringstream& ss)
+		: base0< Ts ... >(ss), base1< Ts, Ts ... >(ss)...
+	{
+	}
+};
+
+TEST(cpp_parameter_pack, derived) {
+	std::stringstream ss;
+	derived< int, double, char > object(ss);
+
+#if defined(CX_PLATFORM_WIN32)
+	ASSERT_EQ(ss.str(), "class base0<int,double,char>|class base1<int,int,double,char>|class base1<double,int,double,char>|class base1<char,int,double,char>|");
+#else
+	ASSERT_EQ(ss.str(), "base0<int, double, char>|base1<int, int, double, char>|base1<double, int, double, char>|base1<char, int, double, char>|");
+#endif	
+}
+
+/*// visuatl studio not works
+struct b0 { void g(){  } };
+struct b1 { void g(){  } };
+struct b2 { void g(){  } };
+
+template <typename... bases>
+struct X : bases... {
+using bases::g...;
+};
+
+TEST( cpp_parameter_pack , X ) {
+X< b0 , b1 , b2 > x;
+}*/
+
+#ifdef __GNUG__
+namespace {
+	template < typename ... Ts >
+	int f(Ts ... ts) {
+		return (... + ts); /// ((((( ts1 + ts2 ) + ts3) + ...  ) + ts(N-1) ) + ts(N))
+						   // return ( ts + ... ); /// ts1 + ( ts2 + ( ts3 + ( ... + ( ts(N-1) + tsN ))))
+	}
+
+	template < typename ... Ts >
+	int h(Ts ... ts) {
+		return (... * ts);
+	}
+
+	template < typename ... Ts >
+	int g(Ts ... ts) {
+		return f(h(ts ...) + ts ...);
+	}
+}
+
+TEST(cpp_parameter_pack, pack) {
+	ASSERT_EQ(h(2, 3, 4), 2 * 3 * 4);
+	ASSERT_EQ(f(2, 3, 4), 2 + 3 + 4);
+	ASSERT_EQ(g(2, 3, 4), f(h(2, 3, 4) + 2, h(2, 3, 4) + 3, h(2, 3, 4) + 4));
+}
+
+#endif
+
+
+template < typename R, typename ... Args >
+class command {
+public:
+	command(void) {}
+	~command(void) {}
+
+	template < typename N, typename T > struct _impl {
+		_impl(std::tuple< Args... >& tup, T& value) {
+			std::get<N>() = value;
+		}
+	};
+
+	template < typename T, typename ... > struct sp0;
+	template <typename ... Ts> struct sp0< cx::mp::sequence<>, Ts ... > { sp0(std::tuple< Args... >& tup, ...) {} };
+	template < unsigned S0, unsigned ... S, typename T, typename ... Ts >
+	struct sp0< cx::mp::sequence<S0, S...>, T, Ts ... > : sp0< cx::mp::sequence< S...>, Ts ... > {
+		sp0(std::tuple< Args... >& tup, T t, Ts ... ts)
+			: sp0< cx::mp::sequence< S... >, Ts ... >(tup, ts...)
+		{
+			std::get<S0>(tup) = t;
+		}
+	};
+
+
+	template < unsigned N, typename T > struct tuple_setter {
+		tuple_setter(std::tuple< Args... >& tup, T t) {
+			std::get<N>(tup) = t;
+		}
+	};
+
+
+	template < typename T, typename ... Ts > struct sp1;
+	template < unsigned ... S, typename ... Ts >
+	struct sp1< cx::mp::sequence< S ... >, Ts ... > {
+		sp1(std::tuple< Args... >& tup, Ts ... ts) {
+			auto eval = { 0 , (tuple_setter<S,Ts>(tup,ts) , 0)... };
+			(void)eval;
+			//using expend = int[];
+			//(void)expend{ 0 , (storage_helper<S,Ts>(tup,ts) , 0)... };
+		}
+	};
+
+	template < unsigned ... S >
+	void set_params(cx::mp::sequence< S ... >, Args... args) {
+		auto eval = { 0 , (tuple_setter<S,Args>(_params,args) , 0)... };
+		(void)eval;
+	}
+
+
+	void set_params(Args ... args) {
+		set_params(cx::mp::make_sequence<sizeof...(Args)>{}, args ...);
+		//sp1< typename cx::make_seq<sizeof...(Args)>::type , Args ... > s1( _params  , args... );
+		//sp0< typename cx::make_seq<sizeof...(Args)>::type , Args ... > s0( _params  , args... );
+	}
+
+	void set_function(std::function< R(Args...) > func) {
+		_func = func;
+	}
+
+	template < unsigned ... S >
+	R call(cx::mp::sequence< S... >) {
+		return _func(std::get<S>(_params)...);
+	}
+
+	R operator()() {
+		return call(cx::mp::make_sequence<sizeof...(Args)>{});
+	}
+
+	std::tuple< Args ... >& params() {
+		return _params;
+	}
+private:
+	std::tuple< Args ... > _params;
+	std::function< R(Args...) > _func;
+};
+
+TEST(tmp, delayed_command) {
+	command<double, int, double, char > cmd;
+	int p0 = 1;
+	double p2 = 2.2;
+	char p3 = 'c';
+	cmd.set_params(p0, p2, p3);
+	ASSERT_EQ(std::get<0>(cmd.params()), 1);
+	ASSERT_EQ(std::get<1>(cmd.params()), 2.2);
+	ASSERT_EQ(std::get<2>(cmd.params()), 'c');
+	cmd.set_function([](int i, double v, char c) -> double {
+		return i + v + c;
+	});
+	ASSERT_EQ(cmd(), 2.2 + 1 + 'c');
 }

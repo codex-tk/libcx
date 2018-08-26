@@ -56,3 +56,5 @@ add_subdirectory( apps/ping )
 
 add_subdirectory(base)
 add_subdirectory(base/test)
+add_subdirectory(io)
+add_subdirectory(io/test)
