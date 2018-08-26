@@ -27,8 +27,24 @@ namespace cx::io {
 		operation(void);
 		virtual ~operation(void) = default;
 
+		/**
+		 * @brief request proactive io
+		 * 
+		 */
+		virtual void request(void);
+
+        /**
+         * @brief check io complete
+         * 
+         * @return true io complete
+         * @return false io incomplete
+         */
 		virtual bool is_complete(const cx::io::descriptor_t&) = 0;
 
+        /**
+         * @brief call when io complete
+         * 
+         */
 		virtual void operator()(void) = 0;
 	public:
 		std::error_code error(void);
@@ -39,6 +55,8 @@ namespace cx::io {
 	public:
 		int type(void);
 		OVERLAPPED* reset_overlapped(int type);
+
+		static operation* container_of(OVERLAPPED* ov);
 	private:
 		struct OVERLAPPEDEX : OVERLAPPED { 
 			int type; 

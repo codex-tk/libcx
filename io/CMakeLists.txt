@@ -10,6 +10,7 @@ file(GLOB_RECURSE SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp" )
 list(FILTER SRCS EXCLUDE REGEX "test/*")
 
 MESSAGE( STATUS "cx.io SRCS " ${SRCS} )
-
 add_library( cx.io STATIC ${HEADERS} ${SRCS} )
 #add_library( cx.io.shared SHARED ${HEADERS} ${SRCS} )
+
+target_link_libraries( cx.io cx.base )

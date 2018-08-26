@@ -1,0 +1,73 @@
+/**
+ * @brief
+ *
+ * @file completion_port.cpp
+ * @author ghtak
+ * @date 2018-08-26
+ */
+
+#include <cx/base/error.hpp>
+
+#include <cx/io/internal/completion_port.hpp>
+#include <cx/io/operation.hpp>
+
+#if defined(CX_PLATFORM_WIN32)
+
+namespace cx::io::internal {
+
+	completion_port::completion_port(cx::io::engine& e)
+		: _engine(e),
+		_handle(::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1)) {
+		if (_handle == INVALID_HANDLE_VALUE) {
+			throw std::system_error(cx::system_error(), "CreateIoCompletionPort fails");
+		}
+	}
+
+	completion_port::~completion_port(void) {
+		CloseHandle(_handle);
+		_handle = INVALID_HANDLE_VALUE;
+	}
+
+	bool completion_port::bind(const cx::io::descriptor_t& fd) {
+		if (CreateIoCompletionPort(
+			fd->fd<HANDLE>()
+			, _handle
+			, reinterpret_cast<ULONG_PTR>(fd.get())
+			, 0) != _handle)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	bool completion_port::bind(const cx::io::descriptor_t& fd,int ops) {
+		CX_UNUSED(ops);
+		CX_UNUSED(fd);
+		return true;
+	}
+
+	void completion_port::unbind(const cx::io::descriptor_t& fd) {
+		CX_UNUSED(fd);
+	}
+
+	void completion_port::wakeup(void) {
+		::PostQueuedCompletionStatus(_handle, 0, 0, nullptr);
+	}
+
+	int completion_port::run(const std::chrono::milliseconds& wait_ms) {
+		LPOVERLAPPED ov = nullptr;
+		DWORD bytes_transferred = 0;
+		ULONG_PTR key;
+		BOOL ret = GetQueuedCompletionStatus(_handle , &bytes_transferred , &key , 
+			&ov , static_cast<DWORD>(wait_ms.count()));
+		if (ov != nullptr && key != 0) {
+			cx::io::operation* op = cx::io::operation::container_of(ov);
+			std::error_code ec = ret == FALSE ? cx::system_error() : std::error_code();
+			op->set(ec, bytes_transferred);
+			reinterpret_cast<cx::io::descriptor*>(key)->handle_event(_engine, op->type());
+		}
+		return 0;
+	}
+}
+
+#endif

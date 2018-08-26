@@ -24,6 +24,15 @@ namespace cx::io {
 			_ops[1].add_tail(op);
 	}
 
+	cx::io::operation* descriptor::get(cx::io::type type) {
+		if (type == cx::io::pollin)
+			return _ops[0].head();
+		else if (type == cx::io::pollout)
+			return _ops[1].head();
+		return nullptr;
+	}
+
+
 	int descriptor::handle_event(cx::io::engine& , int revt) {
 		auto pthis = this->shared_from_this();
 		int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
@@ -37,6 +46,8 @@ namespace cx::io {
 					(*op)();
 					if (_ops[i].empty())
 						changed = true;
+					else
+						_ops[i].head()->request();
 					ev |= ops_filter[i];
 				}
 			}

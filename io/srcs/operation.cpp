@@ -7,6 +7,7 @@
  */
 
 #include <cx/io/operation.hpp>
+#include <cx/base/utils.hpp>
 
 namespace cx::io {
 
@@ -14,6 +15,9 @@ namespace cx::io {
 #if defined(CX_PLATFORM_WIN32)
 		reset_overlapped(0);
 #endif
+	}
+
+	void operation::request(void) {
 	}
 
 	std::error_code operation::error(void) {
@@ -55,6 +59,11 @@ namespace cx::io {
 		memset(&_overlapped, 0x00, sizeof(_overlapped));
 		_overlapped.type = type;
 		return &_overlapped;
+	}
+
+	operation* operation::container_of(OVERLAPPED* ov) {
+		return cx::clazz<operation>::container_of(static_cast<OVERLAPPEDEX*>(ov),
+			&operation::_overlapped);
 	}
 #endif
 

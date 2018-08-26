@@ -13,6 +13,18 @@
 #include <cx/base/slist.hpp>
 
 namespace cx::io {
+	namespace {
+		template < typename U > struct _cast {
+			static U apply(std::ptrdiff_t src) {
+				return reinterpret_cast<U>(src);
+			}
+		};
+		template <> struct _cast<int> {
+			static int apply(std::ptrdiff_t src) {
+				return static_cast<int>(src);
+			}
+		};
+	}
 
 	class engine;
 	class operation;
@@ -26,12 +38,14 @@ namespace cx::io {
 		descriptor(void);
 		~descriptor(void) = default;
 
-		void put(cx::io::type t, cx::io::operation* op);
+		void put(cx::io::type type, cx::io::operation* op);
+
+		cx::io::operation* get(cx::io::type type);
 
 		int handle_event(cx::io::engine& engine, int revt);
 	public:
 		template <typename T> T fd(void) {
-			return reinterpret_cast<T>(_fd);
+			return _cast<T>::apply(_fd);
 		}
 
 		template <typename T> T fd(T fd) {
