@@ -50,7 +50,7 @@ Windows	 _WIN32 or __WIN32__
     #pragma comment( lib , "ws2_32.lib")
     #pragma comment( lib , "Mswsock.lib") 
     #pragma comment( lib , "IPHLPAPI.lib")
-	/*
+	
     namespace cx::io::ip::internal {
         namespace {
             struct win32_socket_initializer {
@@ -63,7 +63,7 @@ Windows	 _WIN32 or __WIN32__
             static win32_socket_initializer initializer;
         }
     }
-    */
+    
 //#define CX_LITTLE_ENDIAN
 /// CX_PLATFORM_WIN32 END  -----------------------     
 #else  

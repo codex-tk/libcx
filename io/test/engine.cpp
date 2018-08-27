@@ -11,4 +11,5 @@
 
 TEST(cx_io_engine,basic) {
     cx::io::engine e;
+	cx::io::internal::impl_t impl(e);
 }

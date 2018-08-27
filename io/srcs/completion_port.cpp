@@ -29,20 +29,40 @@ namespace cx::io::internal {
 	}
 
 	bool completion_port::bind(const cx::io::descriptor_t& fd) {
+		std::error_code ec;
+		return bind(fd, ec);
+	}
+
+	bool completion_port::bind(const cx::io::descriptor_t& fd, std::error_code& ec) {
+		if (_handle == INVALID_HANDLE_VALUE) {
+			ec = std::make_error_code(std::errc::bad_file_descriptor);
+			return false;
+		}
+		if (fd->fd<SOCKET>() == INVALID_SOCKET) {
+			ec = std::make_error_code(std::errc::invalid_argument);
+			return false;
+		}
 		if (CreateIoCompletionPort(
 			fd->fd<HANDLE>()
 			, _handle
 			, reinterpret_cast<ULONG_PTR>(fd.get())
 			, 0) != _handle)
 		{
+			ec = cx::system_error();
 			return false;
 		}
 		return true;
 	}
 
-	bool completion_port::bind(const cx::io::descriptor_t& fd,int ops) {
+	bool completion_port::bind(const cx::io::descriptor_t& fd, int ops) {
+		std::error_code ec;
+		return bind(fd, ops, ec);
+	}
+
+	bool completion_port::bind(const cx::io::descriptor_t& fd, int ops, std::error_code& ec) {
 		CX_UNUSED(ops);
 		CX_UNUSED(fd);
+		CX_UNUSED(ec);
 		return true;
 	}
 
@@ -58,8 +78,8 @@ namespace cx::io::internal {
 		LPOVERLAPPED ov = nullptr;
 		DWORD bytes_transferred = 0;
 		ULONG_PTR key;
-		BOOL ret = GetQueuedCompletionStatus(_handle , &bytes_transferred , &key , 
-			&ov , static_cast<DWORD>(wait_ms.count()));
+		BOOL ret = GetQueuedCompletionStatus(_handle, &bytes_transferred, &key,
+			&ov, static_cast<DWORD>(wait_ms.count()));
 		if (ov != nullptr && key != 0) {
 			cx::io::operation* op = cx::io::operation::container_of(ov);
 			std::error_code ec = ret == FALSE ? cx::system_error() : std::error_code();

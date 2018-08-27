@@ -39,8 +39,19 @@ namespace cx::io::internal {
 		_eventfd = -1;
 	}
 
+
 	bool epoll::bind(const cx::io::descriptor_t& fd, int ops) {
+		std::error_code ec;
+		return bind(fd, ops, ec);
+	}
+
+	bool epoll::bind(const cx::io::descriptor_t& fd, int ops, std::error_code& ec){
+		if (_handle == -1) {
+			ec = std::make_error_code(std::errc::bad_file_descriptor);
+			return false;
+		}
 		if (fd.get() == nullptr || fd->fd<int>() == -1) {
+			ec = std::make_error_code(std::errc::invalid_argument);
 			return false;
 		}
 
@@ -56,6 +67,7 @@ namespace cx::io::internal {
 				return true;
 			}
 		}
+		ec = cx::system_error();
 		return false;
 	}
 

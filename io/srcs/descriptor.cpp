@@ -6,8 +6,11 @@
  * @date 2018-08-26
  */
 #include <cx/io/io.hpp>
+
 #include <cx/io/descriptor.hpp>
 #include <cx/io/operation.hpp>
+
+#include <cx/io/engine.hpp>
 
 namespace cx::io {
 
@@ -33,7 +36,7 @@ namespace cx::io {
 	}
 
 
-	int descriptor::handle_event(cx::io::engine& , int revt) {
+	int descriptor::handle_event(cx::io::engine& e, int revt) {
 		auto pthis = this->shared_from_this();
 		int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 		bool changed = false;
@@ -53,12 +56,13 @@ namespace cx::io {
 			}
 		}
 		if (changed) {
-			int interest = (_ops[0].empty() ? 0 : cx::io::pollin)
+			int ops = (_ops[0].empty() ? 0 : cx::io::pollin)
 				| (_ops[1].empty() ? 0 : cx::io::pollout);
-			/*
-			if (engine.bind(pthis, interest) == false) {
-				this->drain_all_ops(impl, cx::system_error());
-			}*/
+			std::error_code ec;
+			if (e.implementation().bind(pthis, ops, ec) == false) {
+				// drain_all_ops
+				CX_UNUSED(ec);
+			}
 		}
 		return ev;
 	}

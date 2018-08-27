@@ -20,7 +20,8 @@ namespace cx::io::internal {
 	* @brief
 	*
 	*/
-	class epoll {
+	class epoll
+		: public cx::noncopyable {
 	public:
 
 		epoll(cx::io::engine& e);
@@ -28,6 +29,8 @@ namespace cx::io::internal {
 		~epoll(void);
 
 		bool bind(const cx::io::descriptor_t& fd, int ops);
+
+		bool bind(const cx::io::descriptor_t& fd, int ops, std::error_code& ec);
 
 		void unbind(const cx::io::descriptor_t& fd);
 
@@ -41,6 +44,7 @@ namespace cx::io::internal {
 		int _eventfd;
 	};
 
+	using impl_t = epoll;
 }
 
 #endif

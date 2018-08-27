@@ -8,9 +8,11 @@
 #ifndef __cx_io_descriptor_h__
 #define __cx_io_descriptor_h__
 
-#include <cx/io/io.hpp>
 #include <cx/base/defines.hpp>
 #include <cx/base/slist.hpp>
+#include <cx/base/noncopyable.hpp>
+
+#include <cx/io/io.hpp>
 
 namespace cx::io {
 	namespace {
@@ -24,6 +26,13 @@ namespace cx::io {
 				return static_cast<int>(src);
 			}
 		};
+#if defined(CX_PLATFORM_WIN32)
+		template <> struct _cast<SOCKET> {
+			static SOCKET apply(std::ptrdiff_t src) {
+				return static_cast<SOCKET>(src);
+			}
+		};
+#endif
 	}
 
 	class engine;
@@ -33,6 +42,7 @@ namespace cx::io {
 	 *
 	 */
 	class descriptor :
+		public cx::noncopyable ,
 		public std::enable_shared_from_this<descriptor> {
 	public:
 		descriptor(void);

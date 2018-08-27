@@ -20,7 +20,8 @@ namespace cx::io::internal {
 	* @brief
 	*
 	*/
-	class completion_port {
+	class completion_port
+		: public cx::noncopyable {
 	public:
 
 		completion_port(cx::io::engine& e);
@@ -29,7 +30,11 @@ namespace cx::io::internal {
 
 		bool bind(const cx::io::descriptor_t& fd);
 
+		bool bind(const cx::io::descriptor_t& fd, std::error_code& ec);
+
 		bool bind(const cx::io::descriptor_t& fd, int ops);
+
+		bool bind(const cx::io::descriptor_t& fd, int ops, std::error_code& ec);
 
 		void unbind(const cx::io::descriptor_t& fd);
 
@@ -42,6 +47,7 @@ namespace cx::io::internal {
 		HANDLE _handle;
 	};
 
+	using impl_t = completion_port;
 }
 
 #endif
