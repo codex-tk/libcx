@@ -107,14 +107,14 @@ namespace cx::io::ip {
 			struct _family_name {
 				const char* operator()(const uint16_t family) {
 					switch (family) {
-					case AF_INET:  return "AF_INET ";
-					case AF_INET6: return "AF_INET6 ";
+					case AF_INET:  return "AF_INET";
+					case AF_INET6: return "AF_INET6";
 					}
-					return "UNKNOWN ";
+					return "UNKNOWN";
 				}
 			};
 			_family_name family_name;
-			int len = snprintf(buf, MAX_PATH, family_name(_address.family));
+			int len = snprintf(buf, MAX_PATH, "%s ", family_name(_address.family));
 			if (this->inet_ntop(buf + len, MAX_PATH - len)) {
 				len = strlen(buf);
 				snprintf(buf + len, MAX_PATH - len, " (%d)", port());

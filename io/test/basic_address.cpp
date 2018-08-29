@@ -7,6 +7,7 @@
  */
 #include <gtest/gtest.h>
 #include <cx/io/ip/basic_address.hpp>
+#include <cstdarg>
 
 void gprintf(const char* fmt, ...) {
 	printf("[   USER   ] ");
