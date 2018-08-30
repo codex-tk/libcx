@@ -13,9 +13,9 @@
 #include <cx/base/noncopyable.hpp>
 
 #if defined(CX_PLATFORM_WIN32)
-#include <cx/io/internal/completion_port.hpp>
+#include <cx/io/mux/completion_port.hpp>
 #elif defined(CX_PLATFORM_LINUX)
-#include <cx/io/internal/epoll.hpp>
+#include <cx/io/mux/epoll.hpp>
 #endif
 
 namespace cx::io {
@@ -32,10 +32,10 @@ namespace cx::io {
 		
 		~engine(void);
 
-		cx::io::internal::impl_t& implementation(void);
+		cx::io::mux::impl_t& implementation(void);
 
 	private:
-		cx::io::internal::impl_t _impl;
+		cx::io::mux::impl_t _impl;
 	};
 
 }

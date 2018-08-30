@@ -5,16 +5,15 @@
  * @author ghtak
  * @date 2018-08-26
  */
-
-#ifndef __cx_io_completion_port_h__
-#define __cx_io_completion_port_h__
+#ifndef __cx_io_epoll_h__
+#define __cx_io_epoll_h__
 
 #include <cx/base/defines.hpp>
 #include <cx/io/descriptor.hpp>
 
 #if defined(CX_PLATFORM_LINUX)
 
-namespace cx::io::internal {
+namespace cx::io::mux {
 
 	/**
 	* @brief

@@ -17,7 +17,7 @@ namespace cx::io {
 
 	}
 
-	cx::io::internal::impl_t& engine::implementation(void) {
+	cx::io::mux::impl_t& engine::implementation(void) {
 		return _impl;
 	}
 

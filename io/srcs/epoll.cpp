@@ -8,12 +8,12 @@
 
 #include <cx/base/error.hpp>
 
-#include <cx/io/internal/epoll.hpp>
+#include <cx/io/mux/epoll.hpp>
 #include <cx/io/operation.hpp>
 
 #if defined(CX_PLATFORM_LINUX)
 
-namespace cx::io::internal {
+namespace cx::io::mux {
 
 	epoll::epoll(cx::io::engine& e)
 		: _engine(e), _handle(-1), _eventfd(-1)
@@ -50,7 +50,7 @@ namespace cx::io::internal {
 			ec = std::make_error_code(std::errc::bad_file_descriptor);
 			return false;
 		}
-		if (fd.get() == nullptr || fd->fd<int>() == -1) {
+		if (fd.get() == nullptr || fd->native_handle<int>() == -1) {
 			ec = std::make_error_code(std::errc::invalid_argument);
 			return false;
 		}
@@ -58,12 +58,12 @@ namespace cx::io::internal {
 		epoll_event evt;
 		evt.events = ops;
 		evt.data.ptr = fd.get();
-		if (epoll_ctl(_handle, EPOLL_CTL_MOD, fd->fd<int>(), &evt) == 0) {
+		if (epoll_ctl(_handle, EPOLL_CTL_MOD, fd->native_handle<int>(), &evt) == 0) {
 			return true;
 		}
 
 		if ((errno == ENOENT) && ops) {
-			if (epoll_ctl(_handle, EPOLL_CTL_ADD, fd->fd<int>(), &evt) == 0) {
+			if (epoll_ctl(_handle, EPOLL_CTL_ADD, fd->native_handle<int>(), &evt) == 0) {
 				return true;
 			}
 		}
@@ -74,11 +74,11 @@ namespace cx::io::internal {
 	void epoll::unbind(const cx::io::descriptor_t& fd) {
 		if (fd.get() == nullptr)
 			return;
-		if (fd->fd<int>() != -1) {
+		if (fd->native_handle<int>() != -1) {
 			epoll_event evt;
 			evt.events = 0;
 			evt.data.ptr = fd.get();
-			epoll_ctl(_handle, EPOLL_CTL_DEL, fd->fd<int>(), &evt);
+			epoll_ctl(_handle, EPOLL_CTL_DEL, fd->native_handle<int>(), &evt);
 		}
 	}
 

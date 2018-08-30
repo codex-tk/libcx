@@ -8,13 +8,13 @@
 
 #include <gtest/gtest.h>
 #include <cx/io/engine.hpp>
-#include <cx/io/internal/epoll.hpp>
+#include <cx/io/mux/epoll.hpp>
 
 #if defined(CX_PLATFORM_LINUX)
 
 TEST(cx_io, epoll) {
 	cx::io::engine e;
-	cx::io::internal::epoll port(e);
+	cx::io::mux::epoll port(e);
 }
 
 

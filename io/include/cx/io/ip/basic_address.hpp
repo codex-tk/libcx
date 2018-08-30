@@ -179,15 +179,16 @@ namespace cx::io::ip {
 			}
 			return addrs;
 		}
+
 		static std::vector< basic_address > anys(const uint16_t port
 			, const short family = AF_UNSPEC) {
 			return resolve(nullptr, port, family);
 		}
 	private:
 		union {
+			uint16_t family;
 			struct sockaddr_in v4;
 			struct sockaddr_in6 v6;
-			uint16_t family;
 		} _address;
 	};
 }

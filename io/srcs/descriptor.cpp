@@ -15,7 +15,7 @@
 namespace cx::io {
 
 	descriptor::descriptor(void)
-		: _fd(-1)
+		: _native_handle(-1)
 	{
 
 	}

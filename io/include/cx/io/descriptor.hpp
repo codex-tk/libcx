@@ -54,17 +54,17 @@ namespace cx::io {
 
 		int handle_event(cx::io::engine& engine, int revt);
 	public:
-		template <typename T> T fd(void) {
-			return _cast<T>::apply(_fd);
+		template <typename T> T native_handle(void) {
+			return _cast<T>::apply(_native_handle);
 		}
 
-		template <typename T> T fd(T fd) {
-			T old = this->fd<T>();
-			_fd = fd;
+		template <typename T> T native_handle(T h) {
+			T old = this->native_handle<T>();
+			_native_handle = h;
 			return old;
 		}
 	private:
-		std::ptrdiff_t _fd;
+		std::ptrdiff_t _native_handle;
 		cx::slist<cx::io::operation> _ops[2];
 	};
 

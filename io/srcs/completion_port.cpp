@@ -8,12 +8,12 @@
 
 #include <cx/base/error.hpp>
 
-#include <cx/io/internal/completion_port.hpp>
+#include <cx/io/mux/completion_port.hpp>
 #include <cx/io/operation.hpp>
 
 #if defined(CX_PLATFORM_WIN32)
 
-namespace cx::io::internal {
+namespace cx::io::mux {
 
 	completion_port::completion_port(cx::io::engine& e)
 		: _engine(e),
@@ -38,12 +38,12 @@ namespace cx::io::internal {
 			ec = std::make_error_code(std::errc::bad_file_descriptor);
 			return false;
 		}
-		if (fd->fd<SOCKET>() == INVALID_SOCKET) {
+		if (fd->native_handle<SOCKET>() == INVALID_SOCKET) {
 			ec = std::make_error_code(std::errc::invalid_argument);
 			return false;
 		}
 		if (CreateIoCompletionPort(
-			fd->fd<HANDLE>()
+			fd->native_handle<HANDLE>()
 			, _handle
 			, reinterpret_cast<ULONG_PTR>(fd.get())
 			, 0) != _handle)
