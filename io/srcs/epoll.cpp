@@ -7,15 +7,14 @@
  */
 
 #include <cx/base/error.hpp>
-
 #include <cx/io/mux/epoll.hpp>
-#include <cx/io/operation.hpp>
+#include <cx/io/basic_engine.hpp>
 
 #if defined(CX_PLATFORM_LINUX)
 
 namespace cx::io::mux {
 
-	epoll::epoll(cx::io::engine& e)
+	epoll::epoll(basic_engine<epoll>* e)
 		: _engine(e), _handle(-1), _eventfd(-1)
 	{
 		_handle = epoll_create(256);
@@ -40,30 +39,41 @@ namespace cx::io::mux {
 	}
 
 
-	bool epoll::bind(const cx::io::descriptor_t& fd, int ops) {
+	bool epoll::bind(const descriptor_ptr& descriptor) {
 		std::error_code ec;
-		return bind(fd, ops, ec);
+		return bind(descriptor, ec);
 	}
 
-	bool epoll::bind(const cx::io::descriptor_t& fd, int ops, std::error_code& ec){
+	bool epoll::bind(const descriptor_ptr& descriptor, std::error_code& ec) {
+		CX_UNUSED(descriptor);
+		CX_UNUSED(ec);
+		return true;
+	}
+
+	bool epoll::bind(const descriptor_ptr& descriptor, int ops) {
+		std::error_code ec;
+		return bind(descriptor, ops, ec);
+	}
+
+	bool epoll::bind(const descriptor_ptr& descriptor, int ops, std::error_code& ec) {
 		if (_handle == -1) {
 			ec = std::make_error_code(std::errc::bad_file_descriptor);
 			return false;
 		}
-		if (fd.get() == nullptr || fd->native_handle<int>() == -1) {
+		if (descriptor.get() == nullptr || descriptor->fd == -1) {
 			ec = std::make_error_code(std::errc::invalid_argument);
 			return false;
 		}
 
 		epoll_event evt;
 		evt.events = ops;
-		evt.data.ptr = fd.get();
-		if (epoll_ctl(_handle, EPOLL_CTL_MOD, fd->native_handle<int>(), &evt) == 0) {
+		evt.data.ptr = descriptor.get();
+		if (epoll_ctl(_handle, EPOLL_CTL_MOD, descriptor->fd, &evt) == 0) {
 			return true;
 		}
 
 		if ((errno == ENOENT) && ops) {
-			if (epoll_ctl(_handle, EPOLL_CTL_ADD, fd->native_handle<int>(), &evt) == 0) {
+			if (epoll_ctl(_handle, EPOLL_CTL_ADD, descriptor->fd, &evt) == 0) {
 				return true;
 			}
 		}
@@ -71,14 +81,14 @@ namespace cx::io::mux {
 		return false;
 	}
 
-	void epoll::unbind(const cx::io::descriptor_t& fd) {
-		if (fd.get() == nullptr)
+	void epoll::unbind(const descriptor_ptr& descriptor) {
+		if (descriptor.get() == nullptr)
 			return;
-		if (fd->native_handle<int>() != -1) {
+		if (descriptor->fd != -1) {
 			epoll_event evt;
 			evt.events = 0;
-			evt.data.ptr = fd.get();
-			epoll_ctl(_handle, EPOLL_CTL_DEL, fd->native_handle<int>(), &evt);
+			evt.data.ptr = descriptor.get();
+			epoll_ctl(_handle, EPOLL_CTL_DEL, descriptor->fd, &evt);
 		}
 	}
 
@@ -96,9 +106,32 @@ namespace cx::io::mux {
 		if (nbfd <= 0)
 			return 0;
 		for (int i = 0; i < nbfd; ++i) {
-			cx::io::descriptor* pfd = static_cast<cx::io::descriptor*>(events[i].data.ptr);
-			if (pfd) {
-				pfd->handle_event(_engine, events[i].events);
+			if (events[i].data.ptr) {
+				bool changed = false;
+				descriptor_ptr descriptor = static_cast<epoll::descriptor*>(events[i].data.ptr)->shared_from_this();
+				int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
+				for (int i = 0; i < 2; ++i) {
+					if (ops_filter[i] & events[i].events) {
+						operation* op = descriptor->context[i].ops.head();
+						if (op && op->complete(descriptor)) {
+							descriptor->context[i].ops.remove_head();
+							(*op)();
+							if (descriptor->context[i].ops.empty())
+								changed = true;
+						}
+					}
+				}
+				if (changed) {
+					int ops = (descriptor->context[0].ops.empty() ? 0 : cx::io::pollin)
+						| (descriptor->context[1].ops.empty() ? 0 : cx::io::pollout);
+					std::error_code ec;
+					if (bind(descriptor, ops, ec) == false) {
+						if (ops != 0) {
+							cx::slist<operation> postops(std::move(descriptor->context[0].ops));
+							postops.add_tail(std::move(descriptor->context[1].ops));
+						}
+					}
+				}
 			}
 			else {
 				uint64_t v;

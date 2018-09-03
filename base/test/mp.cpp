@@ -93,21 +93,12 @@ template<> struct gen_seq<0> : seq<> {};
 template<> struct gen_seq<1> : seq<0> {};
 
 TEST(cx_base_mp, genseq) {
-#if defined(CX_PLATFORM_WIN32)
-	ASSERT_EQ(cx::type_name(gen_seq<0>::type()), "struct seq<>");
-	ASSERT_EQ(cx::type_name(gen_seq<1>::type()), "struct seq<0>");
-	ASSERT_EQ(cx::type_name(gen_seq<2>::type()), "struct seq<0,1>");
-	ASSERT_EQ(cx::type_name(gen_seq<3>::type()), "struct seq<0,1,2>");
-	ASSERT_EQ(cx::type_name(gen_seq<4>::type()), "struct seq<0,1,2,3>");
-	ASSERT_EQ(cx::type_name(concat<seq<>, seq<0>>::type()), "struct seq<0>");
-#else
-	ASSERT_EQ(cx::type_name(gen_seq<0>::type()), "seq<>");
-	ASSERT_EQ(cx::type_name(gen_seq<1>::type()), "seq<0u>");
-	ASSERT_EQ(cx::type_name(gen_seq<2>::type()), "seq<0u, 1u>");
-	ASSERT_EQ(cx::type_name(gen_seq<3>::type()), "seq<0u, 1u, 2u>");
-	ASSERT_EQ(cx::type_name(gen_seq<4>::type()), "seq<0u, 1u, 2u, 3u>");
-	ASSERT_EQ(cx::type_name(concat<seq<>, seq<0>>::type()), "seq<0u>");
-#endif
+	static_assert(std::is_same<gen_seq<0>::type, seq<>>::value);
+	static_assert(std::is_same<gen_seq<1>::type, seq<0>>::value);
+	static_assert(std::is_same<gen_seq<2>::type, seq<0, 1>>::value);
+	static_assert(std::is_same<gen_seq<3>::type, seq<0, 1, 2>>::value);
+	static_assert(std::is_same<gen_seq<4>::type, seq<0, 1, 2, 3>>::value);
+	static_assert(std::is_same<concat<seq<>, seq<0>>::type, seq<0>>::value);
 }
 
 template < unsigned ... i_list >
@@ -120,11 +111,7 @@ struct rebind : public eval < (sizeof(i_list) + i_list)... > {
 };
 
 TEST(cx_base_mp, rebind) {
-#if defined(CX_PLATFORM_WIN32)
-	ASSERT_EQ(cx::type_name(rebind< 1, 2, 3 >::type{}), "struct eval<5,6,7>");
-#else
-	ASSERT_EQ(cx::type_name(rebind< 1, 2, 3 >::type{}), "eval<5u, 6u, 7u>");
-#endif
+	static_assert(std::is_same<rebind< 1, 2, 3 >::type, eval<5, 6, 7>>::value);
 }
 
 template < typename ... T >
@@ -180,25 +167,12 @@ struct pop_back0 < type_list< T ... > > {
 };
 
 TEST(cx_base_mp, tuple_element) {
-	std::tuple< int, char, int, char > tup;
-	_eval<  int, char, double, short >::type tup2;
-#if defined(CX_PLATFORM_WIN32)
-	ASSERT_EQ(cx::type_name(tup), "class std::tuple<int,char,int,char>");
-	ASSERT_EQ(cx::type_name(tup2), "short");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >{}), "struct pop_back<int,char,void *>");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>{}), "struct dispose<int,char>");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>::type{}), "struct dispose<int,char>");
-	ASSERT_EQ(cx::type_name(pop_back0< int, char, void* >::type{}), "struct type_list<int,char>");
-	ASSERT_EQ(cx::type_name(pop_back0< type_list< int, char, void* > >::type{}), "struct type_list<int,char>");
-#else
-	ASSERT_EQ(cx::type_name(tup), "std::tuple<int, char, int, char>");
-	ASSERT_EQ(cx::type_name(tup2), "short");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >{}), "pop_back<int, char, void*>");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>{}), "dispose<int, char>");
-	ASSERT_EQ(cx::type_name(pop_back<  int, char, void* >::rebind<dispose>::type{}), "dispose<int, char>");
-	ASSERT_EQ(cx::type_name(pop_back0< int, char, void* >::type{}), "type_list<int, char>");
-	ASSERT_EQ(cx::type_name(pop_back0< type_list< int, char, void* > >::type{}), "type_list<int, char>");
-#endif	
+	static_assert(std::is_same<_eval<  int, char, double, short >::type, short>::value);
+	static_assert(std::is_same<pop_back<  int, char, void* > , pop_back<int,char,void *>>::value);
+	static_assert(std::is_same<pop_back<  int, char, void* >::rebind<dispose> , dispose<int,char>>::value);
+	static_assert(std::is_same<pop_back<  int, char, void* >::rebind<dispose>::type, dispose<int,char>>::value);
+	static_assert(std::is_same<pop_back0< int, char, void* >::type, type_list<int,char>>::value);
+	static_assert(std::is_same<pop_back0< type_list< int, char, void* > >::type, type_list<int,char>>::value);
 }
 
 

@@ -17,7 +17,7 @@ namespace cx::io::ip {
 
 	template <typename ServiceT>
 	class basic_socket : 
-		public cx::noncopyable,
+		private cx::noncopyable,
 		public std::enable_shared_from_this<basic_socket>
 	{
 	public:
@@ -32,7 +32,7 @@ namespace cx::io::ip {
 
 	private:
 		cx::io::engine& _engine;
-		cx::io::descriptor_t _fd;
+		cx::io::descriptor_ptr _fd;
 	};
 
 }

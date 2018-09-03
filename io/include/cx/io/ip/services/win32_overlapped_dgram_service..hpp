@@ -26,7 +26,7 @@ namespace cx::io::ip {
 
 		template < int Type, int Proto >
 		static bool open(mux_t& mux,
-			cx::io::descriptor_t& fd,
+			cx::io::descriptor_ptr& fd,
 			const cx::io::ip::basic_address<Type, Proto>& addr)
 		{
 			std::error_code ec;
@@ -35,7 +35,7 @@ namespace cx::io::ip {
 
 		template < int Type, int Proto >
 		static bool open(mux_t& mux,
-			cx::io::descriptor_t& fd,
+			cx::io::descriptor_ptr& fd,
 			const cx::io::ip::basic_address<Type, Proto>& addr,
 			std::error_code& ec)
 		{
@@ -50,15 +50,13 @@ namespace cx::io::ip {
 		}
 
 		static void close(mux_t& mux,
-			cx::io::descriptor_t& fd)
+			cx::io::descriptor_ptr& fd)
 		{
 			if (fd->native_handle<SOCKET>() != INVALID_SOCKET) {
 				::closesocket(fd->native_handle<SOCKET>());
 			fd->native_handle(INVALID_SOCKET);
-			//fd->drain_ops(mux);
 		}
 	};
-
 }
 
 #endif

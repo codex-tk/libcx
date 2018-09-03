@@ -7,17 +7,15 @@
  */
 
 #include <cx/base/error.hpp>
-
 #include <cx/io/mux/completion_port.hpp>
-#include <cx/io/operation.hpp>
+#include <cx/io/basic_engine.hpp>
 
 #if defined(CX_PLATFORM_WIN32)
 
 namespace cx::io::mux {
 
-	completion_port::completion_port(cx::io::engine& e)
-		: _engine(e),
-		_handle(::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1)) {
+	completion_port::completion_port(basic_engine<completion_port>* e)
+		: _engine(e), _handle(::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1)) {
 		if (_handle == INVALID_HANDLE_VALUE) {
 			throw std::system_error(cx::system_error(), "CreateIoCompletionPort fails");
 		}
@@ -28,24 +26,24 @@ namespace cx::io::mux {
 		_handle = INVALID_HANDLE_VALUE;
 	}
 
-	bool completion_port::bind(const cx::io::descriptor_t& fd) {
+	bool completion_port::bind(const descriptor_ptr& descriptor) {
 		std::error_code ec;
-		return bind(fd, ec);
+		return bind(descriptor, ec);
 	}
 
-	bool completion_port::bind(const cx::io::descriptor_t& fd, std::error_code& ec) {
+	bool completion_port::bind(const descriptor_ptr& descriptor, std::error_code& ec) {
 		if (_handle == INVALID_HANDLE_VALUE) {
 			ec = std::make_error_code(std::errc::bad_file_descriptor);
 			return false;
 		}
-		if (fd->native_handle<SOCKET>() == INVALID_SOCKET) {
+		if (descriptor->fd.s == INVALID_SOCKET) {
 			ec = std::make_error_code(std::errc::invalid_argument);
 			return false;
 		}
 		if (CreateIoCompletionPort(
-			fd->native_handle<HANDLE>()
+			descriptor->fd.h
 			, _handle
-			, reinterpret_cast<ULONG_PTR>(fd.get())
+			, reinterpret_cast<ULONG_PTR>(descriptor.get())
 			, 0) != _handle)
 		{
 			ec = cx::system_error();
@@ -54,26 +52,26 @@ namespace cx::io::mux {
 		return true;
 	}
 
-	bool completion_port::bind(const cx::io::descriptor_t& fd, int ops) {
+	bool completion_port::bind(const descriptor_ptr& descriptor, int ops) {
 		std::error_code ec;
-		return bind(fd, ops, ec);
+		return bind(descriptor, ops, ec);
 	}
 
-	bool completion_port::bind(const cx::io::descriptor_t& fd, int ops, std::error_code& ec) {
+	bool completion_port::bind(const descriptor_ptr& descriptor, int ops, std::error_code& ec) {
 		CX_UNUSED(ops);
-		CX_UNUSED(fd);
+		CX_UNUSED(descriptor);
 		CX_UNUSED(ec);
 		return true;
 	}
 
-	void completion_port::unbind(const cx::io::descriptor_t& fd) {
-		CX_UNUSED(fd);
+	void completion_port::unbind(const descriptor_ptr& descriptor) {
+		CX_UNUSED(descriptor);
 	}
 
 	void completion_port::wakeup(void) {
 		::PostQueuedCompletionStatus(_handle, 0, 0, nullptr);
 	}
-
+	
 	int completion_port::run(const std::chrono::milliseconds& wait_ms) {
 		LPOVERLAPPED ov = nullptr;
 		DWORD bytes_transferred = 0;
@@ -81,13 +79,27 @@ namespace cx::io::mux {
 		BOOL ret = GetQueuedCompletionStatus(_handle, &bytes_transferred, &key,
 			&ov, static_cast<DWORD>(wait_ms.count()));
 		if (ov != nullptr && key != 0) {
-			cx::io::operation* op = cx::io::operation::container_of(ov);
-			std::error_code ec = ret == FALSE ? cx::system_error() : std::error_code();
-			op->set(ec, bytes_transferred);
-			reinterpret_cast<cx::io::descriptor*>(key)->handle_event(_engine, op->type());
+			descriptor::OVERLAPPEDEX* povex = static_cast<descriptor::OVERLAPPEDEX*>(ov);
+			int ctx_idx = povex->type >> 2;
+			if (ctx_idx >= 0 && ctx_idx <= 1) {
+				descriptor_ptr descriptor = reinterpret_cast<
+					descriptor_ptr::element_type*>(key)->shared_from_this();
+				operation* op = descriptor->context[ctx_idx].ops.head();
+				if (op) {
+					op->set(ret == FALSE ? cx::system_error() : std::error_code(), bytes_transferred);
+					if (op->complete(descriptor)) {
+						descriptor->context[ctx_idx].ops.remove_head();
+						(*op)();
+						if (descriptor->context[ctx_idx].ops.head()) {
+							descriptor->context[ctx_idx].ops.head()->request(descriptor);
+						}
+					}
+				}
+			}
 		}
 		return 0;
 	}
+	
 }
 
 #endif
