@@ -30,10 +30,15 @@ namespace cx::internal{
 	template < typename T, typename AllocatorType >
 	class block {
 	public:
+		using value_type = T;
+
 		block(const int32_t size)
 			: _ref_count(1), _size(size) {}
 
-		T* base(void) const noexcept { return const_cast<T*>(reinterpret_cast<const T*>(this + 1)); }
+		value_type* base(void) const noexcept { 
+			return const_cast<value_type*>(
+				reinterpret_cast<const value_type*>(this + 1)); 
+		}
 		int32_t size(void) const noexcept { return _size; }
 
 		int32_t use_count(void) const noexcept { return _ref_count.load(); }
@@ -62,7 +67,8 @@ namespace cx {
 	template < typename T, typename AllocatorType = internal::basic_buffer_allocator >
 	class basic_buffer {
 	public:
-		using block_type = internal::block<T, AllocatorType>;
+		using value_type = T;
+		using block_type = internal::block<value_type, AllocatorType>;
 		basic_buffer(void) noexcept
 			:_block(nullptr), _rd_pos(0), _wr_pos(0) {}
 
@@ -70,7 +76,7 @@ namespace cx {
 			: basic_buffer()
 		{
 			_block = reinterpret_cast<block_type*>(
-				AllocatorType::alloc(sizeof(block_type) + (sizeof(T) * sz)
+				AllocatorType::alloc(sizeof(block_type) + (sizeof(value_type) * sz)
 				));
 			_block = new (_block) block_type(sz);
 		}
@@ -110,11 +116,11 @@ namespace cx {
 			return _block;
 		}
 
-		T* base(void) { return _block ? _block->base() : nullptr; }
+		value_type* base(void) { return _block ? _block->base() : nullptr; }
 
 		int size(void) { return _block ? _block->size() : 0; }
 
-		T* rdptr(void) const { return _block ? _block->base() + _rd_pos : nullptr; }
+		value_type* rdptr(void) const { return _block ? _block->base() + _rd_pos : nullptr; }
 
 		int rdptr(int n) {
 			int offset = (n >= 0 ?
@@ -126,7 +132,7 @@ namespace cx {
 
 		int rdsize(void) { return _wr_pos - _rd_pos; }
 
-		T* wrptr(void) { return _block ? _block->base() + _wr_pos : nullptr; }
+		value_type* wrptr(void) { return _block ? _block->base() + _wr_pos : nullptr; }
 
 		int wrptr(int n) {
 			int offset = (n >= 0 ?
@@ -168,7 +174,7 @@ namespace cx {
 			_rd_pos = _wr_pos = 0;
 		}
 
-		T* prepare(const int sz) {
+		value_type* prepare(const int sz) {
 			reserve(sz);
 			return wrptr();
 		}

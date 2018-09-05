@@ -23,12 +23,12 @@ namespace cx::io {
 		private cx::noncopyable,
 		public cx::slist<basic_operation<DescriptorT>>::node {
 	public:
-		using descriptor_ptr = DescriptorT;
+		using descriptor_type = DescriptorT;
 
 		basic_operation(void) {}
 		virtual ~basic_operation(void) = default;
 
-		virtual void request(const descriptor_ptr&) {}
+		virtual void request(const descriptor_type&) {}
 
 		/**
 		 * @brief check io complete
@@ -36,7 +36,7 @@ namespace cx::io {
 		 * @return true io complete
 		 * @return false io incomplete
 		 */
-		virtual bool complete(const descriptor_ptr&) = 0;
+		virtual bool complete(const descriptor_type&) = 0;
 
 		/**
 		 * @brief call when io complete

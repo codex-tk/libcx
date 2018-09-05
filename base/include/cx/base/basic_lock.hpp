@@ -28,9 +28,9 @@ namespace cx {
 	private:
 		CRITICAL_SECTION _cs;
 	};
-	using basic_lock = critical_section;
+	using lock = critical_section;
 #else
-	using basic_lock = std::mutex;
+	using lock = std::mutex;
 #endif
 
 }

@@ -28,10 +28,12 @@ namespace cx::io::mux {
 	class epoll
 		: private cx::noncopyable {
 	public:
+		using this_type = epoll;
+
 		struct descriptor;
 
-		using descriptor_ptr = std::shared_ptr<descriptor>;
-		using operation = basic_operation<descriptor_ptr>;
+		using descriptor_type = std::shared_ptr<descriptor>;
+		using operation_type = basic_operation<descriptor_type>;
 
 		struct descriptor :
 			private cx::noncopyable,
@@ -39,31 +41,43 @@ namespace cx::io::mux {
 		{
 			int fd;
 			struct {
-				cx::slist<operation> ops;
+				cx::slist<operation_type> ops;
 			} context[2];
+
+			descriptor(void);
+			int socket_handle(void) { return fd; }
+			int socket_handle(int s) {
+				std::swap(s, fd);
+				return s;
+			}
+			int file_handle(void) { return fd; }
+			int file_handle(int h) {
+				std::swap(h, fd);
+				return h;
+			}
 		};
 
-		epoll(basic_engine<epoll>* e);
+		epoll(basic_engine<this_type>& e);
 
 		~epoll(void);
 
 
-		bool bind(const descriptor_ptr& descriptor);
+		bool bind(const descriptor_type& descriptor);
 
-		bool bind(const descriptor_ptr& descriptor, std::error_code& ec);
+		bool bind(const descriptor_type& descriptor, std::error_code& ec);
 
-		bool bind(const descriptor_ptr& fd, int ops);
+		bool bind(const descriptor_type& fd, int ops);
 
-		bool bind(const descriptor_ptr& fd, int ops, std::error_code& ec);
+		bool bind(const descriptor_type& fd, int ops, std::error_code& ec);
 
-		void unbind(const descriptor_ptr& fd);
+		void unbind(const descriptor_type& fd);
 
 		void wakeup(void);
 
 		int run(const std::chrono::milliseconds& wait_ms);
 
 	private:
-		basic_engine<epoll>* _engine;
+		basic_engine<this_type>& _engine;
 		int _handle;
 		int _eventfd;
 	};

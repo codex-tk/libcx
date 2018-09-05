@@ -29,38 +29,39 @@ namespace cx::io {
 	template <typename MuxT> class basic_engine
 		: private cx::noncopyable {
 	public:
-		using mux = MuxT;
-		using operation = typename mux::operation;
+		using mux_type = MuxT;
+		using operation_type = typename mux_type::operation_type;
+		using descriptor_type = typename mux_type::descriptor_type;
 
 		basic_engine(void)
-			: _multiplexer(this) {
+			: _multiplexer(*this) {
 		}
 
 		~basic_engine(void) {
 		}
 
-		mux& multiplexer(void) {
-			std::lock_guard<cx::basic_lock> guard(_lock);
+		mux_type& multiplexer(void) {
+			std::lock_guard<cx::lock> guard(_lock);
 			return _multiplexer;
 		}
 
-		void post(cx::slist<operation>&& ops) {
-			std::lock_guard<cx::basic_lock> guard(_lock);
+		void post(cx::slist<operation_type>&& ops) {
+			std::lock_guard<cx::lock> guard(_lock);
 			_ops.add_tail(std::move(ops));
 			_multiplexer.wakeup();
 		}
 
-		void post(operation* op) {
-			std::lock_guard<cx::basic_lock> guard(_lock);
+		void post(operation_type* op) {
+			std::lock_guard < cx::lock > guard(_lock);
 			_ops.add_tail(op);
 			_multiplexer.wakeup();
 		}
 
 		void run(const std::chrono::milliseconds& wait_ms) {
 			_multiplexer.run(wait_ms);
-			cx::slist<operation> ops;
+			cx::slist<operation_type> ops;
 			do {
-				std::lock_guard<cx::basic_lock> guard(_lock);
+				std::lock_guard<cx::lock> guard(_lock);
 				ops.add_tail(std::move(_ops));
 			} while (0);
 			while (!ops.empty()) {
@@ -70,9 +71,9 @@ namespace cx::io {
 		}
 
 	private:
-		cx::basic_lock _lock;
-		cx::slist<operation> _ops;
-		mux _multiplexer;
+		cx::lock _lock;
+		cx::slist<operation_type> _ops;
+		mux_type _multiplexer;
 	};
 
 }

@@ -14,7 +14,11 @@
 
 namespace cx::io::mux {
 
-	epoll::epoll(basic_engine<epoll>* e)
+	epoll::descriptor::descriptor(void) {
+		fd = -1;
+	}
+
+	epoll::epoll(basic_engine<this_type>& e)
 		: _engine(e), _handle(-1), _eventfd(-1)
 	{
 		_handle = epoll_create(256);
@@ -39,23 +43,23 @@ namespace cx::io::mux {
 	}
 
 
-	bool epoll::bind(const descriptor_ptr& descriptor) {
+	bool epoll::bind(const descriptor_type& descriptor) {
 		std::error_code ec;
 		return bind(descriptor, ec);
 	}
 
-	bool epoll::bind(const descriptor_ptr& descriptor, std::error_code& ec) {
+	bool epoll::bind(const descriptor_type& descriptor, std::error_code& ec) {
 		CX_UNUSED(descriptor);
 		CX_UNUSED(ec);
 		return true;
 	}
 
-	bool epoll::bind(const descriptor_ptr& descriptor, int ops) {
+	bool epoll::bind(const descriptor_type& descriptor, int ops) {
 		std::error_code ec;
 		return bind(descriptor, ops, ec);
 	}
 
-	bool epoll::bind(const descriptor_ptr& descriptor, int ops, std::error_code& ec) {
+	bool epoll::bind(const descriptor_type& descriptor, int ops, std::error_code& ec) {
 		if (_handle == -1) {
 			ec = std::make_error_code(std::errc::bad_file_descriptor);
 			return false;
@@ -81,7 +85,7 @@ namespace cx::io::mux {
 		return false;
 	}
 
-	void epoll::unbind(const descriptor_ptr& descriptor) {
+	void epoll::unbind(const descriptor_type& descriptor) {
 		if (descriptor.get() == nullptr)
 			return;
 		if (descriptor->fd != -1) {
@@ -108,11 +112,11 @@ namespace cx::io::mux {
 		for (int i = 0; i < nbfd; ++i) {
 			if (events[i].data.ptr) {
 				bool changed = false;
-				descriptor_ptr descriptor = static_cast<epoll::descriptor*>(events[i].data.ptr)->shared_from_this();
+				descriptor_type descriptor = static_cast<epoll::descriptor*>(events[i].data.ptr)->shared_from_this();
 				int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 				for (int i = 0; i < 2; ++i) {
 					if (ops_filter[i] & events[i].events) {
-						operation* op = descriptor->context[i].ops.head();
+						operation_type* op = descriptor->context[i].ops.head();
 						if (op && op->complete(descriptor)) {
 							descriptor->context[i].ops.remove_head();
 							(*op)();
@@ -127,7 +131,7 @@ namespace cx::io::mux {
 					std::error_code ec;
 					if (bind(descriptor, ops, ec) == false) {
 						if (ops != 0) {
-							cx::slist<operation> postops(std::move(descriptor->context[0].ops));
+							cx::slist<operation_type> postops(std::move(descriptor->context[0].ops));
 							postops.add_tail(std::move(descriptor->context[1].ops));
 						}
 					}

@@ -14,7 +14,7 @@ namespace cx::testing {
 	namespace {
 		class operation : public cx::io::operation {
 		public:
-			virtual bool is_complete(const cx::io::descriptor_ptr&) override {
+			virtual bool is_complete(const cx::io::descriptor_type&) override {
 				return true;
 			}
 

@@ -17,6 +17,8 @@ namespace cx {
 	 */
 	template < typename T > class slist {
 	public:
+		using value_type = T;
+
         /**
          * @brief 
          * 

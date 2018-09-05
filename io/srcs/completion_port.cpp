@@ -7,6 +7,7 @@
  */
 
 #include <cx/base/error.hpp>
+#include <cx/io/io.hpp>
 #include <cx/io/mux/completion_port.hpp>
 #include <cx/io/basic_engine.hpp>
 
@@ -14,7 +15,15 @@
 
 namespace cx::io::mux {
 
-	completion_port::completion_port(basic_engine<completion_port>* e)
+	completion_port::descriptor::descriptor(void){
+		fd.s = INVALID_SOCKET;
+		memset(&(context[0].overlapped), 0x00, sizeof(context[0].overlapped));
+		memset(&(context[1].overlapped), 0x00, sizeof(context[0].overlapped));
+		context[0].overlapped.type = cx::io::pollin;
+		context[1].overlapped.type = cx::io::pollout;
+	}
+
+	completion_port::completion_port(basic_engine<this_type>& e)
 		: _engine(e), _handle(::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1)) {
 		if (_handle == INVALID_HANDLE_VALUE) {
 			throw std::system_error(cx::system_error(), "CreateIoCompletionPort fails");
@@ -26,12 +35,12 @@ namespace cx::io::mux {
 		_handle = INVALID_HANDLE_VALUE;
 	}
 
-	bool completion_port::bind(const descriptor_ptr& descriptor) {
+	bool completion_port::bind(const descriptor_type& descriptor) {
 		std::error_code ec;
 		return bind(descriptor, ec);
 	}
 
-	bool completion_port::bind(const descriptor_ptr& descriptor, std::error_code& ec) {
+	bool completion_port::bind(const descriptor_type& descriptor, std::error_code& ec) {
 		if (_handle == INVALID_HANDLE_VALUE) {
 			ec = std::make_error_code(std::errc::bad_file_descriptor);
 			return false;
@@ -52,19 +61,19 @@ namespace cx::io::mux {
 		return true;
 	}
 
-	bool completion_port::bind(const descriptor_ptr& descriptor, int ops) {
+	bool completion_port::bind(const descriptor_type& descriptor, int ops) {
 		std::error_code ec;
 		return bind(descriptor, ops, ec);
 	}
 
-	bool completion_port::bind(const descriptor_ptr& descriptor, int ops, std::error_code& ec) {
+	bool completion_port::bind(const descriptor_type& descriptor, int ops, std::error_code& ec) {
 		CX_UNUSED(ops);
 		CX_UNUSED(descriptor);
 		CX_UNUSED(ec);
 		return true;
 	}
 
-	void completion_port::unbind(const descriptor_ptr& descriptor) {
+	void completion_port::unbind(const descriptor_type& descriptor) {
 		CX_UNUSED(descriptor);
 	}
 
@@ -82,9 +91,9 @@ namespace cx::io::mux {
 			descriptor::OVERLAPPEDEX* povex = static_cast<descriptor::OVERLAPPEDEX*>(ov);
 			int ctx_idx = povex->type >> 2;
 			if (ctx_idx >= 0 && ctx_idx <= 1) {
-				descriptor_ptr descriptor = reinterpret_cast<
-					descriptor_ptr::element_type*>(key)->shared_from_this();
-				operation* op = descriptor->context[ctx_idx].ops.head();
+				descriptor_type descriptor = reinterpret_cast<
+					descriptor_type::element_type*>(key)->shared_from_this();
+				operation_type* op = descriptor->context[ctx_idx].ops.head();
 				if (op) {
 					op->set(ret == FALSE ? cx::system_error() : std::error_code(), bytes_transferred);
 					if (op->complete(descriptor)) {

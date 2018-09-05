@@ -17,10 +17,10 @@ using mux = cx::io::mux::completion_port;
 
 template <>
 struct event_handler<cx::io::mux::completion_port> {
-	void operator()(cx::io::mux::completion_port::descriptor_ptr& descriptor, int revt) {
+	void operator()(cx::io::mux::completion_port::descriptor_type& descriptor, int revt) {
 		int ctx_idx = revt >> 2;
 		if (ctx_idx >= 0 && ctx_idx <= 1) {
-			cx::io::mux::completion_port::operation* op = descriptor->context[ctx_idx].ops.head();
+			cx::io::mux::completion_port::operation_type* op = descriptor->context[ctx_idx].ops.head();
 			if (op) {
 				op->set(std::error_code(), 0);
 				if (op->complete(descriptor)) {
@@ -43,11 +43,11 @@ using mux = cx::io::mux::epoll;
 
 template <>
 struct event_handler<cx::io::mux::epoll> {
-	void operator()(cx::io::mux::epoll::descriptor_ptr& descriptor, int revt) {
+	void operator()(cx::io::mux::epoll::descriptor_type& descriptor, int revt) {
 		int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 		for (int i = 0; i < 2; ++i) {
 			if (ops_filter[i] & revt) {
-				cx::io::mux::epoll::operation* op = descriptor->context[i].ops.head();
+				cx::io::mux::epoll::operation_type* op = descriptor->context[i].ops.head();
 				if (op && op->complete(descriptor)) {
 					descriptor->context[i].ops.remove_head();
 					(*op)();
@@ -64,13 +64,13 @@ namespace cx::testing {
 		static int in_op_called = 0;
 		static int out_op_called = 0;
 
-		class in_operation : public mux::operation {
+		class in_operation : public mux::operation_type {
 		public:
-			virtual bool complete(const mux::descriptor_ptr&) override {
+			virtual bool complete(const mux::descriptor_type&) override {
 				return true;
 			}
 
-			virtual void request(const descriptor_ptr&) override {
+			virtual void request(const descriptor_type&) override {
 			}
 
 			virtual void operator()(void) override {
@@ -78,13 +78,13 @@ namespace cx::testing {
 			}
 		};
 
-		class out_operation : public mux::operation {
+		class out_operation : public mux::operation_type {
 		public:
-			virtual bool complete(const mux::descriptor_ptr&) override {
+			virtual bool complete(const mux::descriptor_type&) override {
 				return true;
 			}
 
-			virtual void request(const descriptor_ptr&) override {
+			virtual void request(const descriptor_type&) override {
 			}
 
 			virtual void operator()(void) override {
@@ -97,17 +97,16 @@ namespace cx::testing {
 
 
 TEST(cx_io, descriptor) {
-	//cx::io::engine dummy_engine;
 
-	mux::descriptor_ptr descriptor = std::make_shared<mux::descriptor>();
+	mux::descriptor_type descriptor = std::make_shared<mux::descriptor>();
 	// simulate req io
-	std::vector< std::shared_ptr<mux::operation >> inops{
+	std::vector< std::shared_ptr<mux::operation_type >> inops{
 		std::make_shared<cx::testing::in_operation>() ,
 		std::make_shared<cx::testing::in_operation>() ,
 		std::make_shared<cx::testing::in_operation>()
 	};
 
-	std::vector< std::shared_ptr<mux::operation >> outops{
+	std::vector< std::shared_ptr<mux::operation_type >> outops{
 		std::make_shared<cx::testing::out_operation>() ,
 		std::make_shared<cx::testing::out_operation>() ,
 		std::make_shared<cx::testing::out_operation>()
