@@ -15,10 +15,12 @@
 
 namespace cx::io::mux {
 
-	completion_port::descriptor::descriptor(void){
+	completion_port::descriptor::descriptor(basic_engine<this_type>& e)
+		: engine(e)
+	{
 		fd.s = invalid_socket;
 		memset(&(context[0].overlapped), 0x00, sizeof(context[0].overlapped));
-		memset(&(context[1].overlapped), 0x00, sizeof(context[0].overlapped));
+		memset(&(context[1].overlapped), 0x00, sizeof(context[1].overlapped));
 		context[0].overlapped.type = cx::io::pollin;
 		context[1].overlapped.type = cx::io::pollout;
 	}
@@ -84,7 +86,7 @@ namespace cx::io::mux {
 	int completion_port::run(const std::chrono::milliseconds& wait_ms) {
 		LPOVERLAPPED ov = nullptr;
 		DWORD bytes_transferred = 0;
-		ULONG_PTR key;
+		ULONG_PTR key = 0;
 		BOOL ret = GetQueuedCompletionStatus(_handle, &bytes_transferred, &key,
 			&ov, static_cast<DWORD>(wait_ms.count()));
 		if (ov != nullptr && key != 0) {
@@ -126,13 +128,19 @@ namespace cx::io::mux {
 	}
 
 	cx::slist<completion_port::operation_type> completion_port::drain_ops(
-		const completion_port::descriptor_type& descriptor) 
+		const completion_port::descriptor_type& descriptor,
+		const std::error_code& ec)
 	{
 		cx::slist<completion_port::operation_type> ops;
 		if (!descriptor)
 			return ops;
 		ops.add_tail(std::move(descriptor->context[0].ops));
 		ops.add_tail(std::move(descriptor->context[1].ops));
+		auto op = ops.head();
+		while (op) {
+			op->set(ec, 0);
+			op = op->next();
+		}
 		return ops;
 	}
 }

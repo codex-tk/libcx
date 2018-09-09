@@ -45,8 +45,8 @@ namespace cx::io::mux {
 			struct {
 				cx::slist<operation_type> ops;
 			} context[2];
-
-			descriptor(void);
+			basic_engine<this_type>& engine;
+			descriptor(basic_engine<this_type>& e);
 		};
 
 		static const socket_type invalid_socket = -1;
@@ -59,7 +59,8 @@ namespace cx::io::mux {
 			return socket_handle(descriptor) != invalid_socket;
 		}
 
-		static cx::slist<operation_type> drain_ops(const epoll::descriptor_type& descriptor);
+		static cx::slist<operation_type> drain_ops(const epoll::descriptor_type& descriptor,
+			const std::error_code& ec);
 
 		epoll(basic_engine<this_type>& e);
 

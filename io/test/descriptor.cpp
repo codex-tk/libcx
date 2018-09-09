@@ -7,6 +7,7 @@
  */
 #include <gtest/gtest.h>
 #include <cx/io/io.hpp>
+#include <cx/io/basic_engine.hpp>
 
 template < typename MuxT >
 struct event_handler;
@@ -97,8 +98,8 @@ namespace cx::testing {
 
 
 TEST(cx_io, descriptor) {
-
-	mux::descriptor_type descriptor = std::make_shared<mux::descriptor>();
+	cx::io::basic_engine<mux> e;
+	mux::descriptor_type descriptor = std::make_shared<mux::descriptor>(e);
 	// simulate req io
 	std::vector< std::shared_ptr<mux::operation_type >> inops{
 		std::make_shared<cx::testing::in_operation>() ,

@@ -30,9 +30,7 @@ namespace cx::io::ip {
 
 		virtual ~basic_dgram_operation(void) {}
 
-		address_type& address(void) {
-			return _address;
-		}
+		address_type& address(void) { return _address; }
 	private:
 		address_type _address;
 	};

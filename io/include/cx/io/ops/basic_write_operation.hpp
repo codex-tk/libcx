@@ -20,8 +20,10 @@ namespace cx::io {
 	template <typename ServiceType, typename base_operation>
 	class basic_write_operation : public base_operation {
 	public:
+		using base_type = base_operation;
 		using service_type = ServiceType;
 		using descriptor_type = typename service_type::descriptor_type;
+		using address_type = typename base_type::address_type;
 
 		basic_write_operation(void) {}
 

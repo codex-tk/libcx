@@ -27,4 +27,6 @@ TEST(cx_io, basic_ops) {
 		cx::testing::engine>;
 	cx::io::basic_read_operation<service_type,
 		cx::io::basic_io_operation<service_type>>* op;
+
+	CX_UNUSED(op);
 }

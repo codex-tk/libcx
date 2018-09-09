@@ -21,7 +21,7 @@ namespace cx::io::ip {
 		using descriptor_type = typename mux_type::descriptor_type;
 
 		template < int Type, int Proto >
-		static bool open(engine_type& engine, const descriptor_type& descriptor,
+		static bool open(const descriptor_type& descriptor,
 			const cx::io::ip::basic_address<Type, Proto>& addr,
 			std::error_code& ec)
 		{
@@ -29,7 +29,7 @@ namespace cx::io::ip {
 				ec = std::make_error_code(std::errc::invalid_argument);
 				return false;
 			}
-			close(engine, descriptor);
+			close(descriptor);
 #if defined(CX_PLATFORM_WIN32)
 			typename mux_type::socket_type fd = ::WSASocketW(addr.family(),
 				addr.type(),
@@ -49,7 +49,7 @@ namespace cx::io::ip {
 			return true;
 		}
 
-		static void close(engine_type& engine, const descriptor_type& descriptor) {
+		static void close(const descriptor_type& descriptor) {
 			if (!descriptor)
 				return;
 
@@ -60,7 +60,9 @@ namespace cx::io::ip {
 				::close(mux_type::socket_handle(descriptor, mux_type::invalid_socket));
 #endif
 			}
-			engine.post(mux_type::drain_ops(descriptor));
+			auto ops = mux_type::drain_ops(descriptor, std::error_code());
+			if(!ops.empty())
+				descriptor->engine.post(std::move(ops));
 		};
 
 		template < int Type, int Proto >

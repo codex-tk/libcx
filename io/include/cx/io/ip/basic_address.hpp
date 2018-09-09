@@ -15,8 +15,8 @@ namespace cx::io::ip {
 
 	template <int Type, int Proto> class basic_address {
 	public:
-		basic_address(void) noexcept 
-			: _length(0)
+		basic_address(void) noexcept
+			: _length(sizeof(_address))
 		{
 			memset(&_address, 0x00, sizeof(_address));
 		}
@@ -78,9 +78,8 @@ namespace cx::io::ip {
 			return 0;*/
 		}
 
-		socklen_t* length_ptr(void) {
-			return &_length;
-		}
+		socklen_t* length_ptr(void) { return &_length; }
+		const socklen_t* length_ptr(void) const { return &_length; }
 
 		bool inet_ntop(char* out, const int len) const {
 			switch (_address.family) {

@@ -14,7 +14,9 @@
 
 namespace cx::io::mux {
 
-	epoll::descriptor::descriptor(void) {
+	epoll::descriptor::descriptor(basic_engine<this_type>& e)
+		: engine(e)
+	{
 		fd = invalid_socket;
 	}
 
@@ -107,20 +109,21 @@ namespace cx::io::mux {
 			, events
 			, 256
 			, wait_ms.count());
-		if (nbfd <= 0)
+		if (nbfd <= 0) {
 			return 0;
+		}
 		for (int i = 0; i < nbfd; ++i) {
 			if (events[i].data.ptr) {
 				bool changed = false;
 				descriptor_type descriptor = static_cast<epoll::descriptor*>(events[i].data.ptr)->shared_from_this();
 				int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
-				for (int i = 0; i < 2; ++i) {
-					if (ops_filter[i] & events[i].events) {
-						operation_type* op = descriptor->context[i].ops.head();
+				for (int j = 0; j < 2; ++j) {
+					if (ops_filter[j] & events[i].events) {
+						operation_type* op = descriptor->context[j].ops.head();
 						if (op && op->complete(descriptor)) {
-							descriptor->context[i].ops.remove_head();
+							descriptor->context[j].ops.remove_head();
 							(*op)();
-							if (descriptor->context[i].ops.empty())
+							if (descriptor->context[j].ops.empty())
 								changed = true;
 						}
 					}
@@ -161,13 +164,19 @@ namespace cx::io::mux {
 	}
 
 	cx::slist<epoll::operation_type> epoll::drain_ops(
-		const epoll::descriptor_type& descriptor)
+		const epoll::descriptor_type& descriptor,
+		const std::error_code& ec)
 	{
 		cx::slist<epoll::operation_type> ops;
 		if (!descriptor)
 			return ops;
 		ops.add_tail(std::move(descriptor->context[0].ops));
 		ops.add_tail(std::move(descriptor->context[1].ops));
+		auto op = ops.head();
+		while (op) {
+			op->set(ec, 0);
+			op = op->next();
+		}
 		return ops;
 	}
 }

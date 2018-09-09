@@ -49,7 +49,8 @@ namespace cx::io::mux {
 				cx::slist<operation_type> ops;
 				OVERLAPPEDEX overlapped;
 			} context[2];
-			descriptor(void);
+			basic_engine<this_type>& engine;
+			descriptor(basic_engine<this_type>& e);
 		};
 		
 		static const socket_type invalid_socket = INVALID_SOCKET;
@@ -62,7 +63,10 @@ namespace cx::io::mux {
 			return socket_handle(descriptor) != invalid_socket;
 		}
 
-		static cx::slist<operation_type> drain_ops(const completion_port::descriptor_type& descriptor);
+		static cx::slist<operation_type> drain_ops(
+			const completion_port::descriptor_type& descriptor,
+			const std::error_code& ec
+		);
 
 		completion_port(basic_engine<this_type>& e);
 

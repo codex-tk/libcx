@@ -20,8 +20,4 @@ target_link_libraries( cx.io.test cx.base cx.io gtest )
 
 enable_testing()
 add_test(cx.io.test cx.io.test)
-add_custom_command(TARGET cx.io.test
-    POST_BUILD
-    COMMAND ctest -C $<CONFIGURATION> --verbose
-    --output-on-failure
-    )
+add_custom_command(TARGET cx.io.test  POST_BUILD  COMMAND ctest -C $<CONFIGURATION> --verbose --output-on-failure )

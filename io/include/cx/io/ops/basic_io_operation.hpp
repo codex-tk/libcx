@@ -9,7 +9,7 @@
 #define __cx_io_basic_io_operation_h__
 
 #include <cx/base/defines.hpp>
-#include <cx/base/basic_buffer.hpp>
+#include <cx/io/buffer.hpp>
 
 namespace cx::io {
 
@@ -28,11 +28,11 @@ namespace cx::io {
 
 		virtual ~basic_io_operation(void) {}
 
-		cx::basic_buffer<uint8_t>& buffer(void) {
+		cx::io::buffer& buffer(void) {
 			return _buffer;
 		}
 	private:
-		cx::basic_buffer<uint8_t> _buffer;
+		cx::io::buffer _buffer;
 	};
 
 }
