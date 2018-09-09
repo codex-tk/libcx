@@ -15,7 +15,7 @@
 namespace cx::io::mux {
 
 	epoll::descriptor::descriptor(void) {
-		fd = -1;
+		fd = invalid_socket;
 	}
 
 	epoll::epoll(basic_engine<this_type>& e)
@@ -143,6 +143,32 @@ namespace cx::io::mux {
 			}
 		}
 		return 0;
+	}
+
+	epoll::socket_type epoll::socket_handle(const epoll::descriptor_type& descriptor) {
+		if (!descriptor)
+			return invalid_socket;
+		return descriptor->fd;
+	}
+
+	epoll::socket_type epoll::socket_handle(const epoll::descriptor_type& descriptor, 
+		epoll::socket_type s)
+	{
+		if (!descriptor)
+			return invalid_socket;
+		std::swap(descriptor->fd, s);
+		return s;
+	}
+
+	cx::slist<epoll::operation_type> epoll::drain_ops(
+		const epoll::descriptor_type& descriptor)
+	{
+		cx::slist<epoll::operation_type> ops;
+		if (!descriptor)
+			return ops;
+		ops.add_tail(std::move(descriptor->context[0].ops));
+		ops.add_tail(std::move(descriptor->context[1].ops));
+		return ops;
 	}
 }
 

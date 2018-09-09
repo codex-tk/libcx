@@ -41,7 +41,6 @@ namespace cx::io {
 		}
 
 		mux_type& multiplexer(void) {
-			std::lock_guard<cx::lock> guard(_lock);
 			return _multiplexer;
 		}
 

@@ -41,5 +41,9 @@ TEST(cx_util, clazz) {
 
 	ASSERT_EQ(cx::clazz<sample>::container_of(&test_sample.value, &sample::value), &test_sample);
 	ASSERT_EQ(cx::clazz<sample>::container_of(&test_sample.value_4, &sample::value_4), &test_sample);
+}
 
+TEST(cx_util, null_type_size) {
+	struct empty {};
+	ASSERT_EQ(sizeof(empty), 1);
 }

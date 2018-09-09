@@ -16,7 +16,7 @@
 namespace cx::io::mux {
 
 	completion_port::descriptor::descriptor(void){
-		fd.s = INVALID_SOCKET;
+		fd.s = invalid_socket;
 		memset(&(context[0].overlapped), 0x00, sizeof(context[0].overlapped));
 		memset(&(context[1].overlapped), 0x00, sizeof(context[0].overlapped));
 		context[0].overlapped.type = cx::io::pollin;
@@ -109,6 +109,32 @@ namespace cx::io::mux {
 		return 0;
 	}
 	
+	completion_port::socket_type completion_port::socket_handle(
+		const completion_port::descriptor_type& descriptor)
+	{
+		if (!descriptor)
+			return invalid_socket;
+		return descriptor->fd.s;
+	}
+
+	completion_port::socket_type completion_port::socket_handle(
+		const completion_port::descriptor_type& descriptor, completion_port::socket_type s) {
+		if (!descriptor)
+			return invalid_socket;
+		std::swap(descriptor->fd.s, s);
+		return s;
+	}
+
+	cx::slist<completion_port::operation_type> completion_port::drain_ops(
+		const completion_port::descriptor_type& descriptor) 
+	{
+		cx::slist<completion_port::operation_type> ops;
+		if (!descriptor)
+			return ops;
+		ops.add_tail(std::move(descriptor->context[0].ops));
+		ops.add_tail(std::move(descriptor->context[1].ops));
+		return ops;
+	}
 }
 
 #endif

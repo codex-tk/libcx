@@ -18,13 +18,17 @@
 
 namespace cx::io::ip {
 
-	template < typename EngineType > class win32_overlapped_dgram_service {
+	template < typename EngineType, int Type = SOCK_DGRAM, int Proto = IPPROTO_UDP > 
+	class win32_overlapped_dgram_service {
 	public:
 		using engine_type = EngineType;
 		using mux_type = typename engine_type::mux_type;
+		using operation_type = typename mux_type::operation_type;
 		using descriptor_type = typename mux_type::descriptor_type;
-
 		using basic_service_type = cx::io::ip::basic_service<engine_type>;
+		using address_type = cx::io::ip::basic_address<Type, Proto>;
+
+
 	};
 }
 

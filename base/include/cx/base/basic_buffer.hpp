@@ -130,7 +130,7 @@ namespace cx {
 			return offset;
 		}
 
-		int rdsize(void) { return _wr_pos - _rd_pos; }
+		int rdsize(void) const { return _wr_pos - _rd_pos; }
 
 		value_type* wrptr(void) { return _block ? _block->base() + _wr_pos : nullptr; }
 
@@ -207,6 +207,14 @@ namespace cx {
 		memcpy(nb.wrptr(), rhs.rdptr(), rhs.rdsize());
 		nb.wrptr(rhs.rdsize());
 		return nb;
+	}
+
+	template < typename T, typename AllocatorType >
+	basic_buffer<T, AllocatorType>& operator<<(basic_buffer<T, AllocatorType>& buf, const char* msg) {
+		auto len = strlen(msg) + 1;
+		buf.reserve(len);
+		buf.write(msg, len);
+		return buf;
 	}
 }
 

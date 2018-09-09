@@ -34,13 +34,15 @@ namespace cx::io::mux {
 		using descriptor_type = std::shared_ptr<descriptor>;
 		using operation_type = basic_operation<descriptor_type>;
 
+		using socket_type = SOCKET;
+
 		struct descriptor :
 			private cx::noncopyable,
 			public std::enable_shared_from_this<descriptor>
 		{
 			struct OVERLAPPEDEX : OVERLAPPED { int type; };
 			union {
-				SOCKET s;
+				socket_type s;
 				HANDLE h;
 			} fd;
 			struct {
@@ -48,18 +50,19 @@ namespace cx::io::mux {
 				OVERLAPPEDEX overlapped;
 			} context[2];
 			descriptor(void);
-			
-			SOCKET socket_handle(void) { return fd.s; }
-			SOCKET socket_handle(SOCKET s) {
-				std::swap(s, fd.s);
-				return s;
-			}
-			HANDLE file_handle(void) { return fd.h; }
-			HANDLE file_handle(HANDLE h) {
-				std::swap(h, fd.h);
-				return h;
-			}
 		};
+		
+		static const socket_type invalid_socket = INVALID_SOCKET;
+
+		static socket_type socket_handle(const completion_port::descriptor_type& descriptor);
+		static socket_type socket_handle(const completion_port::descriptor_type& descriptor
+			, socket_type s);
+
+		static bool good(const completion_port::descriptor_type& descriptor) {
+			return socket_handle(descriptor) != invalid_socket;
+		}
+
+		static cx::slist<operation_type> drain_ops(const completion_port::descriptor_type& descriptor);
 
 		completion_port(basic_engine<this_type>& e);
 
@@ -82,6 +85,8 @@ namespace cx::io::mux {
 		basic_engine<this_type>& _engine;
 		HANDLE _handle;
 	};
+
+
 }
 
 #endif

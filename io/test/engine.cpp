@@ -24,6 +24,7 @@ namespace cx::testing {
 			: _handler(std::forward<HandlerT>(h)) {
 
 		}
+
 		virtual bool complete(const engine::descriptor_type&) override {
 			return true;
 		}

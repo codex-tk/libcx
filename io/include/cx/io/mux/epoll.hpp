@@ -35,27 +35,31 @@ namespace cx::io::mux {
 		using descriptor_type = std::shared_ptr<descriptor>;
 		using operation_type = basic_operation<descriptor_type>;
 
+		using socket_type = int;
+
 		struct descriptor :
 			private cx::noncopyable,
 			public std::enable_shared_from_this<descriptor>
 		{
-			int fd;
+			socket_type fd;
 			struct {
 				cx::slist<operation_type> ops;
 			} context[2];
 
 			descriptor(void);
-			int socket_handle(void) { return fd; }
-			int socket_handle(int s) {
-				std::swap(s, fd);
-				return s;
-			}
-			int file_handle(void) { return fd; }
-			int file_handle(int h) {
-				std::swap(h, fd);
-				return h;
-			}
 		};
+
+		static const socket_type invalid_socket = -1;
+
+		static socket_type socket_handle(const epoll::descriptor_type& descriptor);
+		static socket_type socket_handle(const epoll::descriptor_type& descriptor
+			, socket_type s);
+
+		static bool good(const epoll::descriptor_type& descriptor) {
+			return socket_handle(descriptor) != invalid_socket;
+		}
+
+		static cx::slist<operation_type> drain_ops(const epoll::descriptor_type& descriptor);
 
 		epoll(basic_engine<this_type>& e);
 
@@ -81,6 +85,7 @@ namespace cx::io::mux {
 		int _handle;
 		int _eventfd;
 	};
+
 }
 
 #endif

@@ -15,16 +15,21 @@ namespace cx::io::ip {
 
 	template <int Type, int Proto> class basic_address {
 	public:
-		basic_address(void) noexcept {
+		basic_address(void) noexcept 
+			: _length(0)
+		{
 			memset(&_address, 0x00, sizeof(_address));
 		}
 
-		basic_address(struct sockaddr* addr_ptr, const socklen_t length) {
+		basic_address(struct sockaddr* addr_ptr, const socklen_t length) noexcept
+			: _length(length)
+		{
 			memcpy(&_address, addr_ptr, length);
 		}
 
-		basic_address(const basic_address& rhs) {
+		basic_address(const basic_address& rhs) noexcept {
 			memcpy(&_address, rhs.sockaddr(), sizeof(_address));
+			_length = rhs.length();
 		}
 
 		basic_address(const char* src, const uint16_t port, const short family) {
@@ -34,10 +39,12 @@ namespace cx::io::ip {
 			case AF_INET:
 				_address.v4.sin_port = htons(port);
 				dst = &(_address.v4.sin_addr);
+				_length = sizeof(struct sockaddr_in);
 				break;
 			case AF_INET6:
 				_address.v6.sin6_port = htons(port);
 				dst = &(_address.v6.sin6_addr);
+				_length = sizeof(struct sockaddr_in6);
 				break;
 			default:
 				assert(0);
@@ -60,13 +67,19 @@ namespace cx::io::ip {
 		}
 
 		socklen_t length(void) const {
+			return _length;
+			/*
 			switch (_address.family) {
 			case AF_INET:
 				return sizeof(struct sockaddr_in);
 			case AF_INET6:
 				return sizeof(struct sockaddr_in6);
 			}
-			return 0;
+			return 0;*/
+		}
+
+		socklen_t* length_ptr(void) {
+			return &_length;
 		}
 
 		bool inet_ntop(char* out, const int len) const {
@@ -133,16 +146,18 @@ namespace cx::io::ip {
 	public:
 		static basic_address any(const uint16_t port, const short family = AF_INET) {
 			basic_address address;
-			address.family = family;
+			address._address.family = family;
 			switch (family) {
 			case AF_INET:
 				address._address.v4.sin_port = htons(port);
 				address._address.v4.sin_addr.s_addr = htonl(INADDR_ANY);
+				address._length = sizeof(struct sockaddr_in);
 				break;
 			case AF_INET6:
 				address._address.v6.sin6_flowinfo = 0;
 				address._address.v6.sin6_port = htons(port);
 				address._address.v6.sin6_addr = in6addr_any;
+				address._length = sizeof(struct sockaddr_in6);
 				break;
 			default:
 				assert(0);
@@ -190,6 +205,7 @@ namespace cx::io::ip {
 			struct sockaddr_in v4;
 			struct sockaddr_in6 v6;
 		} _address;
+		socklen_t _length;
 	};
 }
 

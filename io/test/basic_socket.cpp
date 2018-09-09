@@ -8,6 +8,7 @@
 
 #include <gtest/gtest.h>
 #include <cx/io/basic_engine.hpp>
+#include <cx/io/ip/option.hpp>
 #include <cx/io/ip/basic_socket.hpp>
 #include <cx/io/ip/services/basic_dgram_service.hpp>
 #include <cx/io/ip/services/win32_overlapped_dgram_service.hpp>
@@ -26,13 +27,27 @@ namespace cx::testing{
 #elif defined(CX_PLATFORM_LINUX)
 	using engine = cx::io::basic_engine<cx::io::mux::epoll>;
 #endif
-	using socket = cx::io::ip::basic_socket<engine, cx::io::ip::basic_dgram_service >;
-	using address = cx::io::ip::basic_address<SOCK_STREAM, IPPROTO_TCP>;
+	using socket = cx::io::ip::basic_socket<engine, cx::io::ip::basic_dgram_service<engine>>;
+	using address = cx::io::ip::basic_address<SOCK_DGRAM, IPPROTO_UDP>;
 }
 
 TEST(cx_io_socket, base) {
 	cx::testing::engine e;
 	cx::testing::socket fd(e);
 	cx::testing::address addr("127.0.0.1", 7543, AF_INET);
+	ASSERT_FALSE(fd.good());
 	ASSERT_TRUE(fd.open(addr));
+	ASSERT_TRUE(fd.good());
+	fd.close();
+	ASSERT_FALSE(fd.good());
+}
+
+
+TEST(cx_io_socket, option) {
+	cx::testing::engine e;
+	cx::testing::socket fd(e);
+	cx::testing::address addr("127.0.0.1", 7543, AF_INET);
+	ASSERT_TRUE(fd.open(addr));
+	ASSERT_TRUE(fd.set_option(cx::io::ip::option::reuse_address()));
+	fd.close();
 }
