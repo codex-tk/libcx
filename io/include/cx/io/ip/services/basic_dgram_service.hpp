@@ -35,7 +35,6 @@ namespace cx::io::ip {
 		using read_operation = cx::io::basic_read_operation<this_type, cx::io::ip::basic_dgram_operation<this_type>>;
 		using write_operation = cx::io::basic_write_operation<this_type, cx::io::ip::basic_dgram_operation<this_type>>;
 
-
 		template <typename HandlerType>
 		static void read(
 			const descriptor_type& descriptor,

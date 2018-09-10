@@ -211,6 +211,42 @@ namespace cx::io::ip {
 			mux_type::socket_handle(accepted, fd);
 			return true;
 		}
+
+		static int poll(const descriptor_type& descriptor, 
+			int ops, 
+			const std::chrono::milliseconds& ms,
+			std::error_code& ec) {
+#if defined(CX_PLATFORM_WIN32)
+			WSAPOLLFD pollfd = { 0 };
+			pollfd.fd = mux_type::socket_handle(descriptor);
+			pollfd.events = ((ops & cx::io::pollin) ? POLLRDNORM : 0) | ((ops & cx::io::pollout) ? POLLWRNORM : 0);
+			int result = WSAPoll(&pollfd, 1, static_cast<int>(ms.count()));
+			if (result == SOCKET_ERROR) {
+				ec = cx::system_error();
+				return -1;
+			}
+			if (result == 0) {
+				ec = std::make_error_code(std::errc::timed_out);
+				return 0;
+			}
+			ops = ((pollfd.revents & POLLRDNORM) ? cx::io::pollin : 0) | ((pollfd.revents & POLLWRNORM) ? cx::io::pollout : 0);
+			return ops;
+#else
+			struct pollfd pfd = { 0 };
+			pfd.fd = mux_type::socket_handle(descriptor);
+			pfd.events = ops;
+			int result = ::poll(&pfd, 1, ms.count());
+			if (result == -1) {
+				ec = cx::system_error();
+				return -1;
+			}
+			if (result == 0) {
+				ec = std::make_error_code(std::errc::timed_out);
+				return 0;
+			}
+			return pfd.revents;
+#endif
+		}
 	};
 }
 

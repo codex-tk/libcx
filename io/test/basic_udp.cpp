@@ -88,6 +88,8 @@ TEST(cx_io_socket, basic_udp) {
 
 	ASSERT_TRUE(server.echo());
 
+	ASSERT_EQ(udp_client.poll(cx::io::pollin, std::chrono::milliseconds(1000)), cx::io::pollin);
+
 	int recv_size = udp_client.recvfrom(
 		cx::testing::socket::buffer_type(client_buf.wrptr(), client_buf.wrsize()),
 		client_addr);

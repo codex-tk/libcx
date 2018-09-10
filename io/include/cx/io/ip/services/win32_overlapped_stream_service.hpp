@@ -14,6 +14,10 @@
 #include <cx/io/io.hpp>
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/ip/services/basic_service.hpp>
+#include <cx/io/ops/basic_io_operation.hpp>
+#include <cx/io/ops/basic_read_operation.hpp>
+#include <cx/io/ops/basic_write_operation.hpp>
+#include <cx/io/ops/handler_operation.hpp>
 
 #if defined(CX_PLATFORM_WIN32)
 
@@ -31,6 +35,9 @@ namespace cx::io::ip {
 		using address_type = cx::io::ip::basic_address<Type, Proto>;
 		using buffer_type = cx::io::buffer;
 
+		using read_operation = cx::io::basic_read_operation<this_type, cx::io::basic_io_operation<this_type>>;
+		using write_operation = cx::io::basic_write_operation<this_type, cx::io::basic_io_operation<this_type>>;
+
 		template <typename HandlerType>
 		static void read(
 			const descriptor_type& descriptor,
@@ -41,17 +48,16 @@ namespace cx::io::ip {
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
 			if (!mux_type::good(descriptor)) {
-				auto ops = mux_type::drain_ops(descriptor),
-					std::make_error_code(std::errc::bad_file_descriptor);
-				op->error(std::make_error_code(std::errc::invalid_argument));
+				auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
+				op->set(std::make_error_code(std::errc::invalid_argument), 0);
 				ops.add_tail(op);
-				descriptor->engine.post(ops);
+				descriptor->engine.post(std::move(ops));
 				return;
 			}
 			bool request = descriptor->context[0].ops.empty();
 			descriptor->context[0].ops.add_tail(op);
 			if (request)
-				read_request(request, op);
+				read_request(descriptor, op);
 		}
 
 		template <typename HandlerType>
@@ -64,17 +70,16 @@ namespace cx::io::ip {
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
 			if (!mux_type::good(descriptor)) {
-				auto ops = mux_type::drain_ops(descriptor),
-					std::make_error_code(std::errc::bad_file_descriptor);
-				op->error(std::make_error_code(std::errc::invalid_argument));
+				auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
+				op->set(std::make_error_code(std::errc::invalid_argument), 0);
 				ops.add_tail(op);
-				descriptor->engine.post(ops);
+				descriptor->engine.post(std::move(ops));
 				return;
 			}
 			bool request = descriptor->context[1].ops.empty();
 			descriptor->context[1].ops.add_tail(op);
 			if (request)
-				write_request(request, op);
+				write_request(descriptor, op);
 		}
 
 		static void read_request(
@@ -100,9 +105,8 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					auto ops = mux_type::drain_ops(descriptor),
-						std::make_error_code(std::errc::bad_file_descriptor);
-					descriptor->engine.post(ops);
+					descriptor->engine.post(mux_type::drain_ops(descriptor,
+						std::make_error_code(std::errc::bad_file_descriptor)));
 					return;
 				}
 			}
@@ -140,9 +144,8 @@ namespace cx::io::ip {
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					auto ops = mux_type::drain_ops(descriptor),
-						std::make_error_code(std::errc::bad_file_descriptor);
-					descriptor->engine.post(ops);
+					descriptor->engine.post(mux_type::drain_ops(descriptor,
+						std::make_error_code(std::errc::bad_file_descriptor)));
 					return;
 				}
 			}

@@ -148,6 +148,11 @@ namespace cx::io::ip {
 		descriptor_type& descriptor(void) {
 			return _descriptor;
 		}
+
+		int poll(int ops, const std::chrono::milliseconds& ms) {
+			std::error_code ec;
+			return basic_service_type::poll(_descriptor, ops, ms, ec);
+		}
 	private:
 		descriptor_type _descriptor;
 	};
