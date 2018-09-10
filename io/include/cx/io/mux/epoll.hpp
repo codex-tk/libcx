@@ -80,7 +80,8 @@ namespace cx::io::mux {
 		void wakeup(void);
 
 		int run(const std::chrono::milliseconds& wait_ms);
-
+	private:
+		int handle_event(struct epoll_event& ev);
 	private:
 		basic_engine<this_type>& _engine;
 		int _handle;

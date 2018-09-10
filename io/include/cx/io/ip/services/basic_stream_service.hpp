@@ -40,7 +40,7 @@ namespace cx::io::ip {
 			const buffer_type& buf,
 			HandlerType&& handler)
 		{
-			read_operation* op = new dgram_handler_operation<read_operation, HandlerType>(
+			read_operation* op = new handler_operation<read_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
 			if (!mux_type::good(descriptor)) {
@@ -66,7 +66,7 @@ namespace cx::io::ip {
 			const buffer_type& buf,
 			HandlerType&& handler)
 		{
-			write_operation* op = new dgram_handler_operation<write_operation, HandlerType>(
+			write_operation* op = new handler_operation<write_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
 			if (!mux_type::good(descriptor)) {

@@ -109,43 +109,46 @@ namespace cx::io::mux {
 			, events
 			, 256
 			, wait_ms.count());
-		if (nbfd <= 0) {
+		if (nbfd <= 0) 
 			return 0;
-		}
+		int handled = 0;
 		for (int i = 0; i < nbfd; ++i) {
 			if (events[i].data.ptr) {
-				bool changed = false;
-				descriptor_type descriptor = static_cast<epoll::descriptor*>(events[i].data.ptr)->shared_from_this();
-				int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
-				for (int j = 0; j < 2; ++j) {
-					if (ops_filter[j] & events[i].events) {
-						operation_type* op = descriptor->context[j].ops.head();
-						if (op && op->complete(descriptor)) {
-							descriptor->context[j].ops.remove_head();
-							(*op)();
-							if (descriptor->context[j].ops.empty())
-								changed = true;
-						}
-					}
-				}
-				if (changed) {
-					int ops = (descriptor->context[0].ops.empty() ? 0 : cx::io::pollin)
-						| (descriptor->context[1].ops.empty() ? 0 : cx::io::pollout);
-					std::error_code ec;
-					if (bind(descriptor, ops, ec) == false) {
-						if (ops != 0) {
-							cx::slist<operation_type> postops(std::move(descriptor->context[0].ops));
-							postops.add_tail(std::move(descriptor->context[1].ops));
-						}
-					}
-				}
-			}
-			else {
+				handled += handle_event(events[i]);
+			} else {
 				uint64_t v;
 				read(_eventfd, &v, sizeof(v));
 			}
 		}
-		return 0;
+		return handled;
+	}
+	
+	int epoll::handle_event(struct epoll_event& ev){
+		int handled = 0;
+		bool changed = false;
+		descriptor_type descriptor = static_cast<epoll::descriptor*>(ev.data.ptr)->shared_from_this();
+		int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
+		for (int i = 0; i < 2; ++i) {
+			if (ops_filter[i] & ev.events) {
+				operation_type* op = descriptor->context[i].ops.head();
+				if (op && op->complete(descriptor)) {
+					descriptor->context[i].ops.remove_head();
+					(*op)();
+					if (descriptor->context[i].ops.empty())
+						changed = true;
+					++handled;
+				}
+			}
+		}
+		if (changed) {
+			int ops = (descriptor->context[0].ops.empty() ? 0 : cx::io::pollin)
+				| (descriptor->context[1].ops.empty() ? 0 : cx::io::pollout);
+			std::error_code ec;
+			if (bind(descriptor, ops, ec) == false) {
+				_engine.post(drain_ops(descriptor, ec));
+			}
+		}
+		return handled;
 	}
 
 	epoll::socket_type epoll::socket_handle(const epoll::descriptor_type& descriptor) {

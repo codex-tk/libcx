@@ -153,6 +153,15 @@ namespace cx::io::ip {
 			std::error_code ec;
 			return basic_service_type::poll(_descriptor, ops, ms, ec);
 		}
+
+		bool connect(const address_type& addr) {
+			std::error_code ec;
+			return connect(addr, ec);
+		}
+
+		bool connect(const address_type& addr, std::error_code& ec) {
+			return basic_service_type::connect(_descriptor, addr.sockaddr(), addr.length(), ec);
+		}
 	private:
 		descriptor_type _descriptor;
 	};

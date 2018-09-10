@@ -26,7 +26,6 @@ namespace cx::io::ip{
      */
 	template < typename ServiceType > struct is_stream_available : std::false_type {};
     
-
 }
 
 #endif

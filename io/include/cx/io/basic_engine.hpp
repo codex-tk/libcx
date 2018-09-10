@@ -56,8 +56,9 @@ namespace cx::io {
 			_multiplexer.wakeup();
 		}
 
-		void run(const std::chrono::milliseconds& wait_ms) {
-			_multiplexer.run(wait_ms);
+		int run(const std::chrono::milliseconds& wait_ms) {
+			int handled = 0;
+			handled += _multiplexer.run(wait_ms);
 			cx::slist<operation_type> ops;
 			do {
 				std::lock_guard<cx::lock> guard(_lock);
@@ -66,7 +67,9 @@ namespace cx::io {
 			while (!ops.empty()) {
 				auto op = ops.remove_head();
 				(*op)();
+				++handled;
 			}
+			return handled;
 		}
 
 	private:

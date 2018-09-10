@@ -175,7 +175,7 @@ namespace cx::io::ip {
 		}
 
 		static bool connect(const descriptor_type& descriptor,
-			struct sockaddr* addr,
+			const struct sockaddr* addr,
 			socklen_t addr_sz,
 			std::error_code& ec)
 		{

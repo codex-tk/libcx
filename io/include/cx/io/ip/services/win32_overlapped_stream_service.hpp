@@ -66,7 +66,7 @@ namespace cx::io::ip {
 			const buffer_type& buf,
 			HandlerType&& handler)
 		{
-			write_operator* op = new handler_operation<write_operator, HandlerType>(
+			write_operation* op = new handler_operation<write_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
 			if (!mux_type::good(descriptor)) {
@@ -87,9 +87,8 @@ namespace cx::io::ip {
 			read_operation* op)
 		{
 			if (!mux_type::good(descriptor)) {
-				auto ops = mux_type::drain_ops(descriptor),
-					std::make_error_code(std::errc::bad_file_descriptor);
-				descriptor->engine.post(ops);
+				descriptor->engine.post(mux_type::drain_ops(descriptor,
+					std::make_error_code(std::errc::bad_file_descriptor)));
 				return;
 			}
 			memset(&(descriptor->context[0].overlapped), 0x00, sizeof(descriptor->context[0].overlapped));
@@ -126,8 +125,8 @@ namespace cx::io::ip {
 			write_operation* op)
 		{
 			if (!mux_type::good(descriptor)) {
-				descriptor->engine.post(mux_type::drain_ops(descriptor),
-					std::make_error_code(std::errc::bad_file_descriptor));
+				descriptor->engine.post(mux_type::drain_ops(descriptor,
+					std::make_error_code(std::errc::bad_file_descriptor)));
 				return;
 			}
 

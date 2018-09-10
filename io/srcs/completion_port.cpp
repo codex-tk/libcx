@@ -89,6 +89,7 @@ namespace cx::io::mux {
 		ULONG_PTR key = 0;
 		BOOL ret = GetQueuedCompletionStatus(_handle, &bytes_transferred, &key,
 			&ov, static_cast<DWORD>(wait_ms.count()));
+		int handled = 0;
 		if (ov != nullptr && key != 0) {
 			descriptor::OVERLAPPEDEX* povex = static_cast<descriptor::OVERLAPPEDEX*>(ov);
 			int ctx_idx = povex->type >> 2;
@@ -104,11 +105,12 @@ namespace cx::io::mux {
 						if (descriptor->context[ctx_idx].ops.head()) {
 							descriptor->context[ctx_idx].ops.head()->request(descriptor);
 						}
+						++handled;
 					}
 				}
 			}
 		}
-		return 0;
+		return handled;
 	}
 	
 	completion_port::socket_type completion_port::socket_handle(
