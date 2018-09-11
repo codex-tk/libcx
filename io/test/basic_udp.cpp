@@ -48,8 +48,6 @@ private:
 	cx::basic_buffer<uint8_t> _buf;
 };
 
-
-
 TEST(cx_io_socket, basic_udp) {
 	cx::io::engine e;
 
@@ -82,7 +80,7 @@ TEST(cx_io_socket, basic_udp) {
 	udp_client.close();
 }
 
-extern void gprintf(const char* fmt, ...);
+
 
 TEST(cx_io_socket, basic_async_udp) {
 	cx::io::engine e;
@@ -105,7 +103,6 @@ TEST(cx_io_socket, basic_async_udp) {
 		client_addr ,
 		[&](const std::error_code& ec, int sz, const cx::io::ip::udp::address&  )
 	{
-		gprintf("Called");
 		ecode = ec;
 		iosize = sz;
 	});

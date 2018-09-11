@@ -14,6 +14,7 @@
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/ip/services/basic_service.hpp>
 #include <cx/io/ops/basic_io_operation.hpp>
+#include <cx/io/ops/basic_connect_operation.hpp>
 #include <cx/io/ops/basic_read_operation.hpp>
 #include <cx/io/ops/basic_write_operation.hpp>
 #include <cx/io/ops/handler_operation.hpp>
@@ -33,6 +34,8 @@ namespace cx::io::ip {
 
 		using read_operation = cx::io::basic_read_operation<this_type, cx::io::basic_io_operation<this_type>>;
 		using write_operation = cx::io::basic_write_operation<this_type, cx::io::basic_io_operation<this_type>>;
+		template <typename HandlerType>
+		using connect_operation = cx::io::ip::basic_connect_operation<HandlerType, this_type, operation_type>;
 
 		template <typename HandlerType>
 		static void read(
@@ -116,6 +119,59 @@ namespace cx::io::ip {
 				0,
 				ec);
 			op->set(ec, ret);
+			return true;
+		}
+
+		template <typename HandlerType>
+		static void connect(
+			const descriptor_type& descriptor,
+			const address_type& addr,
+			HandlerType&& handler)
+		{
+			connect_operation<HandlerType>* op = new connect_operation<HandlerType>(addr,
+				std::forward<HandlerType>(handler));
+			if (!mux_type::good(descriptor)) {
+				auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
+				op->set(std::make_error_code(std::errc::invalid_argument), 0);
+				ops.add_tail(op);
+				descriptor->engine.post(std::move(ops));
+				return;
+			}
+
+			std::error_code ec;
+			if (basic_service_type::connect(descriptor,
+				op->address().sockaddr(),
+				op->address().length(),
+				ec))
+			{
+				bool request = descriptor->context[1].ops.empty();
+				descriptor->context[1].ops.add_tail(op);
+				if (request) {
+					int ops = cx::io::pollout | (descriptor->context[0].ops.empty() ? 0 : cx::io::pollin);
+					if (!descriptor->engine.multiplexer().bind(descriptor, ops)) {
+						descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
+					}
+				}
+				return;
+			}
+			auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
+			op->set(std::make_error_code(std::errc::invalid_argument), 0);
+			ops.add_tail(op);
+			descriptor->engine.post(std::move(ops));
+		}
+
+		template <typename HandlerType>
+		static void connect_request(
+			const descriptor_type& descriptor,
+			connect_operation<HandlerType>* op)
+		{	
+		}
+
+		template <typename HandlerType>
+		static bool connect_complete(
+			const descriptor_type& descriptor,
+			connect_operation<HandlerType>* op)
+		{
 			return true;
 		}
     };

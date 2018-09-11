@@ -9,15 +9,7 @@
 #include <cx/io/ip/basic_address.hpp>
 #include <cstdarg>
 
-void gprintf(const char* fmt, ...) {
-	printf("[   USER   ] ");
-	va_list args;
-	va_start(args, fmt);
-	vprintf(fmt, args);
-	va_end(args);
-	printf("\n");
-}
-
+#include "gprintf.hpp"
 
 namespace tcp {
 	using address = cx::io::ip::basic_address<SOCK_STREAM, IPPROTO_TCP>;

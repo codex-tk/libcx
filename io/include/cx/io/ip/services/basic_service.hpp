@@ -216,6 +216,10 @@ namespace cx::io::ip {
 			int ops, 
 			const std::chrono::milliseconds& ms,
 			std::error_code& ec) {
+			if (!mux_type::good(descriptor)) {
+				ec = std::make_error_code(std::errc::invalid_argument);
+				return false;
+			}
 #if defined(CX_PLATFORM_WIN32)
 			WSAPOLLFD pollfd = { 0 };
 			pollfd.fd = mux_type::socket_handle(descriptor);
@@ -247,6 +251,39 @@ namespace cx::io::ip {
 			return pfd.revents;
 #endif
 		}
+
+		static bool local_address(const descriptor_type& descriptor, 
+			struct sockaddr* addr,
+			socklen_t* addr_sz_ptr,
+			std::error_code& ec) 
+		{
+			if (!mux_type::good(descriptor)) {
+				ec = std::make_error_code(std::errc::invalid_argument);
+				return false;
+			}
+			if (::getsockname(mux_type::socket_handle(descriptor), addr, addr_sz_ptr) == -1) {
+				ec = cx::system_error();
+				return false;
+			}
+			return true;
+		}
+
+		static bool remote_address(const descriptor_type& descriptor,
+			struct sockaddr* addr,
+			socklen_t* addr_sz_ptr,
+			std::error_code& ec)
+		{
+			if (!mux_type::good(descriptor)) {
+				ec = std::make_error_code(std::errc::invalid_argument);
+				return false;
+			}
+			if (::getpeername(mux_type::socket_handle(descriptor), addr, addr_sz_ptr) == -1) {
+				ec = cx::system_error();
+				return false;
+			}
+			return true;
+		}
+
 	};
 }
 

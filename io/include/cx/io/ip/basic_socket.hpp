@@ -162,6 +162,24 @@ namespace cx::io::ip {
 		bool connect(const address_type& addr, std::error_code& ec) {
 			return basic_service_type::connect(_descriptor, addr.sockaddr(), addr.length(), ec);
 		}
+		template <typename HandlerType>
+		void async_connect(const address_type& addr, HandlerType&& handler) {
+			service_type::connect(_descriptor, addr, std::forward<HandlerType>(handler));
+		}
+
+		address_type local_address(void) {
+			address_type addr;
+			std::error_code ec;
+			basic_service_type::local_address(_descriptor, addr.sockaddr(), addr.length_ptr(), ec);
+			return addr;
+		}
+
+		address_type remote_address(void) {
+			address_type addr;
+			std::error_code ec;
+			basic_service_type::remote_address(_descriptor, addr.sockaddr(), addr.length_ptr(), ec);
+			return addr;
+		}
 	private:
 		descriptor_type _descriptor;
 	};
