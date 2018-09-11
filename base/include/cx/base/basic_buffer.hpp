@@ -27,24 +27,24 @@ namespace cx::internal{
 	 *
 	 * @tparam AllocatorType
 	 */
-	template < typename T, typename AllocatorType >
+	template < typename T, typename AllocatorType, typename IntType >
 	class block {
 	public:
 		using value_type = T;
-
-		block(const int32_t size)
+		using int_type = IntType;
+		block(const int_type size)
 			: _ref_count(1), _size(size) {}
 
 		value_type* base(void) const noexcept { 
 			return const_cast<value_type*>(
 				reinterpret_cast<const value_type*>(this + 1)); 
 		}
-		int32_t size(void) const noexcept { return _size; }
+		int_type size(void) const noexcept { return _size; }
 
-		int32_t use_count(void) const noexcept { return _ref_count.load(); }
-		int32_t add_ref(void) noexcept { return _ref_count.fetch_add(1); }
-		int32_t release(void) {
-			int32_t cnt = _ref_count.fetch_sub(1);
+		int use_count(void) const noexcept { return _ref_count.load(); }
+		int add_ref(void) noexcept { return _ref_count.fetch_add(1); }
+		int release(void) {
+			int cnt = _ref_count.fetch_sub(1);
 			assert(cnt > 0);
 			if (cnt == 1) {
 				AllocatorType::free(this);
@@ -52,8 +52,8 @@ namespace cx::internal{
 			return cnt;
 		}
 	private:
-		std::atomic<int32_t> _ref_count;
-		int32_t _size;
+		std::atomic<int> _ref_count;
+		int_type _size;
 	};
 }
 
@@ -64,15 +64,16 @@ namespace cx {
 	 * @tparam T
 	 * @tparam AllocatorType
 	 */
-	template < typename T, typename AllocatorType = internal::basic_buffer_allocator >
+	template < typename T, typename AllocatorType = internal::basic_buffer_allocator, typename IntType = std::int32_t>
 	class basic_buffer {
 	public:
 		using value_type = T;
-		using block_type = internal::block<value_type, AllocatorType>;
+		using int_type = IntType;
+		using block_type = internal::block<value_type, AllocatorType, int_type>;
 		basic_buffer(void) noexcept
 			:_block(nullptr), _rd_pos(0), _wr_pos(0) {}
 
-		basic_buffer(const std::size_t sz)
+		basic_buffer(const int_type sz)
 			: basic_buffer()
 		{
 			_block = reinterpret_cast<block_type*>(
@@ -118,33 +119,33 @@ namespace cx {
 
 		value_type* base(void) { return _block ? _block->base() : nullptr; }
 
-		int size(void) { return _block ? _block->size() : 0; }
+		int_type size(void) { return _block ? _block->size() : 0; }
 
 		value_type* rdptr(void) const { return _block ? _block->base() + _rd_pos : nullptr; }
 
-		int rdptr(int n) {
-			int offset = (n >= 0 ?
+		int_type rdptr(int_type n) {
+			int_type offset = (n >= 0 ?
 				std::min(n, rdsize())
 				: std::max(n, _rd_pos * -1));
 			_rd_pos += offset;
 			return offset;
 		}
 
-		int rdsize(void) const { return _wr_pos - _rd_pos; }
+		int_type rdsize(void) const { return _wr_pos - _rd_pos; }
 
 		value_type* wrptr(void) { return _block ? _block->base() + _wr_pos : nullptr; }
 
-		int wrptr(int n) {
-			int offset = (n >= 0 ?
+		int_type wrptr(int_type n) {
+			int_type offset = (n >= 0 ?
 				std::min(n, wrsize())
 				: std::max(n, rdsize() * -1));
 			_wr_pos += offset;
 			return offset;
 		}
 
-		int wrsize(void) { return size() - _wr_pos; }
+		int_type wrsize(void) { return size() - _wr_pos; }
 
-		void reserve(const int sz) {
+		void reserve(const int_type sz) {
 			if (sz < 0)
 				return;
 
@@ -174,44 +175,44 @@ namespace cx {
 			_rd_pos = _wr_pos = 0;
 		}
 
-		value_type* prepare(const int sz) {
+		value_type* prepare(const int_type sz) {
 			reserve(sz);
 			return wrptr();
 		}
 
-		void commit(const int sz) {
+		void commit(const int_type sz) {
 			wrptr(sz);
 		}
 
-		void consume(const int sz) {
+		void consume(const int_type sz) {
 			rdptr(sz);
 			if (rdsize() == 0) {
 				_rd_pos = _wr_pos = 0;
 			}
 		}
 
-		int write(const void* ptr, const std::size_t sz) {
+		int write(const void* ptr, const int_type sz) {
 			memcpy(prepare(sz), ptr, sz);
 			commit(sz);
 			return sz;
 		}
 	private:
 		block_type* _block;
-		int _rd_pos;
-		int _wr_pos;
+		int_type _rd_pos;
+		int_type _wr_pos;
 	};
 
-	template < typename T, typename AllocatorType >
-	basic_buffer<T, AllocatorType> deepcopy(basic_buffer<T, AllocatorType>& rhs) {
-		basic_buffer<T, AllocatorType> nb(rhs.rdsize());
+	template < typename T, typename AllocatorType, typename IntType >
+	basic_buffer<T, AllocatorType, IntType> deepcopy(basic_buffer<T, AllocatorType, IntType>& rhs) {
+		basic_buffer<T, AllocatorType, IntType> nb(rhs.rdsize());
 		memcpy(nb.wrptr(), rhs.rdptr(), rhs.rdsize());
 		nb.wrptr(rhs.rdsize());
 		return nb;
 	}
 
-	template < typename T, typename AllocatorType >
-	basic_buffer<T, AllocatorType>& operator<<(basic_buffer<T, AllocatorType>& buf, const char* msg) {
-		auto len = strlen(msg) + 1;
+	template < typename T, typename AllocatorType, typename IntType >
+	basic_buffer<T, AllocatorType, IntType>& operator<<(basic_buffer<T, AllocatorType, IntType>& buf, const char* msg) {
+		IntType len = static_cast<IntType>(strlen(msg) + 1);
 		buf.reserve(len);
 		buf.write(msg, len);
 		return buf;

@@ -1,6 +1,6 @@
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @file buffer.hpp
  * @author ghtak
  * @date 2018-09-09
@@ -13,11 +13,13 @@
 
 namespace cx::io {
 
-	class buffer 
+	class buffer
 #if defined(CX_PLATFORM_WIN32)
-		: public WSABUF {
+		: public WSABUF{
+		using size_type = decltype(len);
 #else
 		: public iovec{
+		using size_type = decltype(iov_len);
 #endif
 	public:
 		buffer(void) noexcept {
@@ -25,17 +27,17 @@ namespace cx::io {
 			this->length(0);
 		}
 
-		buffer(void* ptr, std::size_t len) {
+		buffer(void* ptr, size_type len) {
 			this->base(ptr);
 			this->length(len);
 		}
 
 		buffer(const std::string_view& msg) {
 			this->base(const_cast<char*>(msg.data()));
-			this->length(msg.size());
+			this->length(static_cast<size_type>(msg.size()));
 		}
 
-		void reset(void* ptr , const std::size_t sz) {
+		void reset(void* ptr , const size_type sz) {
 			base(ptr);
 			length(sz);
 		}
@@ -43,17 +45,17 @@ namespace cx::io {
 #if defined(CX_PLATFORM_WIN32)
 		void* base(void) const { return buf; }
 
-		std::size_t length(void) const { return len; }
+		size_type length(void) const { return len; }
 
 		void* base(void* new_ptr) {
 			void* old = buf;
-			buf = static_cast< decltype(buf) >(new_ptr);
+			buf = static_cast<decltype(buf)>(new_ptr);
 			return old;
 		}
 
-		std::size_t length(const std::size_t new_size) {
-			std::size_t old = len;
-			len = static_cast< decltype(len) >(new_size);
+		size_type length(const size_type new_size) {
+			size_type old = len;
+			len = static_cast<size_type>(new_size);
 			return old;
 		}
 
@@ -63,17 +65,17 @@ namespace cx::io {
 #else
 		void* base(void) const { return iov_base;; }
 
-		std::size_t length(void) const { return iov_len; }
+		size_type length(void) const { return iov_len; }
 
 		void* base(void* new_ptr) {
 			void* old = iov_base;
-			iov_base = static_cast< decltype(iov_base) >(new_ptr);
+			iov_base = static_cast<decltype(iov_base)>(new_ptr);
 			return old;
 		}
 
-		std::size_t length(const std::size_t new_size) {
-			std::size_t old = iov_len;
-			iov_len = static_cast< decltype(iov_len) >(new_size);
+		size_type length(const size_type new_size) {
+			size_type old = iov_len;
+			iov_len = static_cast<size_type>(new_size);
 			return old;
 		}
 

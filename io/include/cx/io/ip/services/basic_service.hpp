@@ -106,7 +106,7 @@ namespace cx::io::ip {
 			return true;
 		}
 
-		static int send(const descriptor_type& descriptor, void* buf, size_t sz, int flags, std::error_code& ec) {
+		static int send(const descriptor_type& descriptor, void* buf, int sz, int flags, std::error_code& ec) {
 			if (!mux_type::good(descriptor)) {
 				ec = std::make_error_code(std::errc::invalid_argument);
 				return -1;
@@ -119,7 +119,7 @@ namespace cx::io::ip {
 			return ret;
 		}
 
-		static int recv(const descriptor_type& descriptor, void* buf, size_t sz, int flags, std::error_code& ec) {
+		static int recv(const descriptor_type& descriptor, void* buf, int sz, int flags, std::error_code& ec) {
 			if (!mux_type::good(descriptor)) {
 				ec = std::make_error_code(std::errc::invalid_argument);
 				return -1;
@@ -134,7 +134,7 @@ namespace cx::io::ip {
 
 		static int sendto(const descriptor_type& descriptor,
 			void* buf,
-			size_t sz,
+			int sz,
 			int flags,
 			const struct sockaddr* addr,
 			socklen_t addr_sz,
@@ -155,7 +155,7 @@ namespace cx::io::ip {
 
 		static int recvfrom(const descriptor_type& descriptor,
 			void* buf,
-			size_t sz,
+			int sz,
 			int flags,
 			struct sockaddr* addr,
 			socklen_t* addr_sz_ptr,

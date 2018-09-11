@@ -128,7 +128,7 @@ namespace cx::io::ip {
 			_family_name family_name;
 			int len = snprintf(buf, MAX_PATH, "%s ", family_name(_address.family));
 			if (this->inet_ntop(buf + len, MAX_PATH - len)) {
-				len = strlen(buf);
+				len = static_cast<int>(strlen(buf));
 				snprintf(buf + len, MAX_PATH - len, " (%d)", port());
 				return std::string(buf);
 			}
@@ -174,7 +174,7 @@ namespace cx::io::ip {
 			hints.ai_family = family;
 			hints.ai_socktype = SOCK_STREAM;
 
-			constexpr std::size_t max_string = 16;
+			constexpr int max_string = 16;
 
 			char port_str[max_string] = { 0 , };
 			snprintf(port_str, max_string, "%d", port);
