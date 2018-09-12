@@ -1,12 +1,12 @@
 /**
  * @brief 
  * 
- * @file basic_connect_operation.hpp
+ * @file basic_accept_operation.hpp
  * @author ghtak
- * @date 2018-09-11
+ * @date 2018-09-13
  */
-#ifndef __cx_io_ip_basic_connect_operation_h__
-#define __cx_io_ip_basic_connect_operation_h__
+#ifndef __cx_io_ip_basic_accept_operation_h__
+#define __cx_io_ip_basic_accept_operation_h__
 
 #include <cx/base/defines.hpp>
 
@@ -18,24 +18,25 @@ namespace cx::io::ip {
 	 * @tparam ServiceType 
 	 */
 	template <typename HandlerType, typename ServiceType, typename BaseOperation>
-	class basic_connect_operation : public BaseOperation {
+	class basic_accept_operation : public BaseOperation {
 	public:
+		/*
 		using base_type = BaseOperation;
 		using service_type = ServiceType;
 		using descriptor_type = typename service_type::descriptor_type;
 		using address_type = typename service_type::address_type;
 
-		basic_connect_operation(const address_type& addr, HandlerType&& handler)
+		basic_accept_operation(const address_type& addr, HandlerType&& handler)
 			: _address(addr), _handler(std::forward<HandlerType>(handler)) {}
 
-		virtual ~basic_connect_operation(void) {}
+		virtual ~basic_accept_operation(void) {}
 
 		virtual bool complete(const descriptor_type& descriptor) override {
-			return service_type::connect_complete(descriptor, this);
+			return service_type::accept_complete(descriptor, this);
 		}
 
 		virtual void request(const descriptor_type& descriptor) override {
-			return service_type::connect_request(descriptor, this);
+			return service_type::accept_request(descriptor, this);
 		}
         
 		address_type& address(void) { return _address; }
@@ -49,7 +50,7 @@ namespace cx::io::ip {
 		}
 	private:
         address_type _address;
-		HandlerType _handler;
+		HandlerType _handler;*/
 	};
 
 }

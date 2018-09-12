@@ -162,6 +162,7 @@ namespace cx::io::ip {
 		bool connect(const address_type& addr, std::error_code& ec) {
 			return basic_service_type::connect(_descriptor, addr.sockaddr(), addr.length(), ec);
 		}
+
 		template <typename HandlerType>
 		void async_connect(const address_type& addr, HandlerType&& handler) {
 			service_type::connect(_descriptor, addr, std::forward<HandlerType>(handler));
