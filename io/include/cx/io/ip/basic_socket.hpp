@@ -15,7 +15,7 @@
 
 namespace cx::io::ip {
 
-	template < typename EngineType, typename ServiceType> class basic_socket {
+	template <typename EngineType, typename ServiceType> class basic_socket {
 	public:
 		using engine_type = EngineType;
 		using service_type = ServiceType;
@@ -43,11 +43,21 @@ namespace cx::io::ip {
 		bool open(const address_type& addr,
 			std::error_code& ec)
 		{
-			return basic_service_type::open(_descriptor, addr, ec);
+			if (basic_service_type::open(_descriptor, addr, ec)) {
+				if (_descriptor->engine.multiplexer().bind(_descriptor, ec)) {
+					return true;
+				}
+			}
+			close();
+			return false;
 		}
 
 		void close(void) {
+			_descriptor->engine.multiplexer().unbind(_descriptor);
 			basic_service_type::close(_descriptor);
+			auto ops = mux_type::drain_ops(_descriptor, std::error_code());
+			if (!ops.empty())
+				_descriptor->engine.post(std::move(ops));
 		}
 
 		bool good(void) {
@@ -73,13 +83,13 @@ namespace cx::io::ip {
 			return basic_service_type::bind(_descriptor, addr, ec);
 		}
 
-		template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int sendto(const buffer_type& buf, const address_type& addr) {
 			std::error_code ec;
 			return sendto(buf, addr, ec);
 		}
 
-		template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int sendto(const buffer_type& buf, const address_type& addr, std::error_code& ec) {
 			return basic_service_type::sendto(_descriptor, 
 				buf.base(), buf.length(), 0,
@@ -87,13 +97,13 @@ namespace cx::io::ip {
 				ec);
 		}
 
-		template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int recvfrom(const buffer_type& buf, address_type& addr) {
 			std::error_code ec;
 			return recvfrom(buf, addr, ec);
 		}
 
-		template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int recvfrom(const buffer_type& buf, address_type& addr, std::error_code& ec) {
 			return basic_service_type::recvfrom(_descriptor,
 				buf.base(), buf.length(), 0,
@@ -101,46 +111,50 @@ namespace cx::io::ip {
 				ec);
 		}
 
-		template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> > 
 		int send(const buffer_type& buf) {
 			std::error_code ec;
 			return send(buf, ec);
 		}
 
-		template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		int send(const buffer_type& buf, std::error_code& ec) {
 			return basic_service_type::send(_descriptor,
 				buf.base(), buf.length(), 0, ec);
 		}
 
-		template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		int recv(buffer_type& buf) {
 			std::error_code ec;
 			return recv(buf, ec);
 		}
 
-		template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		int recv(buffer_type& buf, std::error_code& ec) {
 			return basic_service_type::recv(_descriptor,
 				buf.base(), buf.length(), 0, ec);
 		}
 
-		template <typename HandlerType, typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		//template <typename HandlerType, typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		template <typename HandlerType>
 		void async_send(const buffer_type& buf, const address_type& addr, HandlerType&& handler) {
 			service_type::write(_descriptor, buf, addr, std::forward<HandlerType>(handler));
 		}
 
-		template <typename HandlerType, typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		//template <typename HandlerType, typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
+		template <typename HandlerType>
 		void async_recv(buffer_type& buf, address_type& addr, HandlerType&& handler) {
 			service_type::read(_descriptor, buf, addr, std::forward<HandlerType>(handler));
 		}
 
-		template <typename HandlerType, typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
-		void async_send(buffer_type& buf, HandlerType&& handler) {
+		//template <typename HandlerType, typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		template <typename HandlerType>
+		void async_send(const buffer_type& buf, HandlerType&& handler) {
 			service_type::write(_descriptor, buf, std::forward<HandlerType>(handler));
 		}
 
-		template <typename HandlerType, typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		//template <typename HandlerType, typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
+		template <typename HandlerType>
 		void async_recv(buffer_type& buf, HandlerType&& handler) {
 			service_type::read(_descriptor, buf, std::forward<HandlerType>(handler));
 		}

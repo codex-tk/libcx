@@ -32,10 +32,6 @@ namespace cx::io {
 		virtual bool complete(const descriptor_type& descriptor) override {
 			return ServiceType::write_complete(descriptor, this);
 		}
-
-		virtual void request(const descriptor_type& descriptor) override {
-			return service_type::write_request(descriptor, this);
-		}
 	private:
 
 	};

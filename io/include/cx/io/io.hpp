@@ -50,6 +50,9 @@ namespace cx::io {
 	enum type {
 		pollin = 0x01,
 		pollout = 0x04,
+#if defined(CX_PLATFORM_WIN32)
+		pollop = 0x1000,
+#endif
 	};
 }
 

@@ -40,19 +40,14 @@ namespace cx::io::mux {
 			private cx::noncopyable,
 			public std::enable_shared_from_this<descriptor>
 		{
-			struct OVERLAPPEDEX : OVERLAPPED { int type; };
 			union {
 				socket_type s;
 				HANDLE h;
 			} fd;
-			struct {
-				cx::slist<operation_type> ops;
-				OVERLAPPEDEX overlapped;
-			} context[2];
 			basic_engine<this_type>& engine;
 			descriptor(basic_engine<this_type>& e);
 		};
-		
+
 		static const socket_type invalid_socket = INVALID_SOCKET;
 
 		static socket_type socket_handle(const completion_port::descriptor_type& descriptor);

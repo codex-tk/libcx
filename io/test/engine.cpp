@@ -29,9 +29,6 @@ namespace cx::testing {
 			return true;
 		}
 
-		virtual void request(const engine::descriptor_type&) override {
-		}
-
 		virtual void operator()(void) override {
 			_handler();
 			delete this;

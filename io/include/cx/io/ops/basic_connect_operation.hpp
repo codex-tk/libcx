@@ -33,10 +33,6 @@ namespace cx::io::ip {
 		virtual bool complete(const descriptor_type& descriptor) override {
 			return service_type::connect_complete(descriptor, this);
 		}
-
-		virtual void request(const descriptor_type& descriptor) override {
-			return service_type::connect_request(descriptor, this);
-		}
         
 		address_type& address(void) { return _address; }
 

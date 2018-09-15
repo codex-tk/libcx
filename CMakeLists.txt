@@ -49,12 +49,9 @@ if(Boost_FOUND)
 endif()
 
 add_subdirectory( googletest )
-add_subdirectory( cx )
-add_subdirectory( tests )
-add_subdirectory( apps/echo )
-add_subdirectory( apps/ping )
 
 add_subdirectory(base)
 add_subdirectory(base/test)
 add_subdirectory(io)
 add_subdirectory(io/test)
+add_subdirectory(io/sample/echo)

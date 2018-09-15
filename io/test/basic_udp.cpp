@@ -97,7 +97,6 @@ TEST(cx_io_socket, basic_async_udp) {
 
 	ASSERT_TRUE(server.open());
 	ASSERT_TRUE(udp_client.open(client_addr));
-	ASSERT_TRUE(e.multiplexer().bind(udp_client.descriptor()));
 
 	udp_client.async_send(buffer_type(client_buf.rdptr(), client_buf.rdsize()),
 		client_addr ,

@@ -11,32 +11,7 @@
 
 template < typename MuxT >
 struct event_handler;
-#if defined( CX_PLATFORM_WIN32 )
-#include <cx/io/mux/completion_port.hpp>
-
-using mux = cx::io::mux::completion_port;
-
-template <>
-struct event_handler<cx::io::mux::completion_port> {
-	void operator()(cx::io::mux::completion_port::descriptor_type& descriptor, int revt) {
-		int ctx_idx = revt >> 2;
-		if (ctx_idx >= 0 && ctx_idx <= 1) {
-			cx::io::mux::completion_port::operation_type* op = descriptor->context[ctx_idx].ops.head();
-			if (op) {
-				op->set(std::error_code(), 0);
-				if (op->complete(descriptor)) {
-					descriptor->context[ctx_idx].ops.remove_head();
-					(*op)();
-					if (descriptor->context[ctx_idx].ops.head()) {
-						descriptor->context[ctx_idx].ops.head()->request(descriptor);
-					}
-				}
-			}
-		}
-	}
-};
-
-#elif defined( CX_PLATFORM_LINUX )
+#if defined( CX_PLATFORM_LINUX )
 
 #include <cx/io/mux/epoll.hpp>
 
@@ -58,7 +33,7 @@ struct event_handler<cx::io::mux::epoll> {
 	}
 };
 
-#endif
+
 
 namespace cx::testing {
 	namespace {
@@ -69,9 +44,6 @@ namespace cx::testing {
 		public:
 			virtual bool complete(const mux::descriptor_type&) override {
 				return true;
-			}
-
-			virtual void request(const descriptor_type&) override {
 			}
 
 			virtual void operator()(void) override {
@@ -85,16 +57,12 @@ namespace cx::testing {
 				return true;
 			}
 
-			virtual void request(const descriptor_type&) override {
-			}
-
 			virtual void operator()(void) override {
 				++out_op_called;
 			}
 		};
 	}
 }
-
 
 
 TEST(cx_io, descriptor) {
@@ -141,3 +109,5 @@ TEST(cx_io, descriptor) {
 	ASSERT_EQ(cx::testing::in_op_called, 3);
 	ASSERT_EQ(cx::testing::out_op_called, 3);
 }
+
+#endif

@@ -15,6 +15,8 @@
 #include <cx/io/ip/services/win32_overlapped_dgram_service.hpp>
 #include <cx/io/ip/services/win32_overlapped_stream_service.hpp>
 
+#include <cx/io/ip/basic_acceptor.hpp>
+
 namespace cx::io{
 #if defined(CX_PLATFORM_WIN32)
 	using engine = cx::io::basic_engine<cx::io::mux::completion_port>;
@@ -23,27 +25,37 @@ namespace cx::io{
 #endif
 }
 
-namespace cx::io::ip::udp {
+namespace cx::io::ip{
+	namespace udp {
 #if defined(CX_PLATFORM_WIN32)
-	using service = cx::io::ip::win32_overlapped_dgram_service<engine>;
-#elif defined(CX_PLATFORM_LINUX)
-	using service = cx::io::ip::basic_dgram_service<engine>;
-#endif
-	using socket = cx::io::ip::basic_socket<cx::io::engine, service>;
-	using address = typename service::address_type;
-}
+		using service = cx::io::ip::win32_overlapped_dgram_service<engine>;
 
-namespace cx::io::ip::tcp {
-#if defined(CX_PLATFORM_WIN32)
-	using service = cx::io::ip::win32_overlapped_stream_service<engine>;
 #elif defined(CX_PLATFORM_LINUX)
-	using service = cx::io::ip::basic_stream_service<engine>;
+		using service = cx::io::ip::basic_dgram_service<engine>;
 #endif
-	using socket = cx::io::ip::basic_socket<cx::io::engine, service>;
-	using address = typename service::address_type;
-}
-
-namespace cx::io::ip {
+	}
 	template <> struct is_dgram_available<cx::io::ip::udp::service> : std::true_type {};
+	
+	namespace udp {
+		using socket = cx::io::ip::basic_socket<cx::io::engine, cx::io::ip::udp::service>;
+		using address = typename service::address_type;
+	}
+}
+
+namespace cx::io::ip{
+	namespace tcp {
+#if defined(CX_PLATFORM_WIN32)
+		using service = cx::io::ip::win32_overlapped_stream_service<engine>;
+#elif defined(CX_PLATFORM_LINUX)
+		using service = cx::io::ip::basic_stream_service<engine>;
+#endif
+	}
+
 	template <> struct is_stream_available<cx::io::ip::tcp::service> : std::true_type {};
+
+	namespace tcp {
+		using socket = cx::io::ip::basic_socket<cx::io::engine, cx::io::ip::tcp::service>;
+		using address = typename service::address_type;
+		using acceptor = cx::io::ip::basic_acceptor<cx::io::engine, cx::io::ip::tcp::service>;
+	}
 }

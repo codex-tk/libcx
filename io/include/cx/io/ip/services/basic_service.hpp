@@ -19,6 +19,7 @@ namespace cx::io::ip {
 		using engine_type = EngineType;
 		using mux_type = typename engine_type::mux_type;
 		using descriptor_type = typename mux_type::descriptor_type;
+		using socket_type = typename mux_type::socket_type;
 
 		template < int Type, int Proto >
 		static bool open(const descriptor_type& descriptor,
@@ -31,13 +32,13 @@ namespace cx::io::ip {
 			}
 			close(descriptor);
 #if defined(CX_PLATFORM_WIN32)
-			typename mux_type::socket_type fd = ::WSASocketW(addr.family(),
+			socket_type fd = ::WSASocketW(addr.family(),
 				addr.type(),
 				addr.proto(),
 				nullptr, 0,
 				WSA_FLAG_OVERLAPPED);
 #else
-			typename mux_type::socket_type fd = ::socket(addr.family(),
+			socket_type fd = ::socket(addr.family(),
 				addr.type(),
 				addr.proto());
 #endif		 
@@ -60,9 +61,6 @@ namespace cx::io::ip {
 				::close(mux_type::socket_handle(descriptor, mux_type::invalid_socket));
 #endif
 			}
-			auto ops = mux_type::drain_ops(descriptor, std::error_code());
-			if(!ops.empty())
-				descriptor->engine.post(std::move(ops));
 		};
 
 		template < int Type, int Proto >
@@ -81,7 +79,7 @@ namespace cx::io::ip {
 			return true;
 		}
 
-		bool listen(const descriptor_type& descriptor, int backlog, std::error_code& ec) {
+		static bool listen(const descriptor_type& descriptor, int backlog, std::error_code& ec) {
 			if (!mux_type::good(descriptor)) {
 				ec = std::make_error_code(std::errc::invalid_argument);
 				return false;
@@ -196,14 +194,20 @@ namespace cx::io::ip {
 		static bool accept(const descriptor_type& descriptor,
 			const descriptor_type& accepted,
 			struct sockaddr* addr,
-			socklen_t addr_sz,
+			socklen_t* addr_sz,
 			std::error_code& ec)
 		{
 			if (!mux_type::good(descriptor) || addr == nullptr || addr_sz == 0) {
 				ec = std::make_error_code(std::errc::invalid_argument);
 				return false;
 			}
-			typename mux_type::socket_type fd = ::accept(mux_type::socket_handle(descriptor), addr, addr_sz);
+
+			if (mux_type::good(accepted)) {
+				ec = std::make_error_code(std::errc::invalid_argument);
+				return false;
+			}
+
+			socket_type fd = ::accept(mux_type::socket_handle(descriptor), addr, addr_sz);
 			if (fd == mux_type::invalid_socket) {
 				ec = cx::system_error();
 				return false;

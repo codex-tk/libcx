@@ -15,6 +15,7 @@
 #include <cx/io/ip/services/basic_service.hpp>
 #include <cx/io/ops/basic_io_operation.hpp>
 #include <cx/io/ops/basic_connect_operation.hpp>
+#include <cx/io/ops/basic_accept_operation.hpp>
 #include <cx/io/ops/basic_read_operation.hpp>
 #include <cx/io/ops/basic_write_operation.hpp>
 #include <cx/io/ops/handler_operation.hpp>
@@ -36,6 +37,9 @@ namespace cx::io::ip {
 		using write_operation = cx::io::basic_write_operation<this_type, cx::io::basic_io_operation<this_type>>;
 		template <typename HandlerType>
 		using connect_operation = cx::io::ip::basic_connect_operation<HandlerType, this_type, operation_type>;
+
+		template <typename HandlerType>
+		using accept_operation = cx::io::ip::basic_accept_operation<HandlerType, this_type, operation_type>;
 
 		template <typename HandlerType>
 		static void read(
@@ -172,6 +176,55 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			connect_operation<HandlerType>* op)
 		{
+			return true;
+		}
+
+		template <typename HandlerType>
+		static void accept(
+			const descriptor_type& descriptor,
+			const descriptor_type& accepted,
+			HandlerType&& handler)
+		{
+			accept_operation<HandlerType>* op = new accept_operation<HandlerType>(accepted,
+				std::forward<HandlerType>(handler));
+			if (!mux_type::good(descriptor)) {
+				auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
+				op->set(std::make_error_code(std::errc::invalid_argument), 0);
+				ops.add_tail(op);
+				descriptor->engine.post(std::move(ops));
+				return;
+			}
+			bool request = descriptor->context[0].ops.empty();
+			descriptor->context[0].ops.add_tail(op);
+			if (request) {
+				int ops = cx::io::pollin | (descriptor->context[1].ops.empty() ? 0 : cx::io::pollout);
+				if (!descriptor->engine.multiplexer().bind(descriptor, ops)) {
+					descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
+				}
+			}
+		}
+
+		template <typename HandlerType>
+		static void accept_request(
+			const descriptor_type& descriptor,
+			accept_operation<HandlerType>* op)
+		{
+			CX_UNUSED(descriptor);
+			CX_UNUSED(op);
+		}
+
+		template <typename HandlerType>
+		static bool accept_complete(
+			const descriptor_type& descriptor,
+			accept_operation<HandlerType>* op)
+		{
+			std::error_code ec;
+			int ret = basic_service_type::accept(descriptor,
+				op->accepted(),
+				op->address().sockaddr(),
+				op->address().length_ptr(),
+				ec);
+			op->set(ec, ret);
 			return true;
 		}
     };

@@ -21,8 +21,6 @@ TEST(cx_io_socket, basic_tcp) {
 	ASSERT_TRUE(fd.open(addresses[0]));
 	ASSERT_TRUE(fd.good());
 
-	ASSERT_TRUE(e.multiplexer().bind(fd.descriptor()));
-
 	ASSERT_TRUE(fd.connect(addresses[0]));
 
 	buffer_type buf(get);
@@ -43,8 +41,6 @@ TEST(cx_io_socket, basic_async_tcp) {
 	ASSERT_FALSE(addresses.empty());
 	ASSERT_TRUE(fd.open(addresses[0]));
 	ASSERT_TRUE(fd.good());
-
-	ASSERT_TRUE(e.multiplexer().bind(fd.descriptor()));
 
 	ASSERT_TRUE(fd.connect(addresses[0]));
 
@@ -83,8 +79,6 @@ TEST(cx_io_socket, basic_async_tcp_with_connect) {
 	ASSERT_TRUE(fd.open(addresses[0]));
 	ASSERT_TRUE(fd.set_option(cx::io::ip::option::non_blocking()));
 	ASSERT_TRUE(fd.good());
-	ASSERT_TRUE(e.multiplexer().bind(fd.descriptor()));
-
 	fd.async_connect(addresses[0], [&](const std::error_code& ec, const cx::io::ip::tcp::address& addr) {
 
 	});
@@ -115,4 +109,17 @@ TEST(cx_io_socket, basic_async_tcp_with_connect) {
 
 	ASSERT_EQ(e.run(std::chrono::milliseconds(1000)), 1);
 	fd.close();
+}
+
+TEST(cx_io_acceptor, basic_accept) {
+	cx::io::engine e;
+	cx::io::ip::tcp::acceptor acceptor(e);
+
+	std::error_code ec;
+
+	ASSERT_TRUE(acceptor.open(cx::io::ip::tcp::address::any(7543, AF_INET), ec));
+
+	ASSERT_FALSE(acceptor.poll(std::chrono::milliseconds(1000)));
+
+	acceptor.close();
 }
