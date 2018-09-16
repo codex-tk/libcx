@@ -13,6 +13,7 @@ public:
 		_fd.async_recv(rb,
 			[&, pthis](const std::error_code& ec, int size) 
 		{
+			std::cout << "async_recv" << std::endl;
 			if (ec || size <= 0) {
 				std::cout << "close" << std::endl;
 				pthis->socket().close();
@@ -23,6 +24,7 @@ public:
 			auto wb = cx::io::buffer(wrbuf.rdptr(), wrbuf.rdsize());
 			_fd.async_send(wb,
 				[&, pthis, wrbuf](const std::error_code& , int) {
+				std::cout << "async_send" << std::endl;
 			});
 			_read_buffer.clear();
 			do_read();

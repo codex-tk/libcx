@@ -23,9 +23,9 @@ struct event_handler<cx::io::mux::epoll> {
 		int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 		for (int i = 0; i < 2; ++i) {
 			if (ops_filter[i] & revt) {
-				cx::io::mux::epoll::operation_type* op = descriptor->context[i].ops.head();
+				cx::io::mux::epoll::operation_type* op = descriptor->ops[i].head();
 				if (op && op->complete(descriptor)) {
-					descriptor->context[i].ops.remove_head();
+					descriptor->ops[i].remove_head();
 					(*op)();
 				}
 			}
@@ -83,12 +83,12 @@ TEST(cx_io, descriptor) {
 
 	for (auto op : inops) {
 		op->set(std::error_code(), 0);
-		descriptor->context[0].ops.add_tail(op.get());
+		descriptor->ops[0].add_tail(op.get());
 	}
 
 	for (auto op : outops) {
 		op->set(std::error_code(), 0);
-		descriptor->context[1].ops.add_tail(op.get());
+		descriptor->ops[1].add_tail(op.get());
 	}
 
 	event_handler<mux> handler;

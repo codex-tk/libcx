@@ -34,6 +34,10 @@ namespace cx::io::ip {
 			return service_type::accept_complete(descriptor, this);
 		}
 
+		virtual void request(const descriptor_type& descriptor) override {
+			return service_type::accept_request(descriptor, this);
+		}
+
 		const descriptor_type& accepted(void) { return _accepted; }
 		
 		address_type& address(void) { return _address; } 

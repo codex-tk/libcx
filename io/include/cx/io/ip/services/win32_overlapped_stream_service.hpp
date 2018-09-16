@@ -21,6 +21,8 @@
 #include <cx/io/ops/basic_accept_operation.hpp>
 #include <cx/io/ops/handler_operation.hpp>
 
+#include <cx/io/mux/completion_port.hpp>
+
 #if defined(CX_PLATFORM_WIN32)
 
 namespace cx::io::ip {
@@ -42,9 +44,19 @@ namespace cx::io::ip {
 		template <typename HandlerType>
 		using connect_operation = cx::io::ip::basic_connect_operation<HandlerType, this_type, operation_type>;
 
+		class overlapped_operation : public operation_type {
+		public:
+			OVERLAPPED* overlapped() {
+				_overlapped.operation = this;
+				return _overlapped.ptr();
+			}
+		private:
+			cx::io::mux::OVERLAPPEDEX_OP<descriptor_type, operation_type> _overlapped;
+		};
+
 		template <typename HandlerType>
 		using accept_operation = cx::io::ip::basic_accept_operation<HandlerType, 
-			this_type, operation_type>;
+			this_type, overlapped_operation>;
 
 		template <typename HandlerType>
 		static void read(
@@ -55,12 +67,20 @@ namespace cx::io::ip {
 			read_operation* op = new handler_operation<read_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
+
+			const int type = 0;
+
+			bool need_request = descriptor->ops[type].empty();
+			descriptor->ops[type].add_tail(op);
+
 			if (!mux_type::good(descriptor)) {
-				op->set(std::make_error_code(std::errc::bad_file_descriptor), 0);
-				descriptor->engine.post(op);
+				descriptor->engine.post(mux_type::drain_ops(descriptor,
+					std::make_error_code(std::errc::bad_file_descriptor)));
 				return;
 			}
-			read_request(descriptor, op);
+
+			if (need_request)
+				read_request(descriptor, op);
 		}
 
 		template <typename HandlerType>
@@ -72,23 +92,28 @@ namespace cx::io::ip {
 			write_operation* op = new handler_operation<write_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
+
+			const int type = 1;
+
+			bool need_request = descriptor->ops[type].empty();
+			descriptor->ops[type].add_tail(op);
+
 			if (!mux_type::good(descriptor)) {
-				op->set(std::make_error_code(std::errc::bad_file_descriptor), 0);
-				descriptor->engine.post(op);
+				descriptor->engine.post(mux_type::drain_ops(descriptor,
+					std::make_error_code(std::errc::bad_file_descriptor)));
 				return;
 			}
-			write_request(descriptor, op);
+
+			if (need_request)
+				write_request(descriptor, op);
 		}
 
 		static void read_request(
 			const descriptor_type& descriptor,
 			read_operation* op)
 		{
-			if (!mux_type::good(descriptor)) {
-				op->set(std::make_error_code(std::errc::bad_file_descriptor), 0);
-				descriptor->engine.post(op);
-				return;
-			}
+			descriptor->overlapped[0].descriptor = descriptor;
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecv(mux_type::socket_handle(descriptor)
@@ -96,12 +121,13 @@ namespace cx::io::ip {
 				, 1
 				, &bytes_transferred
 				, &flag
-				, op->overlapped()
+				, descriptor->overlapped[0].ptr()
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
+					descriptor->overlapped[0].descriptor = nullptr;
 					descriptor->engine.post(mux_type::drain_ops(descriptor,
-						cx::system_error()));
+							cx::system_error()));
 					return;
 				}
 			}
@@ -120,11 +146,8 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			write_operation* op)
 		{
-			if (!mux_type::good(descriptor)) {
-				op->set(std::make_error_code(std::errc::bad_file_descriptor), 0);
-				descriptor->engine.post(op);
-				return;
-			}
+			descriptor->overlapped[1].descriptor = descriptor;
+
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASend(mux_type::socket_handle(descriptor)
@@ -132,10 +155,11 @@ namespace cx::io::ip {
 				, 1
 				, &bytes_transferred
 				, flag
-				, op->overlapped()
+				, descriptor->overlapped[1].ptr()
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
+					descriptor->overlapped[1].descriptor = nullptr;
 					descriptor->engine.post(mux_type::drain_ops(descriptor,
 						cx::system_error()));
 					return;
@@ -160,12 +184,20 @@ namespace cx::io::ip {
 		{
 			connect_operation<HandlerType>* op = new connect_operation<HandlerType>(addr,
 				std::forward<HandlerType>(handler));
+
+			const int type = 1;
+
+			bool need_request = descriptor->ops[type].empty();
+			descriptor->ops[type].add_tail(op);
+
 			if (!mux_type::good(descriptor)) {
-				op->set(std::make_error_code(std::errc::bad_file_descriptor), 0);
-				descriptor->engine.post(op);
+				descriptor->engine.post(mux_type::drain_ops(descriptor,
+					std::make_error_code(std::errc::bad_file_descriptor)));
 				return;
 			}
-			connect_request(descriptor, op);
+
+			if (need_request)
+				connect_request(descriptor, op);
 		}
 
 		template <typename HandlerType>
@@ -173,11 +205,7 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			connect_operation<HandlerType>* op)
 		{
-			if (!mux_type::good(descriptor)) {
-				op->set(std::make_error_code(std::errc::bad_file_descriptor), 0);
-				descriptor->engine.post(op);
-				return;
-			}
+			descriptor->overlapped[1].descriptor = descriptor;
 
 			LPFN_CONNECTEX _connect_ex = nullptr;
 			DWORD bytes_returned = 0;
@@ -197,13 +225,14 @@ namespace cx::io::ip {
 						, op->address().length()
 						, nullptr, 0
 						, &bytes_returned
-						, op->overlapped()) == TRUE)
+						, descriptor->overlapped[1].ptr()) == TRUE)
 						return;
 					if (WSAGetLastError() == WSA_IO_PENDING) {
 						return;
 					}
 				}
 			}
+			descriptor->overlapped[1].descriptor = nullptr;
 			descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
 		}
 

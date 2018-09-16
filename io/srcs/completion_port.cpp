@@ -20,6 +20,8 @@ namespace cx::io::mux {
 		: engine(e)
 	{
 		fd.s = invalid_socket;
+		overlapped[0].type = cx::io::pollin;
+		overlapped[1].type = cx::io::pollout;
 	}
 
 	completion_port::completion_port(basic_engine<this_type>& e)
@@ -70,7 +72,7 @@ namespace cx::io::mux {
 	}
 
 	void completion_port::unbind(const descriptor_type&) {
-		
+
 	}
 
 	void completion_port::wakeup(void) {
@@ -88,13 +90,57 @@ namespace cx::io::mux {
 			descriptor_type descriptor = reinterpret_cast<
 				descriptor_type::element_type*>(key)->shared_from_this();
 			std::error_code ec(ret == FALSE ? cx::system_error() : std::error_code());
-			operation_type* op = cx::clazz<operation_type>::container_of(ov, &operation_type::ov);
-			if (op) {
-				op->set(ec, bytes_transferred);
-				if (op->complete(descriptor)) {
-					(*op)();
-					return 1;
+
+			OVERLAPPEDEX<descriptor_type>* ovex = static_cast<OVERLAPPEDEX<descriptor_type>*>(ov);
+
+			switch (ovex->type)
+			{
+			case cx::io::pollin: 
+				return handle_event(descriptor, 0, ec, bytes_transferred);
+			case cx::io::pollout: 
+				return handle_event(descriptor, 1, ec, bytes_transferred);
+			case cx::io::pollop:
+				return handle_event(descriptor,
+					static_cast<OVERLAPPEDEX_OP<descriptor_type, operation_type>*>(ov)->operation,
+					ec,
+					bytes_transferred);
+				break;
+			default:
+				assert(0);
+				break;
+			}
+		}
+		return 0;
+	}
+
+	int completion_port::handle_event(const descriptor_type& descriptor, int type,
+		const std::error_code& ec, DWORD byte_transferred)
+	{
+		descriptor->overlapped[type].descriptor = nullptr;
+		operation_type* op = descriptor->ops[type].head();
+		if (op) {
+			op->set(ec, byte_transferred);
+			if (op->complete(descriptor)) {
+				descriptor->ops[type].remove_head();
+				bool need_request = descriptor->ops[type].empty() == false;
+				(*op)();
+				if (need_request) {
+					descriptor->ops[type].head()->request(descriptor);
 				}
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	int completion_port::handle_event(const descriptor_type& descriptor, operation_type* op,
+		const std::error_code& ec, DWORD byte_transferred)
+	{
+		if (op) {
+			op->set(ec, byte_transferred);
+			if (op->complete(descriptor)) {
+				(*op)();
+				return 1;
 			}
 		}
 		return 0;
@@ -117,10 +163,20 @@ namespace cx::io::mux {
 	}
 
 	cx::slist<completion_port::operation_type> completion_port::drain_ops(
-		const completion_port::descriptor_type& ,
-		const std::error_code& )
+		const completion_port::descriptor_type& descriptor,
+		const std::error_code& ec)
 	{
-		return cx::slist<completion_port::operation_type>{};
+		cx::slist<completion_port::operation_type> ops;
+		if (!descriptor)
+			return ops;
+		ops.add_tail(std::move(descriptor->ops[0]));
+		ops.add_tail(std::move(descriptor->ops[1]));
+		auto op = ops.head();
+		while (op) {
+			op->set(ec, 0);
+			op = op->next();
+		}
+		return ops;
 	}
 }
 

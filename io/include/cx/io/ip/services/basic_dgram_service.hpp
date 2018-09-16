@@ -53,10 +53,10 @@ namespace cx::io::ip {
 				descriptor->engine.post(std::move(ops));
 				return;
 			}
-			bool request = descriptor->context[0].ops.empty();
-			descriptor->context[0].ops.add_tail(op);
+			bool request = descriptor->ops[0].empty();
+			descriptor->ops[0].add_tail(op);
 			if (request) {
-				int ops = cx::io::pollin | (descriptor->context[1].ops.empty() ? 0 : cx::io::pollout);
+				int ops = cx::io::pollin | (descriptor->ops[1].empty() ? 0 : cx::io::pollout);
 				if (!descriptor->engine.multiplexer().bind(descriptor, ops)) {
 					descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
 				}
@@ -81,10 +81,10 @@ namespace cx::io::ip {
 				descriptor->engine.post(std::move(ops));
 				return;
 			}
-			bool request = descriptor->context[1].ops.empty();
-			descriptor->context[1].ops.add_tail(op);
+			bool request = descriptor->ops[1].empty();
+			descriptor->ops[1].add_tail(op);
 			if (request) {
-				int ops = cx::io::pollout | (descriptor->context[0].ops.empty() ? 0 : cx::io::pollin);
+				int ops = cx::io::pollout | (descriptor->ops[0].empty() ? 0 : cx::io::pollin);
 				if (!descriptor->engine.multiplexer().bind(descriptor, ops)) {
 					descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
 				}

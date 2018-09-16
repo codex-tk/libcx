@@ -28,6 +28,8 @@ namespace cx::io {
 		basic_operation(void) {}
 		virtual ~basic_operation(void) = default;
 
+		virtual void request(const descriptor_type&) {}
+
 		/**
 		 * @brief check io complete
 		 *
@@ -42,6 +44,16 @@ namespace cx::io {
 		 */
 		virtual void operator()(void) = 0;
 	public:
+		std::error_code error(void) { return _error; }
+		int size(void) { return _size; }
+		void set(const std::error_code& ec, const int sz) {
+			_error = ec;
+			_size = sz;
+		}
+	private:
+		std::error_code _error;
+		int _size;
+		/*
 #if defined(CX_PLATFORM_WIN32)
 		std::error_code error(void) {
 			return std::error_code(static_cast<int>(ov.Internal),
@@ -70,7 +82,7 @@ namespace cx::io {
 	private:
 		std::error_code _error;
 		int _size;
-#endif
+#endif*/
 	};
 }
 #endif

@@ -33,10 +33,10 @@ namespace cx::io {
 			return service_type::read_complete(descriptor, this);
 		}
 
-	private:
-
+		virtual void request(const descriptor_type& descriptor) override {
+			return service_type::read_request(descriptor, this);
+		}
 	};
-
 }
 
 #endif

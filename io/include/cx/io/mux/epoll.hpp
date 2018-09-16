@@ -11,6 +11,7 @@
 #include <cx/base/defines.hpp>
 #include <cx/io/io.hpp>
 #include <cx/io/basic_operation.hpp>
+#include <iostream>
 
 #if defined(CX_PLATFORM_LINUX)
 
@@ -42,11 +43,12 @@ namespace cx::io::mux {
 			public std::enable_shared_from_this<descriptor>
 		{
 			socket_type fd;
-			struct {
-				cx::slist<operation_type> ops;
-			} context[2];
+			cx::slist<operation_type> ops[2];
 			basic_engine<this_type>& engine;
 			descriptor(basic_engine<this_type>& e);
+			~descriptor(void) {
+				std::cout << "~descriptor" << std::endl;
+			}
 		};
 
 		static const socket_type invalid_socket = -1;

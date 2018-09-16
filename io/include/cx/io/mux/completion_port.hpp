@@ -9,7 +9,9 @@
 #define __cx_io_completion_port_h__
 
 #include <cx/base/defines.hpp>
+#include <cx/io/io.hpp>
 #include <cx/io/basic_operation.hpp>
+#include <iostream>
 
 #if defined(CX_PLATFORM_WIN32)
 
@@ -19,6 +21,23 @@ namespace cx::io {
 }
 
 namespace cx::io::mux {
+
+	template <typename DescriptorType>
+	struct OVERLAPPEDEX : OVERLAPPED { 
+		DescriptorType descriptor;
+		cx::io::type type;
+
+		OVERLAPPED* ptr(void) {
+			memset(static_cast<OVERLAPPED*>(this), 0x00, sizeof(OVERLAPPED));
+			return static_cast<OVERLAPPED*>(this);
+		}
+	};
+
+	template <typename DescriptorType, typename OperationType>
+	struct OVERLAPPEDEX_OP : OVERLAPPEDEX<DescriptorType> {
+		OVERLAPPEDEX_OP(void) { type = cx::io::pollop; }
+		OperationType* operation;
+	};
 
 	/**
 	* @brief
@@ -45,7 +64,14 @@ namespace cx::io::mux {
 				HANDLE h;
 			} fd;
 			basic_engine<this_type>& engine;
+
+			OVERLAPPEDEX<descriptor_type> overlapped[2];
+			cx::slist<operation_type> ops[2];
+			
 			descriptor(basic_engine<this_type>& e);
+			~descriptor(void) {
+				std::cout << "~descriptor" << std::endl;
+			}
 		};
 
 		static const socket_type invalid_socket = INVALID_SOCKET;
@@ -80,6 +106,11 @@ namespace cx::io::mux {
 		void wakeup(void);
 
 		int run(const std::chrono::milliseconds& wait_ms);
+	private:
+		int handle_event(const descriptor_type& descriptor, int type,
+			const std::error_code& ec, DWORD byte_transferred);
+		int handle_event(const descriptor_type& descriptor, operation_type* op,
+			const std::error_code& ec, DWORD byte_transferred);
 	private:
 		basic_engine<this_type>& _engine;
 		HANDLE _handle;

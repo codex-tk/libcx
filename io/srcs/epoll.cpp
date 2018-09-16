@@ -130,19 +130,19 @@ namespace cx::io::mux {
 		int ops_filter[2] = { cx::io::pollin , cx::io::pollout };
 		for (int i = 0; i < 2; ++i) {
 			if (ops_filter[i] & ev.events) {
-				operation_type* op = descriptor->context[i].ops.head();
+				operation_type* op = descriptor->ops[i].head();
 				if (op && op->complete(descriptor)) {
-					descriptor->context[i].ops.remove_head();
+					descriptor->ops[i].remove_head();
 					(*op)();
-					if (descriptor->context[i].ops.empty())
+					if (descriptor->ops[i].empty())
 						changed = true;
 					++handled;
 				}
 			}
 		}
 		if (changed) {
-			int ops = (descriptor->context[0].ops.empty() ? 0 : cx::io::pollin)
-				| (descriptor->context[1].ops.empty() ? 0 : cx::io::pollout);
+			int ops = (descriptor->ops[0].empty() ? 0 : cx::io::pollin)
+				| (descriptor->ops[1].empty() ? 0 : cx::io::pollout);
 			std::error_code ec;
 			if (bind(descriptor, ops, ec) == false) {
 				_engine.post(drain_ops(descriptor, ec));
@@ -173,8 +173,8 @@ namespace cx::io::mux {
 		cx::slist<epoll::operation_type> ops;
 		if (!descriptor)
 			return ops;
-		ops.add_tail(std::move(descriptor->context[0].ops));
-		ops.add_tail(std::move(descriptor->context[1].ops));
+		ops.add_tail(std::move(descriptor->ops[0]));
+		ops.add_tail(std::move(descriptor->ops[1]));
 		auto op = ops.head();
 		while (op) {
 			op->set(ec, 0);
