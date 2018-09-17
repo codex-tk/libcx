@@ -31,6 +31,9 @@ namespace cx::io::mux {
 			memset(static_cast<OVERLAPPED*>(this), 0x00, sizeof(OVERLAPPED));
 			return static_cast<OVERLAPPED*>(this);
 		}
+
+		void hold(const DescriptorType& fd) { descriptor = fd; }
+		void unhold(void) { descriptor = nullptr; }
 	};
 
 	template <typename DescriptorType, typename OperationType>

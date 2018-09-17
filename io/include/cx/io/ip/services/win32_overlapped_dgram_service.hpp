@@ -96,8 +96,8 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			read_operation* op)
 		{	
-			descriptor->overlapped[0].descriptor = descriptor;
-
+			decltype(descriptor->overlapped[0])& overlapped{ descriptor->overlapped[0] };
+			overlapped.hold(descriptor);
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecvFrom(mux_type::socket_handle(descriptor)
@@ -107,11 +107,11 @@ namespace cx::io::ip {
 				, &flag
 				, op->address().sockaddr()
 				, op->address().length_ptr()
-				, descriptor->overlapped[0].ptr()
+				, overlapped.ptr()
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					descriptor->overlapped[0].descriptor = nullptr;
+					overlapped.unhold();
 					descriptor->engine.post(mux_type::drain_ops(descriptor,
 						cx::system_error()));
 					return;
@@ -132,8 +132,8 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			write_operation* op)
 		{
-			descriptor->overlapped[1].descriptor = descriptor;
-
+			decltype(descriptor->overlapped[1])& overlapped{ descriptor->overlapped[1] };
+			overlapped.hold(descriptor);
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSASendTo(mux_type::socket_handle(descriptor)
@@ -143,11 +143,11 @@ namespace cx::io::ip {
 				, flag
 				, op->address().sockaddr()
 				, op->address().length()
-				, descriptor->overlapped[1].ptr()
+				, overlapped.ptr()
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					descriptor->overlapped[1].descriptor = nullptr;
+					overlapped.unhold();
 					descriptor->engine.post(mux_type::drain_ops(descriptor,
 						cx::system_error()));
 					return;

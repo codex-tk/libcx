@@ -83,79 +83,79 @@ namespace cx::io::ip {
 			return basic_service_type::bind(_descriptor, addr, ec);
 		}
 
-		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int sendto(const buffer_type& buf, const address_type& addr) {
+			static_assert(is_dgram_available<ServiceType>::value);
 			std::error_code ec;
 			return sendto(buf, addr, ec);
 		}
 
-		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int sendto(const buffer_type& buf, const address_type& addr, std::error_code& ec) {
+			static_assert(is_dgram_available<ServiceType>::value);
 			return basic_service_type::sendto(_descriptor, 
 				buf.base(), buf.length(), 0,
 				addr.sockaddr(), addr.length(),
 				ec);
 		}
 
-		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int recvfrom(const buffer_type& buf, address_type& addr) {
+			static_assert(is_dgram_available<ServiceType>::value);
 			std::error_code ec;
 			return recvfrom(buf, addr, ec);
 		}
 
-		//template <typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		int recvfrom(const buffer_type& buf, address_type& addr, std::error_code& ec) {
+			static_assert(is_dgram_available<ServiceType>::value);
 			return basic_service_type::recvfrom(_descriptor,
 				buf.base(), buf.length(), 0,
 				addr.sockaddr(), addr.length_ptr(),
 				ec);
 		}
 
-		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> > 
 		int send(const buffer_type& buf) {
+			static_assert(is_stream_available<ServiceType>::value);
 			std::error_code ec;
 			return send(buf, ec);
 		}
 
-		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		int send(const buffer_type& buf, std::error_code& ec) {
+			static_assert(is_stream_available<ServiceType>::value);
 			return basic_service_type::send(_descriptor,
 				buf.base(), buf.length(), 0, ec);
 		}
 
-		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		int recv(buffer_type& buf) {
+			static_assert(is_stream_available<ServiceType>::value);
 			std::error_code ec;
 			return recv(buf, ec);
 		}
 
-		//template <typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		int recv(buffer_type& buf, std::error_code& ec) {
+			static_assert(is_stream_available<ServiceType>::value);
 			return basic_service_type::recv(_descriptor,
 				buf.base(), buf.length(), 0, ec);
 		}
 
-		//template <typename HandlerType, typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		template <typename HandlerType>
 		void async_send(const buffer_type& buf, const address_type& addr, HandlerType&& handler) {
+			static_assert(is_dgram_available<ServiceType>::value);
 			service_type::write(_descriptor, buf, addr, std::forward<HandlerType>(handler));
 		}
 
-		//template <typename HandlerType, typename = std::enable_if_t<is_dgram_available<ServiceType>::value> >
 		template <typename HandlerType>
 		void async_recv(buffer_type& buf, address_type& addr, HandlerType&& handler) {
+			static_assert(is_dgram_available<ServiceType>::value);
 			service_type::read(_descriptor, buf, addr, std::forward<HandlerType>(handler));
 		}
 
-		//template <typename HandlerType, typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		template <typename HandlerType>
 		void async_send(const buffer_type& buf, HandlerType&& handler) {
+			static_assert(is_stream_available<ServiceType>::value);
 			service_type::write(_descriptor, buf, std::forward<HandlerType>(handler));
 		}
 
-		//template <typename HandlerType, typename = std::enable_if_t<is_stream_available<ServiceType>::value> >
 		template <typename HandlerType>
 		void async_recv(buffer_type& buf, HandlerType&& handler) {
+			static_assert(is_stream_available<ServiceType>::value);
 			service_type::read(_descriptor, buf, std::forward<HandlerType>(handler));
 		}
 

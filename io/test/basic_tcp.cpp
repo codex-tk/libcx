@@ -79,7 +79,7 @@ TEST(cx_io_socket, basic_async_tcp_with_connect) {
 	ASSERT_TRUE(fd.open(addresses[0]));
 	ASSERT_TRUE(fd.set_option(cx::io::ip::option::non_blocking()));
 	ASSERT_TRUE(fd.good());
-	fd.async_connect(addresses[0], [&](const std::error_code& ec, const cx::io::ip::tcp::address& addr) {
+	fd.async_connect(addresses[0], [&](const std::error_code&, const cx::io::ip::tcp::address&) {
 
 	});
 

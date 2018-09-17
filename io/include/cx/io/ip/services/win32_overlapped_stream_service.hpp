@@ -112,8 +112,9 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			read_operation* op)
 		{
-			descriptor->overlapped[0].descriptor = descriptor;
 
+			decltype(descriptor->overlapped[0])& overlapped{ descriptor->overlapped[0] };
+			overlapped.hold(descriptor);
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
 			if (WSARecv(mux_type::socket_handle(descriptor)
@@ -121,11 +122,11 @@ namespace cx::io::ip {
 				, 1
 				, &bytes_transferred
 				, &flag
-				, descriptor->overlapped[0].ptr()
+				, overlapped.ptr()
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					descriptor->overlapped[0].descriptor = nullptr;
+					overlapped.unhold();
 					descriptor->engine.post(mux_type::drain_ops(descriptor,
 							cx::system_error()));
 					return;
@@ -146,7 +147,8 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			write_operation* op)
 		{
-			descriptor->overlapped[1].descriptor = descriptor;
+			decltype(descriptor->overlapped[1])& overlapped{ descriptor->overlapped[1] };
+			overlapped.hold(descriptor);
 
 			DWORD flag = 0;
 			DWORD bytes_transferred = 0;
@@ -155,11 +157,11 @@ namespace cx::io::ip {
 				, 1
 				, &bytes_transferred
 				, flag
-				, descriptor->overlapped[1].ptr()
+				, overlapped.ptr()
 				, nullptr) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING) {
-					descriptor->overlapped[1].descriptor = nullptr;
+					overlapped.unhold();
 					descriptor->engine.post(mux_type::drain_ops(descriptor,
 						cx::system_error()));
 					return;
@@ -205,7 +207,8 @@ namespace cx::io::ip {
 			const descriptor_type& descriptor,
 			connect_operation<HandlerType>* op)
 		{
-			descriptor->overlapped[1].descriptor = descriptor;
+			decltype(descriptor->overlapped[1])& overlapped{ descriptor->overlapped[1] };
+			overlapped.hold(descriptor);
 
 			LPFN_CONNECTEX _connect_ex = nullptr;
 			DWORD bytes_returned = 0;
@@ -225,14 +228,14 @@ namespace cx::io::ip {
 						, op->address().length()
 						, nullptr, 0
 						, &bytes_returned
-						, descriptor->overlapped[1].ptr()) == TRUE)
+						, overlapped.ptr()) == TRUE)
 						return;
 					if (WSAGetLastError() == WSA_IO_PENDING) {
 						return;
 					}
 				}
 			}
-			descriptor->overlapped[1].descriptor = nullptr;
+			overlapped.unhold();
 			descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
 		}
 

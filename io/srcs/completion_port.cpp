@@ -116,7 +116,7 @@ namespace cx::io::mux {
 	int completion_port::handle_event(const descriptor_type& descriptor, int type,
 		const std::error_code& ec, DWORD byte_transferred)
 	{
-		descriptor->overlapped[type].descriptor = nullptr;
+		descriptor->overlapped[type].unhold();
 		operation_type* op = descriptor->ops[type].head();
 		if (op) {
 			op->set(ec, byte_transferred);
