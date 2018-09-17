@@ -36,7 +36,7 @@ namespace cx::io {
 		 * @return true io complete
 		 * @return false io incomplete
 		 */
-		virtual bool complete(const descriptor_type&) = 0;
+		virtual bool complete(const descriptor_type&) { return true; }
 
 		/**
 		 * @brief call when io complete

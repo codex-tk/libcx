@@ -79,7 +79,6 @@ namespace cx {
 
 	template <typename T>
 	void slist<T>::add_tail(T *node) {
-		assert(node != nullptr);
 		if (node == nullptr) return;
 		if (_head == nullptr) {
 			_head = _tail = node;
@@ -93,6 +92,9 @@ namespace cx {
 
 	template <typename T>
 	void slist<T>::add_tail(slist<T>&& rhs) {
+		if (rhs._head == nullptr || rhs._tail == nullptr)
+			return;
+
 		if (_head == nullptr) {
 			_head = rhs._head;
 		}

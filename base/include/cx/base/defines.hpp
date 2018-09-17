@@ -135,7 +135,7 @@ Windows	 _WIN32 or __WIN32__
 #include <sstream>
 #include <mutex>
 #include <thread>
-#include <time.h>
+#include <ctime>
 
 #define _USE_MATH_DEFINES
 

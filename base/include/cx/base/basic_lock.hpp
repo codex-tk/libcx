@@ -30,7 +30,7 @@ namespace cx {
 	};
 	using lock = critical_section;
 #else
-	using lock = std::mutex;
+	using lock = std::recursive_mutex;
 #endif
 
 }

@@ -7,7 +7,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <cx/io/ip/services.hpp>
+#include <cx/io/services.hpp>
 
 using buffer_type = cx::io::ip::udp::socket::buffer_type;
 

@@ -119,7 +119,7 @@ namespace cx {
 
 		value_type* base(void) { return _block ? _block->base() : nullptr; }
 
-		int_type size(void) { return _block ? _block->size() : 0; }
+		int_type size(void) const { return _block ? _block->size() : 0; }
 
 		value_type* rdptr(void) const { return _block ? _block->base() + _rd_pos : nullptr; }
 
