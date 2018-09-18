@@ -62,8 +62,7 @@ namespace cx::io {
 		}
 
 		int run(const std::chrono::milliseconds& wait_ms) {
-			int handled = 0;
-			handled += _multiplexer.run( std::min(wait_ms, _timer_service.wakeup_after()));
+			int handled = _multiplexer.run( std::min(wait_ms, _timer_service.wakeup_after()));
 			cx::slist<operation_type> ops;
 			do {
 				std::lock_guard<cx::lock> guard(_lock);

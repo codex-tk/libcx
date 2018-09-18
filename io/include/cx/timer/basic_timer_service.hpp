@@ -54,9 +54,10 @@ namespace cx::timer {
 
 		cx::slist<operation_type> drain_expired_timers(void) {
 			cx::slist<operation_type> ops;
-			std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+			std::time_t now{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
 			while (!_timer_queue.empty()) {
-				if (std::chrono::system_clock::to_time_t(_timer_queue.top()->expired_at) <= now) {
+				std::time_t expired_at{ std::chrono::system_clock::to_time_t(_timer_queue.top()->expired_at) };
+				if (expired_at <= now) {
 					if (_timer_queue.top()->op) {
 						operation_type* op = _timer_queue.top()->op;
 						op->set(std::make_error_code(std::errc::timed_out), 0);
