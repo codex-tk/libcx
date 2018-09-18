@@ -164,7 +164,7 @@ private:
 void async_accept(cx::io::engine& e, cx::io::ip::tcp::acceptor& acceptor) {
 	std::shared_ptr<session> ptr(std::make_shared<session>(e));
 	acceptor.async_accept(ptr->socket(),
-		[&, ptr](const std::error_code& ec, cx::io::ip::tcp::address& addr)
+		[&, ptr](const std::error_code& , cx::io::ip::tcp::address& )
 	{
 		ptr->do_read();
 		ptr->do_read();
@@ -172,7 +172,7 @@ void async_accept(cx::io::engine& e, cx::io::ip::tcp::acceptor& acceptor) {
 	});
 }
 
-TEST(cx_io_socket, echo) {
+TEST(cx_io_socket, pre_req_ios) {
 	cx::io::engine e;
 	cx::io::ip::tcp::acceptor acceptor(e);
 
@@ -190,6 +190,7 @@ TEST(cx_io_socket, echo) {
 	client.async_connect(target, [&](const std::error_code& ec, const cx::io::ip::tcp::address&) {
 		ASSERT_FALSE(ec);
 		{
+			std::this_thread::sleep_for(std::chrono::seconds(1));
 			cx::basic_buffer<char> wrbuf(test::len);
 			wrbuf << test::hello;
 			auto wb = cx::io::buffer(wrbuf.rdptr(), wrbuf.rdsize());

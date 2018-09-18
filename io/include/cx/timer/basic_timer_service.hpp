@@ -45,11 +45,7 @@ namespace cx::timer {
 
 		void schedule(const descriptor_type& timer_fd) {
 			_timer_queue.push(timer_fd);
-			if (std::chrono::system_clock::now() > _timer_queue.top()->expired_at)
-				_wakeup_after = std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::system_clock::now() - _timer_queue.top()->expired_at);
-			else
-				_wakeup_after = std::chrono::milliseconds(0);
+			update_wakeup_after();
 		}
 
 		std::chrono::milliseconds wakeup_after(void) {
@@ -73,6 +69,25 @@ namespace cx::timer {
 					break;
 				}
 			}
+			update_wakeup_after();
+			return ops;
+		}
+
+		operation_type* cancel(const descriptor_type& timer_fd){
+			if (!timer_fd) 
+				return nullptr;
+			
+			_timer_queue.remove(timer_fd);
+			operation_type* op = timer_fd->op;
+			timer_fd->op = nullptr;
+			if (op)
+				op->set(std::make_error_code(std::errc::operation_canceled), 0);
+
+			update_wakeup_after();
+			return op;
+		}
+
+		void update_wakeup_after(void){
 			if (!_timer_queue.empty()) {
 				if (std::chrono::system_clock::now() > _timer_queue.top()->expired_at)
 					_wakeup_after = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -83,14 +98,6 @@ namespace cx::timer {
 			else {
 				_wakeup_after = std::chrono::milliseconds(std::numeric_limits<int>::max());
 			}
-			return ops;
-		}
-
-		operation_type* cancel(const descriptor_type& timer_fd){
-			operation_type* op = timer_fd->op;
-			_timer_queue.remove(timer_fd);
-			timer_fd->op = nullptr;
-			return op;
 		}
 
 	private:

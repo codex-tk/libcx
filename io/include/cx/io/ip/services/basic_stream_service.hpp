@@ -33,8 +33,11 @@ namespace cx::io::ip {
 		using address_type = cx::io::ip::basic_address<Type, Proto>;
 		using buffer_type = cx::io::buffer;
 
-		using read_operation = cx::io::basic_read_operation<this_type, cx::io::basic_io_operation<this_type>>;
-		using write_operation = cx::io::basic_write_operation<this_type, cx::io::basic_io_operation<this_type>>;
+		using stream_operation = cx::io::basic_io_operation<this_type, operation_type>;
+
+		using read_operation = cx::io::basic_read_operation<this_type, stream_operation>;
+		using write_operation = cx::io::basic_write_operation<this_type, stream_operation>;
+
 		template <typename HandlerType>
 		using connect_operation = cx::io::ip::basic_connect_operation<HandlerType, this_type, operation_type>;
 

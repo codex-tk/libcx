@@ -18,8 +18,8 @@ namespace cx::io {
 	*
 	* @tparam ServiceType
 	*/
-	template <typename ServiceType>
-	class basic_io_operation : public ServiceType::operation_type {
+	template <typename ServiceType, typename base_operation>
+	class basic_io_operation : public base_operation {
 	public:
 		using service_type = ServiceType;
 		using descriptor_type = typename service_type::descriptor_type;

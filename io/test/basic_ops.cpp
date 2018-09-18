@@ -26,7 +26,8 @@ TEST(cx_io, basic_ops) {
 	using service_type = cx::io::ip::basic_dgram_service<
 		cx::testing::engine>;
 	cx::io::basic_read_operation<service_type,
-		cx::io::basic_io_operation<service_type>>* op;
+		cx::io::basic_io_operation<service_type , cx::io::basic_operation<service_type>
+		>>* op;
 
 	CX_UNUSED(op);
 }

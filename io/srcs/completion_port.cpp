@@ -122,7 +122,7 @@ namespace cx::io::mux {
 			op->set(ec, byte_transferred);
 			if (op->complete(descriptor)) {
 				descriptor->ops[type].remove_head();
-				bool need_request = descriptor->ops[type].empty() == false;
+				bool need_request = !descriptor->ops[type].empty();
 				(*op)();
 				if (need_request) {
 					descriptor->ops[type].head()->request(descriptor);

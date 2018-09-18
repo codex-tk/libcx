@@ -19,8 +19,8 @@ namespace cx::io::ip {
 	*
 	* @tparam ServiceType
 	*/
-	template <typename ServiceType>
-	class basic_dgram_operation : public basic_io_operation<ServiceType>{
+	template <typename ServiceType, typename base_operation>
+	class basic_dgram_operation : public base_operation{
 	public:
 		using service_type = ServiceType;
 		using descriptor_type = typename service_type::descriptor_type;
