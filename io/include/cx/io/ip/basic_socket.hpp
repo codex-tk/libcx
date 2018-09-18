@@ -159,6 +159,12 @@ namespace cx::io::ip {
 			service_type::read(_descriptor, buf, std::forward<HandlerType>(handler));
 		}
 
+		template <typename HandlerType>
+		void async_recvn(buffer_type& buf, HandlerType&& handler) {
+			static_assert(is_stream_available<ServiceType>::value);
+			service_type::readn(_descriptor, buf, std::forward<HandlerType>(handler));
+		}
+
 		descriptor_type& descriptor(void) {
 			return _descriptor;
 		}

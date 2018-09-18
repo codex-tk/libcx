@@ -10,7 +10,6 @@
 
 #include <cx/base/defines.hpp>
 #include <cx/io/ip/basic_address.hpp>
-#include <cx/io/ops/basic_io_operation.hpp>
 
 namespace cx::io::ip {
 
@@ -33,6 +32,7 @@ namespace cx::io::ip {
 		address_type& address(void) { return _address; }
 	private:
 		address_type _address;
+
 	};
 
 }

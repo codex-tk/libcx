@@ -35,8 +35,7 @@ namespace cx::io::ip {
 		using address_type = cx::io::ip::basic_address<Type, Proto>;
 		using buffer_type = cx::io::buffer;
 
-		using dgram_operation = cx::io::ip::basic_dgram_operation<this_type,
-			cx::io::basic_io_operation<this_type, operation_type>>;
+		using dgram_operation = cx::io::ip::basic_dgram_operation<this_type, operation_type>;
 
 		using read_operation = cx::io::basic_read_operation<this_type, dgram_operation>;
 		using write_operation = cx::io::basic_write_operation<this_type, dgram_operation>;

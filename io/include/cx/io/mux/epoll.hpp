@@ -46,9 +46,6 @@ namespace cx::io::mux {
 			cx::slist<operation_type> ops[2];
 			basic_engine<this_type>& engine;
 			descriptor(basic_engine<this_type>& e);
-			~descriptor(void) {
-				std::cout << "~descriptor" << std::endl;
-			}
 		};
 
 		static const socket_type invalid_socket = -1;

@@ -9,6 +9,7 @@
 #define __cx_io_basic_read_operation_h__
 
 #include <cx/base/defines.hpp>
+#include <cx/io/buffer.hpp>
 
 namespace cx::io {
 
@@ -36,6 +37,49 @@ namespace cx::io {
 		virtual void request(const descriptor_type& descriptor) override {
 			return service_type::read_request(descriptor, this);
 		}
+
+		cx::io::buffer& buffer(void) {
+			return _buffer;
+		}
+	private:
+		cx::io::buffer _buffer;
+	};
+
+	/**
+	* @brief
+	*
+	* @tparam ServiceType
+	*/
+	template <typename ServiceType, typename base_operation>
+	class readn_operation : public basic_read_operation<ServiceType, base_operation> {
+	public:
+		using base_type = base_operation;
+		using service_type = ServiceType;
+		using descriptor_type = typename service_type::descriptor_type;
+		using address_type = typename service_type::address_type;
+
+		readn_operation(void) : _total_read_size(0) {}
+
+		virtual ~readn_operation(void) {}
+
+		virtual bool complete(const descriptor_type& descriptor) override {
+			return service_type::read_complete(descriptor, this);
+		}
+
+		virtual void request(const descriptor_type& descriptor) override {
+			return service_type::read_request(descriptor, this);
+		}
+
+		void consume(int n) {
+			_total_read_size += n;
+			this->buffer().consume(n);
+		}
+
+		int total_read_size(void) {
+			return _total_read_size;
+		}
+	private:
+		int _total_read_size;
 	};
 }
 

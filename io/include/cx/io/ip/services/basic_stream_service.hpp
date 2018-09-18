@@ -13,7 +13,6 @@
 #include <cx/io/io.hpp>
 #include <cx/io/ip/basic_address.hpp>
 #include <cx/io/ip/services/basic_service.hpp>
-#include <cx/io/ops/basic_io_operation.hpp>
 #include <cx/io/ops/basic_connect_operation.hpp>
 #include <cx/io/ops/basic_accept_operation.hpp>
 #include <cx/io/ops/basic_read_operation.hpp>
@@ -33,10 +32,9 @@ namespace cx::io::ip {
 		using address_type = cx::io::ip::basic_address<Type, Proto>;
 		using buffer_type = cx::io::buffer;
 
-		using stream_operation = cx::io::basic_io_operation<this_type, operation_type>;
-
-		using read_operation = cx::io::basic_read_operation<this_type, stream_operation>;
-		using write_operation = cx::io::basic_write_operation<this_type, stream_operation>;
+		using read_operation = cx::io::basic_read_operation<this_type, operation_type>;
+		using readn_operation = cx::io::readn_operation<this_type, operation_type>;
+		using write_operation = cx::io::basic_write_operation<this_type, operation_type>;
 
 		template <typename HandlerType>
 		using connect_operation = cx::io::ip::basic_connect_operation<HandlerType, this_type, operation_type>;
@@ -70,6 +68,74 @@ namespace cx::io::ip {
 			}
 		}
 
+		static void read_request(const descriptor_type&, read_operation*) {}
+
+		static bool read_complete(
+			const descriptor_type& descriptor,
+			read_operation* op)
+		{
+			std::error_code ec;
+			int ret = basic_service_type::recv(descriptor,
+				op->buffer().base(),
+				op->buffer().length(),
+				0,
+				ec);
+			op->set(ec, ret);
+			return true;
+		}
+
+		template <typename HandlerType>
+		static void readn(
+			const descriptor_type& descriptor,
+			const buffer_type& buf,
+			HandlerType&& handler)
+		{
+			readn_operation* op = new handler_operation<readn_operation, HandlerType>(
+				std::forward<HandlerType>(handler));
+			op->buffer().reset(buf.base(), buf.length());
+			if (!mux_type::good(descriptor)) {
+				auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
+				op->set(std::make_error_code(std::errc::invalid_argument), 0);
+				ops.add_tail(op);
+				descriptor->engine.post(std::move(ops));
+				return;
+			}
+			bool request = descriptor->ops[0].empty();
+			descriptor->ops[0].add_tail(op);
+			if (request) {
+				int ops = cx::io::pollin | (descriptor->ops[1].empty() ? 0 : cx::io::pollout);
+				if (!descriptor->engine.multiplexer().bind(descriptor, ops)) {
+					descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
+				}
+			}
+		}
+
+		static void read_request(const descriptor_type&, readn_operation*) {}
+
+		static bool read_complete(
+			const descriptor_type& descriptor,
+			readn_operation* op)
+		{
+			std::error_code ec;
+			int ret = basic_service_type::recv(descriptor,
+				op->buffer().base(),
+				op->buffer().length(),
+				0,
+				ec);
+			if (ec || ret <= 0) {
+				op->set(ec, op->total_read_size());
+				return true;
+			}
+
+			op->consume(ret);
+
+			if (op->buffer().length() == 0) {
+				op->set(ec, op->total_read_size());
+				return true;
+			}
+			return false;
+		}
+
 		template <typename HandlerType>
 		static void write(
 			const descriptor_type& descriptor,
@@ -94,23 +160,6 @@ namespace cx::io::ip {
 					descriptor->engine.post(mux_type::drain_ops(descriptor, cx::system_error()));
 				}
 			}
-		}
-
-
-		static void read_request(const descriptor_type&, read_operation*) {}
-
-		static bool read_complete(
-			const descriptor_type& descriptor,
-			read_operation* op)
-		{
-			std::error_code ec;
-			int ret = basic_service_type::recv(descriptor,
-				op->buffer().base(),
-				op->buffer().length(),
-				0,
-				ec);
-			op->set(ec, ret);
-			return true;
 		}
 
 		static void write_request(const descriptor_type&, write_operation*) {}

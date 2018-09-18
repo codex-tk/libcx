@@ -9,6 +9,7 @@
 #define __cx_io_basic_write_operation_h__
 
 #include <cx/base/defines.hpp>
+#include <cx/io/buffer.hpp>
 
 namespace cx::io {
 
@@ -36,7 +37,12 @@ namespace cx::io {
 		virtual void request(const descriptor_type& descriptor) override {
 			return service_type::write_request(descriptor, this);
 		}
+
+		cx::io::buffer& buffer(void) {
+			return _buffer;
+		}
 	private:
+		cx::io::buffer _buffer;
 
 	};
 

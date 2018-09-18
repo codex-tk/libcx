@@ -8,7 +8,6 @@
 
 #include <gtest/gtest.h>
 #include <cx/io/basic_engine.hpp>
-#include <cx/io/ops/basic_io_operation.hpp>
 #include <cx/io/ops/basic_read_operation.hpp>
 #include <cx/io/ip/services/basic_dgram_service.hpp>
 
@@ -25,9 +24,7 @@ namespace cx::testing {
 TEST(cx_io, basic_ops) {
 	using service_type = cx::io::ip::basic_dgram_service<
 		cx::testing::engine>;
-	cx::io::basic_read_operation<service_type,
-		cx::io::basic_io_operation<service_type , cx::io::basic_operation<service_type>
-		>>* op;
+	cx::io::basic_read_operation<service_type,cx::io::basic_operation<service_type>>* op;
 
 	CX_UNUSED(op);
 }
