@@ -127,7 +127,7 @@ namespace cx::io::ip {
 				return true;
 			}
 
-			op->consume(ret);
+			op->commit(ret);
 
 			if (op->buffer().length() == 0) {
 				op->set(ec, op->total_read_size());

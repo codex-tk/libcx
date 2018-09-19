@@ -177,7 +177,7 @@ namespace cx::io::ip {
 				return true;
 			}
 
-			op->consume(op->size());
+			op->commit(op->size());
 
 			if (op->buffer().length() == 0) {
 				op->set(op->error(), op->total_read_size());

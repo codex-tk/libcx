@@ -42,13 +42,6 @@ namespace cx::io {
 			length(sz);
 		}
 
-		void consume(size_type n) {
-			n = std::min(n, length());
-			uint8_t* b = static_cast<uint8_t*>(base());
-			length(length() - n);
-			base(b + n);
-		}
-
 #if defined(CX_PLATFORM_WIN32)
 		void* base(void) const { return buf; }
 

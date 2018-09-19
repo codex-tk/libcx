@@ -70,9 +70,14 @@ namespace cx::io {
 			return service_type::read_request(descriptor, this);
 		}
 
-		void consume(int n) {
+		void commit(int n) {
+			n = std::min(static_cast<decltype(this->buffer().length())>(n),
+				this->buffer().length());
 			_total_read_size += n;
-			this->buffer().consume(n);
+			this->buffer().reset(
+				static_cast<int8_t*>(this->buffer().base()) + n,
+				this->buffer().length() - n
+			);
 		}
 
 		int total_read_size(void) {
