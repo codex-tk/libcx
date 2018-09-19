@@ -55,6 +55,10 @@ namespace cx::timer {
 			_descriptor->op = new timer_handler_operation(std::forward<HandlerType>(handler));
 			_descriptor->engine.schedule(_descriptor);
 		}
+
+		void cancel(void) {
+			_descriptor->engine.cancel(_descriptor);
+		}
 	private:
 		descriptor_type _descriptor;
 	};

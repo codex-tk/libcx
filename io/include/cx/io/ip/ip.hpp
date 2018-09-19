@@ -42,8 +42,8 @@ namespace cx::io::ip {
 			uint16_t ip_sum;	/* checksum */
 			struct in_addr ip_src, ip_dst;	/* source and dest address */
 
-			int ver(void) { return ip_v_hl & 0x0f; }
-			int length(void) { return ((ip_v_hl & 0xf0) >> 4) * 4; }
+			int ver(void) { return ip_v_hl >> 4; }
+			int length(void) { return (ip_v_hl & 0x0f) * 4; }
 		};
 	}
 

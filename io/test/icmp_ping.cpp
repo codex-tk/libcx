@@ -22,19 +22,20 @@ TEST(cx_io_ip_icmp, ping){
 	return;
 #endif
 	
-	cx::io::ip::icmp::address to("127.0.0.1", 0, AF_INET);
+	cx::io::ip::icmp::address to("192.168.1.1", 0, AF_INET);
 	cx::io::ip::icmp::icmphdr hdr;
 
-	hdr.icmp_type = 8; //ICMP_ECHO;
+	hdr.icmp_type = cx::io::ip::icmp::type::echo;
 	hdr.icmp_code = 0;
 	hdr.icmp_checksum = 0;
 	hdr.icmp_sequence = 0;
-	hdr.icmp_id = 81;
+	hdr.icmp_id = 0x81;
+	hdr.icmp_checksum = 0;
 	hdr.icmp_checksum = cx::checksum(&hdr, sizeof(hdr));
 
 	ASSERT_EQ(fd.sendto(cx::io::buffer(&hdr, sizeof(hdr)), to), sizeof(hdr));
 
-	cx::basic_buffer<char> buf(1024);
+	cx::basic_buffer<uint8_t> buf(1024);
 	fd.async_recvfrom(cx::io::rdbuf(buf), [&](const std::error_code& ec
 		, const int size
 		, const cx::io::ip::icmp::address& )
@@ -42,14 +43,26 @@ TEST(cx_io_ip_icmp, ping){
 		ASSERT_FALSE(ec);
 		ASSERT_TRUE(size > 0);
 		buf.commit(size);
+		
+		//const char map[] = "01234567890ABCDEF";
+		//std::string output;
+		//for (int i = 0; i < size; ++i) {
+		//	if (i != 0 && i % 4 == 0) output += " ";
+		//	uint8_t* ptr = buf.rdptr() + i;
+		//	output += map[(*ptr) >> 4];
+		//	output += map[*ptr & 0x0f];
+		//}
+		//gprintf("Recv : %s", output.c_str());
+		
 		cx::io::ip::iphdr* iphdr = reinterpret_cast<cx::io::ip::iphdr*>(buf.rdptr());
 		ASSERT_TRUE(iphdr->length() <= buf.rdsize());
 		buf.consume(iphdr->length());
 		ASSERT_TRUE(buf.rdsize() >= sizeof(cx::io::ip::icmp::icmphdr));
 		cx::io::ip::icmp::icmphdr* icmphdr = reinterpret_cast<cx::io::ip::icmp::icmphdr*>(buf.rdptr());
-		gprintf("icmp echo type(%d) code(%d) seq(%d) id(%d)",
-			icmphdr->icmp_type, icmphdr->icmp_code, icmphdr->icmp_sequence, icmphdr->icmp_id);
-
+		//gprintf("icmp echo type(%d) code(%d) seq(%d) id(%d) size(%d) ipver(%d) iplen(%d)",
+		//	icmphdr->icmp_type, icmphdr->icmp_code, icmphdr->icmp_sequence, icmphdr->icmp_id,
+		//	size, iphdr->ver(), iphdr->length());
+		ASSERT_EQ(icmphdr->icmp_type, cx::io::ip::icmp::type::echo_reply);
 	});
 
 	int val = 0;
