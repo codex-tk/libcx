@@ -83,7 +83,7 @@ TEST(cx_io_socket, basic_async_tcp_with_connect) {
 
 	});
 
-	ASSERT_EQ(e.run(std::chrono::milliseconds(1000)), 1);
+	ASSERT_EQ(e.run(std::chrono::milliseconds(10000)), 1);
 
 	//gprintf("%s", fd.remote_address().to_string().c_str());
 	//gprintf("%s", fd.local_address().to_string().c_str());
@@ -323,7 +323,7 @@ TEST(cx_io_socket, readn_test) {
 	for (int i = 0; i < 5; ++i) {
 		auto wb = cx::io::buffer(wrbuf.rdptr(), rand() % 6); 
 		gprintf("Cl write %d", wb.length());
-		client.async_send(wb, [&](const std::error_code& ec, int size) {
+		client.async_sendn(wb, [&](const std::error_code& ec, int size) {
 			gprintf("Cl on write %d", size);
 			ASSERT_FALSE(ec);
 			wrbuf.rdptr(size);

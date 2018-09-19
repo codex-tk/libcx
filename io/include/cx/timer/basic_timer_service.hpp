@@ -54,10 +54,11 @@ namespace cx::timer {
 
 		cx::slist<operation_type> drain_expired_timers(void) {
 			cx::slist<operation_type> ops;
-			std::time_t now{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
+			auto now = std::chrono::system_clock::now();
 			while (!_timer_queue.empty()) {
-				std::time_t expired_at{ std::chrono::system_clock::to_time_t(_timer_queue.top()->expired_at) };
-				if (expired_at <= now) {
+				auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(
+					_timer_queue.top()->expired_at - now);
+				if (diff.count() < 100) { // 100 ms
 					if (_timer_queue.top()->op) {
 						operation_type* op = _timer_queue.top()->op;
 						op->set(std::make_error_code(std::errc::timed_out), 0);
@@ -90,11 +91,14 @@ namespace cx::timer {
 
 		void update_wakeup_after(void){
 			if (!_timer_queue.empty()) {
-				if (std::chrono::system_clock::now() > _timer_queue.top()->expired_at)
-					_wakeup_after = std::chrono::duration_cast<std::chrono::milliseconds>(
-						std::chrono::system_clock::now() - _timer_queue.top()->expired_at);
-				else
+				auto now = std::chrono::system_clock::now();
+				if (_timer_queue.top()->expired_at <= now) {
 					_wakeup_after = std::chrono::milliseconds(0);
+				}
+				else {
+					_wakeup_after = std::chrono::duration_cast<std::chrono::milliseconds>(
+						_timer_queue.top()->expired_at - now) + std::chrono::milliseconds(500);
+				}
 			}
 			else {
 				_wakeup_after = std::chrono::milliseconds(std::numeric_limits<int>::max());

@@ -63,6 +63,24 @@ namespace cx::io::ip {
 	}
 }
 
+namespace cx::io::ip {
+	namespace icmp {
+#if defined(CX_PLATFORM_WIN32)
+		using service = cx::io::ip::win32_overlapped_dgram_service<engine, SOCK_RAW, IPPROTO_ICMP>;
+
+#elif defined(CX_PLATFORM_LINUX)
+		using service = cx::io::ip::basic_dgram_service<engine, SOCK_RAW, IPPROTO_ICMP>;
+#endif
+	}
+
+	template <> struct is_dgram_available<cx::io::ip::icmp::service> : std::true_type {};
+
+	namespace icmp {
+		using socket = cx::io::ip::basic_socket<cx::io::engine, cx::io::ip::icmp::service>;
+		using address = typename service::address_type;
+	}
+}
+
 namespace cx::timer {
 	using timer = basic_timer<cx::io::engine>;
 }

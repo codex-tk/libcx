@@ -83,7 +83,17 @@ namespace cx::io {
 			return static_cast<struct iovec*>(const_cast<buffer*>(this));
 		}
 #endif
+
 	};
+
+	template <typename BasicBufferType>
+	static buffer rdbuf(BasicBufferType& buf) {
+		return buffer(buf.wrptr(), buf.wrsize());
+	}
+	template <typename BasicBufferType>
+	static buffer wrbuf(BasicBufferType& buf) {
+		return buffer(buf.rdptr(), buf.rdsize());
+	}
 
 }
 

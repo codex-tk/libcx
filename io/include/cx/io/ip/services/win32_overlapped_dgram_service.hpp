@@ -44,14 +44,12 @@ namespace cx::io::ip {
 		static void read(
 			const descriptor_type& descriptor,
 			const buffer_type& buf,
-			const address_type& addr,
 			HandlerType&& handler)
 		{
 			read_operation* op = new dgram_handler_operation<read_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
-			op->address() = addr;
-
+			
 			const int type = 0;
 
 			bool need_request = descriptor->ops[type].empty();

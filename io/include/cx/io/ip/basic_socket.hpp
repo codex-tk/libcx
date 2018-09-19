@@ -136,15 +136,15 @@ namespace cx::io::ip {
 		}
 
 		template <typename HandlerType>
-		void async_send(const buffer_type& buf, const address_type& addr, HandlerType&& handler) {
+		void async_sendto(const buffer_type& buf, const address_type& addr, HandlerType&& handler) {
 			static_assert(is_dgram_available<ServiceType>::value);
 			service_type::write(_descriptor, buf, addr, std::forward<HandlerType>(handler));
 		}
 
 		template <typename HandlerType>
-		void async_recv(buffer_type& buf, address_type& addr, HandlerType&& handler) {
+		void async_recvfrom(const buffer_type& buf, HandlerType&& handler) {
 			static_assert(is_dgram_available<ServiceType>::value);
-			service_type::read(_descriptor, buf, addr, std::forward<HandlerType>(handler));
+			service_type::read(_descriptor, buf, std::forward<HandlerType>(handler));
 		}
 
 		template <typename HandlerType>
@@ -154,13 +154,20 @@ namespace cx::io::ip {
 		}
 
 		template <typename HandlerType>
-		void async_recv(buffer_type& buf, HandlerType&& handler) {
+		void async_sendn(const buffer_type& buf, HandlerType&& handler) {
+			static_assert(is_stream_available<ServiceType>::value);
+			service_type::writen(_descriptor, buf, std::forward<HandlerType>(handler));
+		}
+
+
+		template <typename HandlerType>
+		void async_recv(const buffer_type& buf, HandlerType&& handler) {
 			static_assert(is_stream_available<ServiceType>::value);
 			service_type::read(_descriptor, buf, std::forward<HandlerType>(handler));
 		}
 
 		template <typename HandlerType>
-		void async_recvn(buffer_type& buf, HandlerType&& handler) {
+		void async_recvn(const buffer_type& buf, HandlerType&& handler) {
 			static_assert(is_stream_available<ServiceType>::value);
 			service_type::readn(_descriptor, buf, std::forward<HandlerType>(handler));
 		}

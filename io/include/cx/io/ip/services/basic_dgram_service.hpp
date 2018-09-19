@@ -41,13 +41,11 @@ namespace cx::io::ip {
 		static void read(
 			const descriptor_type& descriptor,
 			const buffer_type& buf,
-			const address_type& addr,
 			HandlerType&& handler)
 		{
 			read_operation* op = new dgram_handler_operation<read_operation, HandlerType>(
 				std::forward<HandlerType>(handler));
 			op->buffer().reset(buf.base(), buf.length());
-			op->address() = addr;
 			if (!mux_type::good(descriptor)) {
 				auto ops = mux_type::drain_ops(descriptor, std::make_error_code(std::errc::bad_file_descriptor));
 				op->set(std::make_error_code(std::errc::invalid_argument), 0);

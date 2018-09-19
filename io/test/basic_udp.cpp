@@ -98,7 +98,7 @@ TEST(cx_io_socket, basic_async_udp) {
 	ASSERT_TRUE(server.open());
 	ASSERT_TRUE(udp_client.open(client_addr));
 
-	udp_client.async_send(buffer_type(client_buf.rdptr(), client_buf.rdsize()),
+	udp_client.async_sendto(buffer_type(client_buf.rdptr(), client_buf.rdsize()),
 		client_addr ,
 		[&](const std::error_code& ec, int sz, const cx::io::ip::udp::address&  )
 	{
@@ -117,9 +117,8 @@ TEST(cx_io_socket, basic_async_udp) {
 	ASSERT_TRUE(server.echo());
 
 	auto buf = buffer_type(client_buf.wrptr(), client_buf.wrsize());
-	udp_client.async_recv(
+	udp_client.async_recvfrom(
 		buf,
-		client_addr,
 		[&](const std::error_code& ec, int sz, const cx::io::ip::udp::address& )
 	{
 		ecode = ec;

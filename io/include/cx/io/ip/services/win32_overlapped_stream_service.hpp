@@ -41,6 +41,7 @@ namespace cx::io::ip {
 		using read_operation = cx::io::basic_read_operation<this_type, operation_type>;
 		using readn_operation = cx::io::readn_operation<this_type, operation_type>;
 		using write_operation = cx::io::basic_write_operation<this_type, operation_type>;
+		using writen_operation = cx::io::writen_operation<this_type, operation_type>;
 
 		template <typename HandlerType>
 		using connect_operation = cx::io::ip::basic_connect_operation<HandlerType, this_type, operation_type>;
@@ -246,6 +247,77 @@ namespace cx::io::ip {
 			CX_UNUSED(op);
 			return true;
 		}
+
+		template <typename HandlerType>
+		static void writen(
+			const descriptor_type& descriptor,
+			const buffer_type& buf,
+			HandlerType&& handler)
+		{
+			writen_operation* op = new handler_operation<writen_operation, HandlerType>(
+				std::forward<HandlerType>(handler));
+			op->buffer().reset(buf.base(), buf.length());
+
+			const int type = 1;
+
+			bool need_request = descriptor->ops[type].empty();
+			descriptor->ops[type].add_tail(op);
+
+			if (!mux_type::good(descriptor)) {
+				descriptor->engine.post(mux_type::drain_ops(descriptor,
+					std::make_error_code(std::errc::bad_file_descriptor)));
+				return;
+			}
+
+			if (need_request)
+				write_request(descriptor, op);
+		}
+
+		static void write_request(
+			const descriptor_type& descriptor,
+			writen_operation* op)
+		{
+			decltype(descriptor->overlapped[1])& overlapped{ descriptor->overlapped[1] };
+			overlapped.hold(descriptor);
+
+			DWORD flag = 0;
+			DWORD bytes_transferred = 0;
+			if (WSASend(mux_type::socket_handle(descriptor)
+				, op->buffer().raw_buffer()
+				, 1
+				, &bytes_transferred
+				, flag
+				, overlapped.ptr()
+				, nullptr) == SOCKET_ERROR)
+			{
+				if (WSAGetLastError() != WSA_IO_PENDING) {
+					overlapped.unhold();
+					descriptor->engine.post(mux_type::drain_ops(descriptor,
+						cx::system_error()));
+					return;
+				}
+			}
+		}
+
+		static bool write_complete(
+			const descriptor_type& descriptor,
+			writen_operation* op)
+		{
+			if (op->error() || op->size() < 0) {
+				op->set(op->error(), op->total_write_size());
+				return true;
+			}
+
+			op->consume(op->size());
+
+			if (op->buffer().length() == 0) {
+				op->set(op->error(), op->total_write_size());
+				return true;
+			}
+			write_request(descriptor, op);
+			return false;
+		}
+
 
 		template <typename HandlerType>
 		static void connect(
