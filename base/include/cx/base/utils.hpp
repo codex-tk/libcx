@@ -139,6 +139,16 @@ namespace cx {
 	}
 	// ]]
 
+	/**
+	 * @brief 
+	 * 
+	 * @param ptr 
+	 * @param size 
+	 * @param space 
+	 * @param crlf 
+	 * @return std::string 
+	 */
+	std::string hex_str(void* ptr, const int size, const int space = 4, const int crlf = 16);
 }
 
 #endif

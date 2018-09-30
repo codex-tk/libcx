@@ -55,4 +55,22 @@ namespace cx {
 		return name;
 #endif    
 	}
+	
+	std::string hex_str(void* ptr, const int size, const int space, const int crlf) {
+		uint8_t* p = static_cast<uint8_t*>(ptr);
+		const char map[] = "0123456789ABCDEF";
+		std::string ans;
+		ans.reserve(size * 2 + size / space + size / crlf);
+		for ( int i = 0 ; i < size ; ++i ) {
+			ans += map[p[i] >> 4];
+			ans += map[p[i] & 0x0f];
+			if((i + 1) % space == 0) {
+				ans += ' ';
+			}			
+			if((i + 1) % crlf == 0) {
+				ans += "\r\n";
+			}
+		}
+		return ans;
+	}
 }

@@ -13,21 +13,18 @@
 #include "gprintf.hpp"
 
 TEST(cx_io_ip_icmp, ping){
-    cx::io::engine e;
-    cx::io::ip::icmp::socket fd(e);
-	bool result = fd.open(cx::io::ip::icmp::address::any(0, AF_INET));
-#if defined(CX_PLATFORM_WIN32)
-    ASSERT_TRUE(result);
-#else
-	return;
+#if !defined(CX_PLATFORM_WIN32)
+	return
 #endif
+	cx::io::engine e;
+	cx::io::ip::icmp::socket fd(e);
+	ASSERT_TRUE(fd.open(cx::io::ip::icmp::address::any(0, AF_INET)));
 	
-	cx::io::ip::icmp::address to("192.168.1.1", 0, AF_INET);
+	cx::io::ip::icmp::address to("127.0.0.1", 0, AF_INET);
 	cx::io::ip::icmp::icmphdr hdr;
 
 	hdr.icmp_type = cx::io::ip::icmp::type::echo;
 	hdr.icmp_code = 0;
-	hdr.icmp_checksum = 0;
 	hdr.icmp_sequence = 0;
 	hdr.icmp_id = 0x81;
 	hdr.icmp_checksum = 0;
@@ -43,25 +40,11 @@ TEST(cx_io_ip_icmp, ping){
 		ASSERT_FALSE(ec);
 		ASSERT_TRUE(size > 0);
 		buf.commit(size);
-		
-		//const char map[] = "01234567890ABCDEF";
-		//std::string output;
-		//for (int i = 0; i < size; ++i) {
-		//	if (i != 0 && i % 4 == 0) output += " ";
-		//	uint8_t* ptr = buf.rdptr() + i;
-		//	output += map[(*ptr) >> 4];
-		//	output += map[*ptr & 0x0f];
-		//}
-		//gprintf("Recv : %s", output.c_str());
-		
 		cx::io::ip::iphdr* iphdr = reinterpret_cast<cx::io::ip::iphdr*>(buf.rdptr());
 		ASSERT_TRUE(iphdr->length() <= buf.rdsize());
 		buf.consume(iphdr->length());
 		ASSERT_TRUE(buf.rdsize() >= sizeof(cx::io::ip::icmp::icmphdr));
 		cx::io::ip::icmp::icmphdr* icmphdr = reinterpret_cast<cx::io::ip::icmp::icmphdr*>(buf.rdptr());
-		//gprintf("icmp echo type(%d) code(%d) seq(%d) id(%d) size(%d) ipver(%d) iplen(%d)",
-		//	icmphdr->icmp_type, icmphdr->icmp_code, icmphdr->icmp_sequence, icmphdr->icmp_id,
-		//	size, iphdr->ver(), iphdr->length());
 		ASSERT_EQ(icmphdr->icmp_type, cx::io::ip::icmp::type::echo_reply);
 	});
 

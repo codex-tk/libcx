@@ -9,6 +9,15 @@
 #include <gtest/gtest.h>
 #include <cx/base/utils.hpp>
 
+void gprintf(const char* fmt, ...) {
+	printf("[   USER   ] ");
+	va_list args;
+	va_start(args, fmt);
+	vprintf(fmt, args);
+	va_end(args);
+	printf("\n");
+}
+
 TEST(cx_util, checksum){
 	int value = 32;
 	ASSERT_EQ(cx::checksum(&value, sizeof(value)), 65503);
@@ -46,4 +55,19 @@ TEST(cx_util, clazz) {
 TEST(cx_util, null_type_size) {
 	struct empty {};
 	ASSERT_EQ(sizeof(empty), 1);
+}
+
+TEST(cx_util, hex_str){
+	int val[8] = {
+		0x12345678 ,
+		0x34567812 ,
+		0x56781234 ,
+		0x78123456 ,
+		0x12345678 ,
+		0x34567812 ,
+		0x56781234 ,
+		0x78123456 };
+
+	auto str = cx::hex_str(val,sizeof(int) * 8);
+	gprintf("%s" , str.c_str());
 }
