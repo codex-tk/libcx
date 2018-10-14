@@ -1,5 +1,18 @@
 {
     "files.associations": {
-        "map": "cpp"
+        "map": "cpp",
+        "memory": "cpp",
+        "xmemory0": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "initializer_list": "cpp",
+        "list": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "xhash": "cpp",
+        "xstring": "cpp",
+        "xtree": "cpp"
     }
 }
