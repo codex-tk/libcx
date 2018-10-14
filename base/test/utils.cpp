@@ -8,6 +8,7 @@
 
 #include <cx/base/utils.hpp>
 #include <gtest/gtest.h>
+#include <cstdarg>
 
 void gprintf(const char *fmt, ...) {
     printf("[   USER   ] ");

@@ -14,7 +14,7 @@
 
 TEST(cx_io_ip_icmp, ping){
 #if !defined(CX_PLATFORM_WIN32)
-	return
+	return;
 #endif
 	cx::io::engine e;
 	cx::io::ip::icmp::socket fd(e);
