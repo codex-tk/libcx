@@ -53,7 +53,7 @@ namespace cx::io::ip {
 				return _overlapped.ptr();
 			}
 		private:
-			cx::io::mux::OVERLAPPEDEX_OP<descriptor_type, operation_type> _overlapped;
+			typename mux_type::overlapped_op _overlapped;
 		};
 
 		template <typename HandlerType>

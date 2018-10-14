@@ -6,9 +6,9 @@
  * @date 2018-08-19
  */
 
+#include <cstdarg>
 #include <cx/base/utils.hpp>
 #include <gtest/gtest.h>
-#include <cstdarg>
 
 void gprintf(const char *fmt, ...) {
     printf("[   USER   ] ");
@@ -24,7 +24,7 @@ TEST(cx_util, checksum) {
     ASSERT_EQ(cx::checksum(&value, sizeof(value)), 65503);
 
     char hello[] = "hello";
-    ASSERT_EQ(cx::checksum(hello, strlen(hello)), 11708);
+    ASSERT_EQ(cx::checksum(hello, static_cast<int>(strlen(hello))), 11708);
 }
 
 TEST(cx_util, clazz) {

@@ -40,7 +40,7 @@ private:
 void async_accept(cx::io::engine& e, cx::io::ip::tcp::acceptor& acceptor) {
 	std::shared_ptr<session> ptr(std::make_shared<session>(e));
 	acceptor.async_accept(ptr->socket(),
-		[&, ptr](const std::error_code& ec, cx::io::ip::tcp::address& addr)
+		[&, ptr](const std::error_code& , cx::io::ip::tcp::address& )
 	{
 		std::cout << "Open" << std::endl;
 		ptr->do_read();
@@ -49,6 +49,8 @@ void async_accept(cx::io::engine& e, cx::io::ip::tcp::acceptor& acceptor) {
 }
 
 int main(int argc, char* argv[]) {
+	CX_UNUSED(argc);
+	CX_UNUSED(argv);
 	cx::io::engine e;
 	cx::io::ip::tcp::acceptor acceptor(e);
 
