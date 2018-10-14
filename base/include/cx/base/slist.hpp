@@ -8,128 +8,116 @@
 #ifndef __cx_base_slist_h__
 #define __cx_base_slist_h__
 
+#include <cx/base/defines.hpp>
+
 namespace cx {
 
-	/**
-	 * @brief
-	 *
-	 * @tparam T
-	 */
-	template < typename T > class slist {
-	public:
-		using value_type = T;
+/**
+ * @brief
+ *
+ * @tparam T
+ */
+template <typename T> class slist {
+public:
+    using value_type = T;
 
-        /**
-         * @brief 
-         * 
-         */
-		class node {
-		public:			
-			T *next(void) { return _next; }
-			T *next(T *t) {
-				std::swap(t, _next);
-				return t;
-			}
-		protected:
-			node(void) : _next(nullptr) {}
-		private:
-			T *_next;
-		};
-        
-		slist(void) noexcept;
+    /**
+     * @brief
+     *
+     */
+    class node {
+    public:
+        T *next(void) { return _next; }
+        T *next(T *t) {
+            std::swap(t, _next);
+            return t;
+        }
 
-		slist(slist &&rhs);
+    protected:
+        node(void) : _next(nullptr) {}
 
-		~slist(void) = default;
+    private:
+        T *_next;
+    };
 
-		template <class U>
-		void swap(slist<U> &rhs);
+    slist(void) noexcept;
 
-		void add_tail(T *node);
+    slist(slist &&rhs);
 
-		void add_tail(slist<T> &&rhs);
+    ~slist(void) = default;
 
-		T *head(void);
+    template <class U> void swap(slist<U> &rhs);
 
-		T *remove_head(void);
+    void add_tail(T *node);
 
-		bool empty(void);
-	private:
-		T *_head;
-		T *_tail;
-	};
+    void add_tail(slist<T> &&rhs);
 
-	template <typename T>
-	slist<T>::slist(void) noexcept
-		: _head(nullptr), _tail(nullptr) {}
+    T *head(void);
 
-	template <typename T>
-	slist<T>::slist(slist<T>&& rhs)
-		: _head(rhs._head), _tail(rhs._tail)
-	{
-		rhs._head = rhs._tail = nullptr;
-	}
+    T *remove_head(void);
 
-	template <typename T>
-	template <class U>
-	void slist<T>::swap(slist<U> &rhs) {
-		std::swap(_head, rhs._head);
-		std::swap(_tail, rhs._tail);
-	}
+    bool empty(void);
 
-	template <typename T>
-	void slist<T>::add_tail(T *node) {
-		if (node == nullptr) return;
-		if (_head == nullptr) {
-			_head = _tail = node;
-		}
-		else {
-			_tail->next(node);
-			_tail = node;
-		}
-		node->next(nullptr);
-	}
+private:
+    T *_head;
+    T *_tail;
+};
 
-	template <typename T>
-	void slist<T>::add_tail(slist<T>&& rhs) {
-		if (rhs._head == nullptr || rhs._tail == nullptr)
-			return;
+template <typename T>
+slist<T>::slist(void) noexcept : _head(nullptr), _tail(nullptr) {}
 
-		if (_head == nullptr) {
-			_head = rhs._head;
-		}
-		else {
-			_tail->next(rhs._head);
-		}
-		_tail = rhs._tail;
-		rhs._head = rhs._tail = nullptr;
-	}
-
-	template <typename T>
-	T *slist<T>::head(void) {
-		return _head;
-	}
-
-	template <typename T>
-	T *slist<T>::remove_head(void) {
-		assert(_head != nullptr);
-		if (_head == nullptr)
-			return nullptr;
-
-		T *head = _head;
-		if (_head == _tail) {
-			_head = _tail = nullptr;
-		}
-		else {
-			_head = static_cast<T *>(_head->next());
-		}
-		return head;
-	}
-
-	template <typename T>
-	bool slist<T>::empty(void) {
-		return _head == nullptr;
-	}
+template <typename T>
+slist<T>::slist(slist<T> &&rhs) : _head(rhs._head), _tail(rhs._tail) {
+    rhs._head = rhs._tail = nullptr;
 }
+
+template <typename T> template <class U> void slist<T>::swap(slist<U> &rhs) {
+    std::swap(_head, rhs._head);
+    std::swap(_tail, rhs._tail);
+}
+
+template <typename T> void slist<T>::add_tail(T *node) {
+    if (node == nullptr)
+        return;
+    if (_head == nullptr) {
+        _head = _tail = node;
+    } else {
+        _tail->next(node);
+        _tail = node;
+    }
+    node->next(nullptr);
+}
+
+template <typename T> void slist<T>::add_tail(slist<T> &&rhs) {
+    if (rhs._head == nullptr || rhs._tail == nullptr)
+        return;
+
+    if (_head == nullptr) {
+        _head = rhs._head;
+    } else {
+        _tail->next(rhs._head);
+    }
+    _tail = rhs._tail;
+    rhs._head = rhs._tail = nullptr;
+}
+
+template <typename T> T *slist<T>::head(void) { return _head; }
+
+template <typename T> T *slist<T>::remove_head(void) {
+    assert(_head != nullptr);
+    if (_head == nullptr)
+        return nullptr;
+
+    T *head = _head;
+    if (_head == _tail) {
+        _head = _tail = nullptr;
+    } else {
+        _head = static_cast<T *>(_head->next());
+    }
+    return head;
+}
+
+template <typename T> bool slist<T>::empty(void) { return _head == nullptr; }
+} // namespace cx
 
 #endif

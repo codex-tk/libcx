@@ -6,7 +6,7 @@
         {
             "label": "build debug",
             "type": "shell",
-            "command": "cmake --build ./build --config Debug --target ALL_BUILD -- /m /property:GenerateFullPaths=true",
+            "command": "cmake --build ./z_build --config Debug --target ALL_BUILD -- /m /property:GenerateFullPaths=true",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -16,7 +16,7 @@
         {
             "label": "build release",
             "type": "shell",
-            "command": "cmake --build ./build --config Release --target ALL_BUILD -- /m /property:GenerateFullPaths=true"
+            "command": "cmake --build ./z_build --config Release --target ALL_BUILD -- /m /property:GenerateFullPaths=true"
         },
         {
             "label": "compile command",

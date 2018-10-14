@@ -17,7 +17,7 @@
 
 TEST(win32, handle_types) {
 	ASSERT_EQ(-1, INVALID_SOCKET);
-	ASSERT_EQ(-1, (int)INVALID_HANDLE_VALUE);
+	ASSERT_EQ( reinterpret_cast<HANDLE>(-1), INVALID_HANDLE_VALUE);
 }
 
 #endif

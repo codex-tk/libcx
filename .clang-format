@@ -1,0 +1,6 @@
+# We'll use defaults from the LLVM style, but with 4 columns indentation.
+# http://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: LLVM
+IndentWidth: 4
+AccessModifierOffset: -4
+AllowShortCaseLabelsOnASingleLine: true

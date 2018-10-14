@@ -1,6 +1,6 @@
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @file removable_priority_queue.hpp
  * @author ghtak
  * @date 2018-08-26
@@ -12,21 +12,21 @@
 
 namespace cx::stdext {
 
-	template <typename T, typename Contaner = std::vector<T>, typename Cmp = std::less<T>>
-	class removable_priority_queue
-		: public std::priority_queue<T, Contaner, Cmp> {
-	public:
-		bool remove(const T &value) {
-			auto it = std::find(this->c.begin(), this->c.end(), value);
-			if (it != this->c.end()) {
-				this->c.erase(it);
-				std::make_heap(this->c.begin(), this->c.end(), this->comp);
-				return true;
-			} else {
-				return false;
-			}
-		}
-	};
+template <typename T, typename Contaner = std::vector<T>,
+          typename Cmp = std::less<T>>
+class removable_priority_queue : public std::priority_queue<T, Contaner, Cmp> {
+public:
+    bool remove(const T &value) {
+        auto it = std::find(this->c.begin(), this->c.end(), value);
+        if (it != this->c.end()) {
+            this->c.erase(it);
+            std::make_heap(this->c.begin(), this->c.end(), this->comp);
+            return true;
+        } else {
+            return false;
+        }
+    }
+};
 
 } // namespace cx::stdext
 

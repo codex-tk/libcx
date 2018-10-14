@@ -14,25 +14,24 @@
 namespace cx {
 
 #if defined(CX_PLATFORM_WIN32)
-	class critical_section {
-	public:
-		critical_section(void) { ::InitializeCriticalSectionAndSpinCount(&_cs, 4000); }
+class critical_section {
+public:
+    critical_section(void) {
+        ::InitializeCriticalSectionAndSpinCount(&_cs, 4000);
+    }
+    ~critical_section(void) { ::DeleteCriticalSection(&_cs); }
+    void lock() { ::EnterCriticalSection(&_cs); }
+    bool try_lock() { return ::TryEnterCriticalSection(&_cs) == TRUE; }
+    void unlock() { return ::LeaveCriticalSection(&_cs); }
 
-		~critical_section(void) { ::DeleteCriticalSection(&_cs); }
-
-		void lock() { ::EnterCriticalSection(&_cs); }
-
-		bool try_lock() { return ::TryEnterCriticalSection(&_cs) == TRUE; }
-
-		void unlock() { return ::LeaveCriticalSection(&_cs); }
-	private:
-		CRITICAL_SECTION _cs;
-	};
-	using lock = critical_section;
+private:
+    CRITICAL_SECTION _cs;
+};
+using lock = critical_section;
 #else
-	using lock = std::recursive_mutex;
+using lock = std::recursive_mutex;
 #endif
 
-}
+} // namespace cx
 
 #endif
