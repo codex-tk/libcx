@@ -13,6 +13,9 @@
         "vector": "cpp",
         "xhash": "cpp",
         "xstring": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "iterator": "cpp",
+        "xutility": "cpp",
+        "xxatomic": "cpp"
     }
 }
