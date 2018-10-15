@@ -63,7 +63,7 @@ namespace cx::io {
 			return static_cast<WSABUF*>(const_cast<buffer*>(this));
 		}
 #else
-		void* base(void) const { return iov_base;; }
+		void* base(void) const { return iov_base; }
 
 		size_type length(void) const { return iov_len; }
 

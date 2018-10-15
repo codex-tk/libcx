@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cx/io/services.hpp>
+#include <cx/base/basic_buf.hpp>
 
 class session : public std::enable_shared_from_this<session> {
 public:
@@ -21,7 +22,7 @@ public:
 			}
 			_read_buffer.commit(size);
 			auto wrbuf = cx::deepcopy(_read_buffer);
-			auto wb = cx::io::buffer(wrbuf.rdptr(), wrbuf.rdsize());
+			auto wb = cx::io::buffer(wrbuf.rd_ptr(), wrbuf.size());
 			_fd.async_send(wb,
 				[&, pthis, wrbuf](const std::error_code& , int) {
 				std::cout << "async_send" << std::endl;
@@ -34,7 +35,7 @@ public:
 	cx::io::ip::tcp::socket& socket(void) { return _fd; }
 private:
 	cx::io::ip::tcp::socket _fd;
-	cx::basic_buffer<char> _read_buffer;
+	cx::shared_buf _read_buffer;
 };
 
 void async_accept(cx::io::engine& e, cx::io::ip::tcp::acceptor& acceptor) {

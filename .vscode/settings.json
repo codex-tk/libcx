@@ -16,6 +16,9 @@
         "xtree": "cpp",
         "iterator": "cpp",
         "xutility": "cpp",
-        "xxatomic": "cpp"
+        "xxatomic": "cpp",
+        "xstddef": "cpp",
+        "sstream": "cpp",
+        "unordered_set": "cpp"
     }
 }

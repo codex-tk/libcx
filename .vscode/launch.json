@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) tests debug",
+            "name": "(Windows) cx.base.test debug",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/tests/Debug/tests.exe",
+            "program": "${workspaceFolder}/z_build/base/test/Debug/cx.base.test.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
