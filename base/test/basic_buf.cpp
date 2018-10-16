@@ -53,7 +53,6 @@ TEST(cx_base_basic_buf, t0) {
     } while (0);
 }
 
-
 TEST(cx_base_basic_buf, ctor) {
     shared_buf buf(1024);
     ASSERT_EQ(buf.capacity(), 1024);
@@ -169,8 +168,11 @@ TEST(basic_buffer, consume_commit_prepare) {
         ASSERT_EQ(buf.consume(1), 1);
 }*/
 
-TEST(cx_base_basic_buf, fixed_buf){
+TEST(cx_base_basic_buf, fixed_buf) {
     fixed_buf buf;
     char raw_buf[1024];
-    buf = std::move(fixed_buf(raw_buf,1024));
+    buf = std::move(fixed_buf(raw_buf, 1024));
+
+    fixed_buf buf_with_deleter(new char[1024], 1024,
+                               [](char *ptr) { delete[] ptr; });
 }

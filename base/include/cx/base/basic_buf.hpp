@@ -107,9 +107,21 @@ public:
 
     fixed_block(pointer_type ptr, size_type sz) : _ptr(ptr), _size(sz) {}
 
-    fixed_block(fixed_block &&rhs) : _ptr(rhs._ptr), _size(rhs._size) {
+    template <typename Deleter>
+    fixed_block(pointer_type ptr, size_type sz, Deleter &&deleter)
+        : _ptr(ptr), _size(sz), _deleter(std::forward<Deleter>(deleter)) {}
+
+    fixed_block(fixed_block &&rhs)
+        : _ptr(rhs._ptr), _size(rhs._size), _deleter(std::move(rhs._deleter)) {
         rhs._ptr = nullptr;
         rhs._size = 0;
+    }
+
+    ~fixed_block(void) {
+        if (_deleter)
+            _deleter(_ptr);
+        _ptr = nullptr;
+        _size = 0;
     }
 
     void *base(void) { return _ptr; }
@@ -126,9 +138,11 @@ public:
         }
     }
     int use_count(void) { return 1; }
+
 private:
     pointer_type _ptr;
     size_type _size;
+    std::function<void(pointer_type)> _deleter;
 };
 
 template <typename ElementType, typename BlockType,
@@ -144,6 +158,11 @@ public:
 
     basic_buf(pointer_type ptr, const size_type sz)
         : _block(ptr, sz), _rd_pos(0), _wr_pos(0) {}
+
+    template <typename Deleter>
+    basic_buf(pointer_type ptr, const size_type sz, Deleter &&deleter)
+        : _block(ptr, sz, std::forward<Deleter>(deleter)), _rd_pos(0),
+          _wr_pos(0) {}
 
     basic_buf(const size_type sz) : _block(sz), _rd_pos(0), _wr_pos(0) {}
 
@@ -232,6 +251,7 @@ public:
             _rd_pos = _wr_pos = 0;
         }
     }
+
 private:
     block_type _block;
     size_type _rd_pos;
@@ -241,8 +261,7 @@ private:
 using shared_buf = cx::basic_buf<char, cx::shared_block<char>>;
 using fixed_buf = cx::basic_buf<char, cx::fixed_block<char>>;
 
-template <typename T>
-T deepcopy(T &rhs) {
+template <typename T> T deepcopy(T &rhs) {
     T nb(rhs.size());
     memcpy(nb.wr_ptr(), rhs.rd_ptr(), rhs.size());
     nb.wr_ptr(rhs.size());
