@@ -4,12 +4,12 @@
 using namespace cx;
 
 TEST(cx_base_basic_buf, t0) {
-    shared_buf null_buf;
+    shared_buf<char> null_buf;
     ASSERT_TRUE(null_buf.base() == nullptr);
     ASSERT_TRUE(null_buf.wr_ptr() == nullptr);
     ASSERT_TRUE(null_buf.rd_ptr() == nullptr);
 
-    shared_buf test_buf(10);
+    shared_buf<char> test_buf(10);
     ASSERT_EQ(test_buf.block().use_count(), 1);
     ASSERT_TRUE(test_buf.base() != nullptr);
     ASSERT_TRUE(test_buf.wr_ptr() != nullptr);
@@ -18,7 +18,7 @@ TEST(cx_base_basic_buf, t0) {
     ASSERT_EQ(test_buf.wr_ptr(), test_buf.rd_ptr());
 
     do {
-        shared_buf buf_copy_ctor(test_buf);
+        shared_buf<char> buf_copy_ctor(test_buf);
         ASSERT_EQ(test_buf.block().use_count(), 2);
     } while (0);
 
@@ -47,21 +47,21 @@ TEST(cx_base_basic_buf, t0) {
     ASSERT_EQ(test_buf.space(), 10);
 
     do {
-        shared_buf buf_move_ctor(std::move(test_buf));
+        shared_buf<char> buf_move_ctor(std::move(test_buf));
         ASSERT_TRUE(test_buf.size() == 0);
         ASSERT_TRUE(test_buf.space() == 0);
     } while (0);
 }
 
 TEST(cx_base_basic_buf, ctor) {
-    shared_buf buf(1024);
+    shared_buf<char> buf(1024);
     ASSERT_EQ(buf.capacity(), 1024);
     ASSERT_EQ(buf.space(), 1024);
     ASSERT_EQ(buf.size(), 0);
 }
 
 TEST(cx_base_basic_buf, skip) {
-    shared_buf buf(1024);
+    shared_buf<char> buf(1024);
     ASSERT_EQ(buf.rd_ptr(24), 0);
     ASSERT_EQ(buf.wr_ptr(24), 24);
 
@@ -95,7 +95,7 @@ TEST(cx_base_basic_buf, skip) {
 }
 
 TEST(cx_base_basic_buf, ptr) {
-    shared_buf buf(1024);
+    shared_buf<char> buf(1024);
     ASSERT_EQ(buf.rd_ptr(), buf.wr_ptr());
     int i = 0;
     while (buf.space() >= static_cast<int>(sizeof(int))) {
@@ -116,35 +116,35 @@ TEST(cx_base_basic_buf, ptr) {
 }
 
 TEST(cx_base_basic_buf, owner) {
-    shared_buf buf(1024);
+    shared_buf<char> buf(1024);
     ASSERT_EQ(buf.block().use_count(), 1);
     {
-        shared_buf shared_buf(buf);
+        shared_buf<char> shared_buf(buf);
         ASSERT_EQ(buf.block().use_count(), 2);
     }
     ASSERT_EQ(buf.block().use_count(), 1);
 
-    shared_buf move(std::move(buf));
+    shared_buf<char> move(std::move(buf));
     ASSERT_EQ(move.block().use_count(), 1);
 }
 
 TEST(cx_base_basic_buf, owner1) {
-    shared_buf buf(1024);
+    shared_buf<char> buf(1024);
     ASSERT_EQ(buf.block().use_count(), 1);
     {
-        shared_buf shared_buf(0);
+        shared_buf<char> shared_buf(0);
         shared_buf = buf;
         ASSERT_EQ(buf.block().use_count(), 2);
     }
     ASSERT_EQ(buf.block().use_count(), 1);
 
-    shared_buf move(0);
+    shared_buf<char> move(0);
     move = std::move(buf);
     ASSERT_EQ(move.block().use_count(), 1);
 }
 
 TEST(cx_base_basic_buf, reserve) {
-    shared_buf buf(4);
+    shared_buf<char> buf(4);
     void *orig_ptr = buf.base();
     // 01--
     buf.wr_ptr(2);
@@ -169,10 +169,12 @@ TEST(basic_buffer, consume_commit_prepare) {
 }*/
 
 TEST(cx_base_basic_buf, fixed_buf) {
-    fixed_buf buf;
+    fixed_buf<char> buf;
     char raw_buf[1024];
-    buf = std::move(fixed_buf(raw_buf, 1024));
+    buf = std::move(fixed_buf<char>(raw_buf, 1024));
 
-    fixed_buf buf_with_deleter(new char[1024], 1024,
+    fixed_buf<char> buf_with_deleter(new char[1024], 1024,
                                [](char *ptr) { delete[] ptr; });
+
+
 }

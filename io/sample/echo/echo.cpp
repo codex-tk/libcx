@@ -35,7 +35,7 @@ public:
 	cx::io::ip::tcp::socket& socket(void) { return _fd; }
 private:
 	cx::io::ip::tcp::socket _fd;
-	cx::shared_buf _read_buffer;
+	cx::shared_buf<char> _read_buffer;
 };
 
 void async_accept(cx::io::engine& e, cx::io::ip::tcp::acceptor& acceptor) {

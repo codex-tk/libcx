@@ -23,11 +23,15 @@ public:
     static void free(void *ptr) { std::free(ptr); }
 };
 
+class nullallocator {
+public:
+    static void *alloc(const std::size_t) { return nullptr; }
+    static void free(void *) {}
+};
+
 } // namespace internal
 
-template <typename ElementType,
-          typename AllocatorType = cx::internal::mallocator,
-          typename SizeType = std::ptrdiff_t>
+template <typename ElementType, typename SizeType, typename AllocatorType>
 class shared_block {
 public:
     using element_type = ElementType;
@@ -96,7 +100,7 @@ private:
     ctrl_block *_ctrl_block;
 };
 
-template <typename ElementType, typename SizeType = std::ptrdiff_t>
+template <typename ElementType, typename SizeType, typename AllocatorType>
 class fixed_block {
 public:
     using element_type = ElementType;
@@ -145,14 +149,14 @@ private:
     std::function<void(pointer_type)> _deleter;
 };
 
-template <typename ElementType, typename BlockType,
-          typename SizeType = std::ptrdiff_t>
+template <typename ElementType, typename SizeType, typename AllocatorType,
+          template <typename E, typename S, typename A> class BlockType>
 class basic_buf {
 public:
     using element_type = ElementType;
     using pointer_type = element_type *;
-    using block_type = BlockType;
     using size_type = SizeType;
+    using block_type = BlockType<element_type, size_type, AllocatorType>;
 
     basic_buf(void) noexcept : _rd_pos(0), _wr_pos(0) {}
 
@@ -258,8 +262,13 @@ private:
     size_type _wr_pos;
 };
 
-using shared_buf = cx::basic_buf<char, cx::shared_block<char>>;
-using fixed_buf = cx::basic_buf<char, cx::fixed_block<char>>;
+template < typename ElementType >
+using shared_buf = cx::basic_buf<ElementType, std::ptrdiff_t, cx::internal::mallocator,
+                                 cx::shared_block>;
+                                 
+template < typename ElementType >
+using fixed_buf = cx::basic_buf<ElementType, std::ptrdiff_t,
+                                cx::internal::nullallocator, cx::fixed_block>;
 
 template <typename T> T deepcopy(T &rhs) {
     T nb(rhs.size());
